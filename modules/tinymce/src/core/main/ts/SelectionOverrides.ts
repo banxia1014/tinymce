@@ -5,18 +5,18 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { Element, HTMLElement, MouseEvent, Node, Range } from '@ephox/dom-globals';
-import { Arr, Obj, Unicode } from '@ephox/katamari';
-import { Attr, Compare, Element as SugarElement, Remove, SelectorFilter, SelectorFind } from '@ephox/sugar';
+import {Element, HTMLElement, MouseEvent, Node, Range} from '@ephox/dom-globals';
+import {Arr, Obj, Unicode} from '@ephox/katamari';
+import {Attr, Compare, Element as SugarElement, Remove, SelectorFilter, SelectorFind} from '@ephox/sugar';
 import Editor from './api/Editor';
 import Env from './api/Env';
 import VK from './api/util/VK';
 import * as CaretContainer from './caret/CaretContainer';
 import CaretPosition from './caret/CaretPosition';
-import { isAfterContentEditableFalse, isBeforeContentEditableFalse } from './caret/CaretPositionPredicates';
+import {isAfterContentEditableFalse, isBeforeContentEditableFalse} from './caret/CaretPositionPredicates';
 import * as CaretUtils from './caret/CaretUtils';
-import { CaretWalker } from './caret/CaretWalker';
-import { FakeCaret, isFakeCaretTarget } from './caret/FakeCaret';
+import {CaretWalker} from './caret/CaretWalker';
+import {FakeCaret, isFakeCaretTarget} from './caret/FakeCaret';
 import * as LineUtils from './caret/LineUtils';
 import NodeType from './dom/NodeType';
 import RangePoint from './dom/RangePoint';
@@ -70,7 +70,6 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
   };
 
   const setRange = function (range: Range) {
-    // console.log('setRange', range);
     if (range) {
       editor.selection.setRng(range);
     }
@@ -147,11 +146,11 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
 
     const handleTouchSelect = function (editor: Editor) {
       editor.on('tap', (e) => {
-          const contentEditableRoot = getContentEditableRoot(editor, e.target);
-          if (isContentEditableFalse(contentEditableRoot)) {
-            e.preventDefault();
-            setContentEditableSelection(CefUtils.selectNode(editor, contentEditableRoot));
-          }
+        const contentEditableRoot = getContentEditableRoot(editor, e.target);
+        if (isContentEditableFalse(contentEditableRoot)) {
+          e.preventDefault();
+          setContentEditableSelection(CefUtils.selectNode(editor, contentEditableRoot));
+        }
       }, true);
     };
 
@@ -417,7 +416,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
     }
 
     targetClone = origTargetClone = node.cloneNode(true);
-    e = editor.fire('ObjectSelected', { target: node, targetClone });
+    e = editor.fire('ObjectSelected', {target: node, targetClone});
     if (e.isDefaultPrevented()) {
       return null;
     }

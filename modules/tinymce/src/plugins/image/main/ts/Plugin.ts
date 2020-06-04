@@ -9,11 +9,13 @@ import PluginManager from 'tinymce/core/api/PluginManager';
 import Commands from './api/Commands';
 import FilterContent from './core/FilterContent';
 import Buttons from './ui/Buttons';
+import Selection from './core/Selection';
 
 export default function () {
   PluginManager.add('image', (editor) => {
     FilterContent.setup(editor);
     Buttons.register(editor);
+    Selection.setup(editor);
     Commands.register(editor);
   });
 }

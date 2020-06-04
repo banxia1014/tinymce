@@ -10,125 +10,150 @@
   <meta name=apple-mobile-web-app-status-bar-style content=blank>
   <meta http-equiv=Content-Type content="text/html; charset=utf-8">
   <meta charset=utf-8>
-  <link rel="stylesheet" href="../../../../js/tinymce/style.css">
-  <script src="../../../../js/tinymce/tinymce.js"></script>
-  <script>
-    tinymce.init({
-      selector: '#mytextarea',
-      mode : "textareas",
-      mobile: {
-        skin : "oxide",
-        menubar: false,
-        plugins: [ 'lists', 'autolink','image','code', 'preview','link','noneditable','hr','media','advlist','wordcount' ],
-        statusbar: false,
-        toolbar: [],
-        contextmenu: '',
-        placeholder: '请输入内容...',
-        content_css: '../../../../js/tinymce/style.css',
-        content_css_cors: true,
-        fullscreen: false,
-        height: window.screen.height,
-        editor_css : "style.css",
-        remove_trailing_brs: true,
-        auto_focus: true,
-        branding: false
-      },
-      setup: function (editor) {
-
-        editor.on('click',function(e){
-          // 查找鼠标当前选中的段落的所有样式
-          RE.enabledEditingItems(e)
-
-          // 视频点击样式
-          var currentNode = tinymce.activeEditor.selection.getNode();
-          console.log(currentNode)
-          console.log('点击点击')
-          if((currentNode && !currentNode.classList.contains('qf_insert_video')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video'))){
-            $("#mytextarea_ifr").contents().find('.qf_insert_video').removeClass('borderline')
-            $("#mytextarea_ifr").contents().find('.closeImg').remove()
-          }
-
-          // // 点击链接去编辑
-          // if(e.target.classList.contains('qf_insert_link')){
-          // 	RE.jumpEditLink(e.target)
-          // }
-        })
-        editor.on('mousedown', function (e) {
-        })
-        editor.on('input',function(e){
-          RE.callback()
-        })
-        editor.on('keyup',function (e) {
-          var currentNode = tinymce.activeEditor.selection.getNode();
-          var KEY_DELETE = 8; // 删除键
-          if(e.which === KEY_DELETE){
-
-            // 删除的时候，如果是删到视频，就blur掉，然后选中视频
-            if(currentNode.children[0] && currentNode.children[0].classList.contains('qf_insert_video')){
-              // 加边框
-              currentNode.children[0].classList.add('borderline')
-
-              // 加关闭按钮
-              RE.videoSelected(currentNode)
-
-              // 编辑器blur掉光标
-              RE.blur()
-
-              // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
-              if(currentNode.nextElementSibling === null){
-                var pEle = document.createElement('p')
-                pEle.style.height = '15px'
-                currentNode.parentNode.appendChild(pEle)
-              }
-            }
-
-            // 删除的时候，如果是删到图片，就blur掉，然后选中图片
-
-            console.log(currentNode)
-            if(currentNode && currentNode.classList.contains('qf_image')){
-              // 加边框
-              currentNode.classList.add('borderline')
-
-              // 编辑器blur掉光标
-              RE.blur()
-
-              // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
-              if(currentNode.nextElementSibling === null){
-                var pEle = document.createElement('p')
-                pEle.style.height = '15px'
-                currentNode.parentNode.appendChild(pEle)
-              }
-
-            }
-          }
-
-
-
-
-          // 光标不在视频上，就取消选中的状态
-          if(currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video')){
-            let $ = tinymce.dom.DomQuery;
-            $('.qf_insert_video').removeClass('borderline')
-            $('.closeImg').remove()
-          }
-        })
-        editor.on('change',function (e) {
-          // RE.callback()
-        })
-      }
-    });
-  </script>
+  <link rel="stylesheet" href="../../demo/css/style.css">
 </head>
 <body>
-<button onclick="RE.getEditHtml()">点我加粗</button>
+<button onclick="RE.setBold()">点我加粗</button>
+<button onclick="RE.setItalic()">点我变成斜体</button>
+<button onclick="RE.setQuota()">引用</button>
+<button onclick="RE.setBullets()">无序</button>
 <!--<button onclick="tinymce.activeEditor.execCommand('mceMedia');">无序列表</button>-->
 <!--<button onclick="RE.replaceLink()">无序列表</button>-->
-<button onclick="insertVideo()">无序列表</button>
+<button onclick="RE.insertImage()">插入图片</button>
 <textarea id="mytextarea"></textarea>
 <!--<script src="http://libs.baidu.com/zepto/0.8/zepto.min.js"></script>-->
 <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
-<script type="text/javascript" src="../../../../js/tinymce/rich_editor.js"></script>
+<script type="text/javascript" src="../../main/js/rich_editor.js"></script>
+<script src="../../../../../../js/tinymce/tinymce.js"></script>
 <script type="text/javascript">
+
+  tinymce.init({
+    selector: '#mytextarea',
+    mode : "textareas",
+    mobile: {
+      menubar: false,
+      plugins: [ 'lists', 'autolink','image','code', 'preview','link','noneditable','hr','media','advlist','wordcount' ],
+      statusbar: false,
+      toolbar: [],
+      contextmenu: '',
+      placeholder: '请输入内容...',
+      content_css: '../../demo/css/style.css',
+      content_css_cors: true,
+      fullscreen: false,
+      height: window.screen.height,
+      editor_css : "style.css",
+      remove_trailing_brs: true,
+      auto_focus: true,
+      branding: false
+    },
+    setup: function (editor) {
+      editor.on('click',function(e){
+        // 查找鼠标当前选中的段落的所有样式
+        RE.enabledEditingItems(e)
+
+        // 视频点击样式
+        var currentNode = tinymce.activeEditor.selection.getNode();
+
+        // 点击非视频区域，视频选中样式取消
+        if((currentNode && !currentNode.classList.contains('qf_insert_video')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video'))){
+          $("#mytextarea_ifr").contents().find('.qf_insert_video').removeClass('borderline')
+          $("#mytextarea_ifr").contents().find('.closeImg').remove()
+        }
+
+        // 点击非图片区域，图片选中样式取消
+        if((currentNode && !currentNode.classList.contains('qf_image')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_image'))){
+          $("#mytextarea_ifr").contents().find('.qf_image').removeClass('borderline')
+          $("#mytextarea_ifr").contents().find('.closeImg').remove()
+        }
+
+        // // 点击链接去编辑
+        // if(e.target.classList.contains('qf_insert_link')){
+        // 	RE.jumpEditLink(e.target)
+        // }
+      })
+      editor.on('mousedown', function (e) {
+      })
+      editor.on('input',function(e){
+        RE.callback()
+      })
+      editor.on('keyup',function (e) {
+        var currentNode = tinymce.activeEditor.selection.getNode();
+        var KEY_DELETE = 8; // 删除键
+        if(e.which === KEY_DELETE){
+
+          // 删除的时候，如果是删到视频，就blur掉，然后选中视频
+          if(currentNode.children[0] && currentNode.children[0].classList.contains('qf_insert_video')){
+            // 加边框
+            currentNode.children[0].classList.add('borderline')
+
+            // 加关闭按钮
+            RE.videoSelected(currentNode)
+
+            // 编辑器blur掉光标
+            RE.blur()
+
+            // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
+            if(currentNode.nextElementSibling === null){
+              var pEle = document.createElement('p')
+              pEle.style.height = '15px'
+              currentNode.parentNode.appendChild(pEle)
+            }
+          }
+
+
+          // 删除的时候，如果是删到图片，就blur掉，然后选中图片
+          if(currentNode.children[0] && currentNode.children[0].classList.contains('qf_image')){
+            // 加边框
+            currentNode.children[0].classList.add('borderline')
+
+            // 加关闭按钮
+            RE.videoSelected(currentNode)
+
+            // 编辑器blur掉光标
+            RE.blur()
+
+            // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
+            if(currentNode.nextElementSibling === null){
+              var pEle = document.createElement('p')
+              pEle.style.height = '15px'
+              currentNode.parentNode.appendChild(pEle)
+            }
+          }
+
+          // 删除的时候，如果是删到图片，就blur掉，然后选中图片
+
+          if(currentNode && currentNode.classList.contains('qf_image')){
+            // 加边框
+            currentNode.classList.add('borderline')
+
+            // 编辑器blur掉光标
+            RE.blur()
+
+            // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
+            if(currentNode.nextElementSibling === null){
+              var pEle = document.createElement('p')
+              pEle.style.height = '15px'
+              currentNode.parentNode.appendChild(pEle)
+            }
+
+          }
+        }
+
+
+
+
+        // 光标不在视频上，就取消选中的状态
+        if(currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video')){
+          let $ = tinymce.dom.DomQuery;
+          $('.qf_insert_video').removeClass('borderline')
+          $('.closeImg').remove()
+        }
+      })
+      editor.on('change',function (e) {
+        // RE.callback()
+      })
+    }
+  });
   // setTimeout(function () {
   //     RE.setHtml('<p><video poster="https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747" controls="controls" width="375" height="281.9548872180451" data-qf-origin="with_logo_20200428_1354_1588064712337.mp4" data-qf-poster-origin="20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747" data-mce-fragment="1"><source src="https://qiance.qianfanyun.com/with_logo_20200428_1354_1588064712337.mp4" type="video/mp4" /></video></p>')
   // },300)
