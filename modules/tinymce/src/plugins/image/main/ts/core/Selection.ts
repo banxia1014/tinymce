@@ -6,20 +6,33 @@
  */
 
 import Editor from 'tinymce/core/api/Editor';
+
 declare let $: any;
 
 const setup = (editor: Editor) => {
   editor.on('click keyup touchend', () => {
     const selectedNode = editor.selection.getNode();
+    // 图片点击事件
     if (selectedNode && selectedNode.classList.contains('qf_image')) {
       $('#tinymce').blur();
       if (!selectedNode.classList.contains('borderline')) {
         selectedNode.classList.add('borderline');
         /// <reference path="./re.ts">
         RE.videoSelected(selectedNode.parentNode);
+        RE.showOperate(selectedNode);
       }
     }
 
+    // 图片操作命令行 变大变小
+    if (selectedNode && selectedNode.classList.contains('tabsize')) {
+      RE.tabSize(selectedNode);
+    }
+
+    // 图片操作命令行 添加注释
+    if (selectedNode && selectedNode.classList.contains('addnote')) {
+      RE.addNote(selectedNode);
+    }
+    // 图片备注点击
     if (selectedNode && selectedNode.classList.contains('qf_image_mark')) {
       /// <reference path="./re.ts">
       RE.clickImage(selectedNode);
