@@ -93,14 +93,24 @@ RE.setHtml = function (html) {
 RE.insertImage = function (attach) {
   var url = attach.host + attach.name
   var origin_url = attach.name
-  var html = `<p style="height: 48px;"></p>
-              <span class="qf_image big" contenteditable="false"><img src="${url}" data-qf-origin="${origin_url}" alt="" width="${attach.w}" height="${attach.h}" data-mce-src="${url}"><a class="qf_image_mark" href="javascirpt:void(0);" contenteditable="false"></a></span>
-              <p style="height: 15px;"></p>`
+  var html = `<p>&nbsp;</p>
+              <p class="qf_image big noneditable" contenteditable="false"><img src="${url}" data-qf-origin="${origin_url}" alt="" width="${attach.w}" height="${attach.h}" data-mce-src="${url}"><a class="qf_image_mark" href="javascirpt:void(0);" contenteditable="false"></a></p>
+              <p>&nbsp;</p>`
   tinymce.activeEditor.execCommand('mceInsertContent', false, html)
   // tinymce.activeEditor.selection.setNode(tinymce.activeEditor.dom.create('img', {src: 'https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg', title: 'some title'}));
 }
 
 
+// 插入图片2
+RE.insertImage2 = function (attach) {
+  var url = attach.host + attach.name
+  var origin_url = attach.name
+  var html = `<p class="h20">&nbsp;</p>
+              <figure class="qf_image big" contenteditable="false"><img src="${url}" data-qf-origin="${origin_url}" alt="" width="${attach.w}" height="${attach.h}" data-mce-src="${url}"><figcaption class="qf_image_mark" href="javascirpt:void(0);" contenteditable="false"></figcaption></figure>
+              <p class="h20">&nbsp;</p>`
+  tinymce.activeEditor.execCommand('mceInsertContent', false, html)
+  // tinymce.activeEditor.selection.setNode(tinymce.activeEditor.dom.create('img', {src: 'https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg', title: 'some title'}));
+}
 // 插入视频
 RE.insertVideo = function (video) {
   video = JSON.parse(video)
@@ -161,6 +171,39 @@ RE.videoSelected = function (currentNode) {
 
 }
 
+
+RE.imageHandleClick = function(selectedNode){
+  // 图片点击事件
+  if (selectedNode && selectedNode.classList.contains('qf_image')) {
+    RE.blur();
+    $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
+    $('#mytextarea_ifr').contents().find('.closeImg').remove();
+    $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
+
+    if (!selectedNode.classList.contains('borderline')) {
+      selectedNode.classList.add('borderline');
+      /// <reference path="./re.ts">
+      RE.videoSelected(selectedNode);
+      RE.showOperate(selectedNode);
+    }
+  }
+
+  // 图片操作命令行 变大变小
+  if (selectedNode && selectedNode.classList.contains('tabsize')) {
+    RE.tabSize(selectedNode);
+  }
+
+  // 图片操作命令行 添加注释
+  if (selectedNode && selectedNode.classList.contains('addnote')) {
+    RE.addNote(selectedNode);
+  }
+  // 图片备注点击
+  if (selectedNode && selectedNode.classList.contains('qf_image_mark')) {
+    /// <reference path="./re.ts">
+    RE.clickImage(selectedNode);
+  }
+}
+
 // 图片操作弹窗
 RE.showOperate = function (currentNode) {
   if ($('.qf_img_operate').length > 0) {
@@ -176,11 +219,12 @@ RE.showOperate = function (currentNode) {
   html.classList.add("qf_img_operate")
   // html.setAttribute('contenteditable', false)
   html.innerHTML = operateTtml
-  currentNode.parentNode.appendChild(html);
+  currentNode.appendChild(html);
 }
 
 // 图片变大变小
 RE.tabSize = function (selectedNode) {
+  RE.blur();
   const img = selectedNode.parentNode.parentNode.children[0].children[0];
   const width = img.getAttribute('width');
   if (width < document.body.clientWidth) {
@@ -397,7 +441,7 @@ RE.insertAllImages = function (attaches) {
   attaches = JSON.parse(attaches)
   if (attaches.length > 0) {
     attaches.map((item, index) => {
-      RE.insertImage(item)
+      RE.insertImage2(item)
     })
   }
 }

@@ -369,6 +369,18 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
         if (forward === false) {
           caretPosition = CaretUtils.getNormalizedRangeEndPoint(-1, rootNode, range);
 
+          if (caretPosition.getNode(true) && caretPosition.getNode(true).classList.contains('qf_image')) {
+            const element = caretPosition.getNode(true);
+            const rng = element.ownerDocument.createRange();
+            rng.setStart(element, 0);
+            rng.setEnd(element, 0);
+            editor.selection.setRng(rng);
+            editor.selection.select(element);
+            // editor.selection.setContent(editor, element);
+            // CefUtils.selectNode(editor, caretPosition.getNode(true));
+            return rng;
+          }
+
           if (isFakeCaretTarget(caretPosition.getNode(true))) {
             return showCaret(-1, caretPosition.getNode(true), false, false);
           }

@@ -26,7 +26,6 @@
 <script type="text/javascript" src="../../main/js/rich_editor.js"></script>
 <script src="../../../../../../js/tinymce/tinymce.js"></script>
 <script type="text/javascript">
-
   tinymce.init({
     selector: '#mytextarea',
     mode : "textareas",
@@ -48,12 +47,17 @@
     },
     setup: function (editor) {
       editor.on('click',function(e){
+
+        window.is_image_node = false
         // 查找鼠标当前选中的段落的所有样式
         RE.enabledEditingItems(e)
 
         // 视频点击样式
         var currentNode = tinymce.activeEditor.selection.getNode();
 
+        if(currentNode && currentNode.previousSibling && currentNode.previousSibling.classList.contains('qf_image')){
+          window.is_image_node = true
+        }
         // 点击非视频区域，视频选中样式取消
         if((currentNode && !currentNode.classList.contains('qf_insert_video')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video'))){
           $("#mytextarea_ifr").contents().find('.qf_insert_video').removeClass('borderline')
@@ -79,6 +83,7 @@
       })
       editor.on('keyup',function (e) {
         var currentNode = tinymce.activeEditor.selection.getNode();
+        console.log(currentNode)
         var KEY_DELETE = 8; // 删除键
         if(e.which === KEY_DELETE){
 
@@ -103,9 +108,9 @@
 
 
           // 删除的时候，如果是删到图片，就blur掉，然后选中图片
-          if(currentNode.children[0] && currentNode.children[0].classList.contains('qf_image')){
+          if(currentNode && currentNode.classList.contains('qf_image')){
             // 加边框
-            currentNode.children[0].classList.add('borderline')
+            currentNode.classList.add('borderline')
 
             // 加关闭按钮
             RE.videoSelected(currentNode)
@@ -113,31 +118,26 @@
             // 编辑器blur掉光标
             RE.blur()
 
-            // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
-            if(currentNode.nextElementSibling === null){
-              var pEle = document.createElement('p')
-              pEle.style.height = '15px'
-              currentNode.parentNode.appendChild(pEle)
-            }
-          }
+            // 添加操作弹窗
+            RE.showOperate(currentNode)
 
-          // 删除的时候，如果是删到图片，就blur掉，然后选中图片
-
-          if(currentNode && currentNode.classList.contains('qf_image')){
-            // 加边框
-            currentNode.classList.add('borderline')
-
-            // 编辑器blur掉光标
-            RE.blur()
 
             // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
             if(currentNode.nextElementSibling === null){
-              var pEle = document.createElement('p')
+              let pEle = document.createElement('p')
+              pEle.innerHTML = '&nbsp'
               pEle.style.height = '15px'
               currentNode.parentNode.appendChild(pEle)
             }
 
+            if(currentNode.nextElementSibling && currentNode.nextElementSibling.classList.contains('qf_image')){
+              let pEle = document.createElement('p')
+              pEle.innerHTML = '&nbsp'
+              console.log('插入元素')
+              currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
+            }
           }
+
         }
 
 

@@ -130,9 +130,10 @@ img {
   background-size: 76px auto;
   background-repeat: no-repeat;
   background-position: center;
+  margin-top: 20px !important;
 }
 
-.qf_image a.qf_image_remark{
+.qf_image a.qf_image_mark{
   color: #999999;
   display: block;
   padding: 12px 10px;
@@ -140,7 +141,6 @@ img {
   text-align: center;
   background: #fff;
 }
-
 .qf_image img {
   width: 100%;
   margin: 0 auto;
@@ -262,6 +262,12 @@ img {
   width: 50px;
 }
 
+.qf_w50 .closeImg{
+  right: calc(25% + 8px);
+}
+.qf_w100 .closeImg{
+  right: 8px;
+}
 .qf_img_operate span:first-child {
   /* margin: 0 17px; */
 }
@@ -642,12 +648,21 @@ figure figcaption {
   padding-left: 20px;
   margin: 10px;
 }
-.qf_w100{
-  width: 100%;
-  margin: 0 auto;
+.qf_image.small{
+  width: calc(50% - 2px) !important;
 }
-.qf_w50{
-  width: 50%;
-  margin: 0 auto;
+.qf_image.big{
+  width: calc(100% - 2px) !important;
 }
+.h20{
+  height: 20px;
+}
+/*.qf_w100{*/
+/*  width: 100%;*/
+/*  margin: 0 auto;*/
+/*}*/
+/*.qf_w50{*/
+/*  width: 50%;*/
+/*  margin: 0 auto;*/
+/*}*/
 /*end*/

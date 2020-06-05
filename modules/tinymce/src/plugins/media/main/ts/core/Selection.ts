@@ -16,7 +16,9 @@ const setup = (editor: Editor) => {
   editor.on('click keyup touchend', () => {
     const selectedNode = editor.selection.getNode();
     if (selectedNode && selectedNode.classList.contains('qf_insert_video')) {
-      $('#tinymce').blur();
+      RE.blur();
+      $('#mytextarea_ifr').contents().find('.qf_insert_video').removeClass('borderline');
+      $('#mytextarea_ifr').contents().find('.closeImg').remove();
       if (!selectedNode.classList.contains('borderline')) {
         selectedNode.classList.add('borderline');
         window.RE.videoSelected(selectedNode.parentNode);
