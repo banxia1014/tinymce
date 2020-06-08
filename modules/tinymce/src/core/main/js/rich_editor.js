@@ -146,7 +146,7 @@ RE.videoSelected = function (currentNode) {
   let delHtml = document.createElement("span");
   delHtml.classList.add("closeImg")
   // delHtml.setAttribute('onclick', RE.deleteImg);
-  // delHtml.setAttribute('contenteditable', false)
+  delHtml.setAttribute('contenteditable', false)
   currentNode.appendChild(delHtml);
   currentNode.style.position = 'relative'
 
@@ -202,6 +202,22 @@ RE.imageHandleClick = function(selectedNode){
     /// <reference path="./re.ts">
     RE.clickImage(selectedNode);
   }
+  // 图片删除
+  if (selectedNode && selectedNode.classList.contains('closeImg')){
+    QFH5.listCoverImages(function (state, data) {
+      if (data.attaches.length > 0) {
+
+        let src = selectedNode.parentNode.children[0].getAttribute('src')
+
+        let result = data.attaches.findIndex(res => res.origin_url === src)
+        if (result >= 0) {
+          QFH5.toast(3, '封面图不可删除', 1)
+          return false
+        }
+      }
+      selectedNode.parentNode.remove()
+    })
+  }
 }
 
 // 图片操作弹窗
@@ -225,7 +241,7 @@ RE.showOperate = function (currentNode) {
 // 图片变大变小
 RE.tabSize = function (selectedNode) {
   RE.blur();
-  const img = selectedNode.parentNode.parentNode.children[0].children[0];
+  const img = selectedNode.parentNode.parentNode.children[0];
   const width = img.getAttribute('width');
   if (width < document.body.clientWidth) {
     return false;
@@ -269,6 +285,9 @@ RE.clickImage = function (e) {
   QFH5.showImageRemarkLayer(innerHtml, function (state, data) {
     if (state === 1)
       window.markNode.innerText = data.remark
+      $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
+      $('#mytextarea_ifr').contents().find('.closeImg').remove();
+      $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
   })
 }
 
