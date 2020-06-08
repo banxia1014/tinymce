@@ -681,6 +681,9 @@ figure figcaption {
 .qf_image {
   text-align: center;
 }
+.qf_image img{
+  display: block;
+}
 
 
 .qf_image.small img{

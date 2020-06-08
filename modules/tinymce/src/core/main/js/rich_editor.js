@@ -173,18 +173,20 @@ RE.videoSelected = function (currentNode) {
 
 
 RE.imageHandleClick = function(selectedNode){
+  console.log(selectedNode)
   // 图片点击事件
-  if (selectedNode && selectedNode.classList.contains('qf_image')) {
+  if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_image')) {
     RE.blur();
     $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
     $('#mytextarea_ifr').contents().find('.closeImg').remove();
     $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
 
-    if (!selectedNode.classList.contains('borderline')) {
-      selectedNode.classList.add('borderline');
+
+    if (!selectedNode.parentNode.classList.contains('borderline')) {
+      selectedNode.parentNode.classList.add('borderline');
       /// <reference path="./re.ts">
-      RE.videoSelected(selectedNode);
-      RE.showOperate(selectedNode);
+      RE.videoSelected(selectedNode.parentNode);
+      RE.showOperate(selectedNode.parentNode);
     }
   }
 
@@ -282,6 +284,11 @@ RE.addNote = function (seletedNode) {
 RE.clickImage = function (e) {
   var innerHtml = e.innerText
   window.markNode = e
+  window.markNode.innerText = '124421'
+  $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
+  $('#mytextarea_ifr').contents().find('.closeImg').remove();
+  $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
+  RE.restorerange();
   QFH5.showImageRemarkLayer(innerHtml, function (state, data) {
     if (state === 1)
       window.markNode.innerText = data.remark
@@ -289,6 +296,19 @@ RE.clickImage = function (e) {
       $('#mytextarea_ifr').contents().find('.closeImg').remove();
       $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
   })
+}
+
+RE.currentSelection = {
+  "startContainer": 0,
+  "startOffset": 0,
+  "endContainer": 0,
+  "endOffset": 0
+};
+
+
+RE.restorerange = function () {
+  var selection = window.getSelection();
+  selection.removeAllRanges();
 }
 
 RE.setPadding = function (left, top, right, bottom) {

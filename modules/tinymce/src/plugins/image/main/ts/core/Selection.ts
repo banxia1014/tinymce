@@ -9,8 +9,8 @@ import Editor from 'tinymce/core/api/Editor';
 
 const setup = (editor: Editor) => {
   editor.on('click keyup touchend', () => {
-    const selectedNode = editor.selection.getNode();
-    RE.imageHandleClick(selectedNode);
+    // const selectedNode = editor.selection.getNode();
+    // RE.imageHandleClick(selectedNode);
 
     // if (selectedNode && editor.dom.hasClass(selectedNode, 'mce-preview-object')) {
     //   if (editor.dom.getAttrib(selectedNode, 'data-mce-selected')) {

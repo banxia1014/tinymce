@@ -146,6 +146,8 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
 
     const handleTouchSelect = function (editor: Editor) {
       editor.on('tap', (e) => {
+        RE.imageHandleClick(e.target);
+
         const contentEditableRoot = getContentEditableRoot(editor, e.target);
         if (isContentEditableFalse(contentEditableRoot)) {
           e.preventDefault();

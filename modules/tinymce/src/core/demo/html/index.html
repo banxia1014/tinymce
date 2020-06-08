@@ -23,7 +23,7 @@
 <button onclick="insertVideo()">插入视频</button>
 <textarea id="mytextarea"></textarea>
 <!--<script src="http://libs.baidu.com/zepto/0.8/zepto.min.js"></script>-->
-<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
 <script type="text/javascript" src="../../main/js/rich_editor.js"></script>
 <script src="../../../../../../js/tinymce/tinymce.js"></script>
 <script type="text/javascript">
@@ -44,10 +44,12 @@
       editor_css : "style.css",
       remove_trailing_brs: true,
       auto_focus: true,
-      branding: false
+      branding: false,
+      inline_boundaries: false
     },
     setup: function (editor) {
       editor.on('click',function(e){
+        console.log('click')
 
         window.is_image_node = false
         // 查找鼠标当前选中的段落的所有样式
@@ -77,14 +79,11 @@
         // 	RE.jumpEditLink(e.target)
         // }
       })
-      editor.on('mousedown', function (e) {
-      })
       editor.on('input',function(e){
         RE.callback()
       })
       editor.on('keyup',function (e) {
         var currentNode = tinymce.activeEditor.selection.getNode();
-        console.log(currentNode)
         var KEY_DELETE = 8; // 删除键
         if(e.which === KEY_DELETE){
 
