@@ -12,15 +12,20 @@
   <meta charset=utf-8>
   <link rel="stylesheet" href="../../demo/css/style.css">
 </head>
-<body>
-<button onclick="RE.setBold()">点我加粗</button>
-<button onclick="RE.setItalic()">点我变成斜体</button>
-<button onclick="RE.setQuota()">引用</button>
-<button onclick="RE.setBullets()">无序</button>
-<!--<button onclick="tinymce.activeEditor.execCommand('mceMedia');">无序列表</button>-->
-<!--<button onclick="RE.replaceLink()">无序列表</button>-->
-<button onclick="insertImage()">插入图片</button>
-<button onclick="insertVideo()">插入视频</button>
+<body style="padding: 0px 13px;">
+<!--<button onclick="RE.setBold()">点我加粗</button>-->
+<!--<button onclick="RE.setItalic()">点我变成斜体</button>-->
+<!--<button onclick="RE.setQuota()">引用</button>-->
+<!--<button onclick="RE.setBullets()">无序</button>-->
+<!--&lt;!&ndash;<button onclick="tinymce.activeEditor.execCommand('mceMedia');">无序列表</button>&ndash;&gt;-->
+<!--&lt;!&ndash;<button onclick="RE.replaceLink()">无序列表</button>&ndash;&gt;-->
+<!--<button onclick="insertImage()">插入图片</button>-->
+<!--<button onclick="insertVideo()">插入视频</button>-->
+<div class="up_line" id="qf_up_line">
+  <ul class="block_list">
+  </ul>
+  <input oninput="RE.titleCallBack()" type="text" placeholder="请输入标题" id="qf_title" />
+</div>
 <textarea id="mytextarea"></textarea>
 <!--<script src="http://libs.baidu.com/zepto/0.8/zepto.min.js"></script>-->
 <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
@@ -41,15 +46,13 @@
       content_css_cors: true,
       fullscreen: false,
       height: window.screen.height,
-      editor_css : "style.css",
+      editor_css : "../../demo/css/style.css",
       remove_trailing_brs: true,
       auto_focus: true,
-      branding: false,
-      inline_boundaries: false
+      branding: false
     },
     setup: function (editor) {
       editor.on('click',function(e){
-        console.log('click')
 
         window.is_image_node = false
         // 查找鼠标当前选中的段落的所有样式
@@ -79,11 +82,18 @@
         // 	RE.jumpEditLink(e.target)
         // }
       })
+      editor.on('mousedown', function (e) {
+      })
       editor.on('input',function(e){
         RE.callback()
       })
       editor.on('keyup',function (e) {
+        console.log('keyup')
+
+        RE.callback()
+
         var currentNode = tinymce.activeEditor.selection.getNode();
+        console.log(currentNode)
         var KEY_DELETE = 8; // 删除键
         if(e.which === KEY_DELETE){
 
@@ -141,8 +151,6 @@
         }
 
 
-
-
         // 光标不在视频上，就取消选中的状态
         if(currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video')){
           let $ = tinymce.dom.DomQuery;
@@ -151,13 +159,26 @@
         }
       })
       editor.on('change',function (e) {
-        // RE.callback()
+        console.log('change')
+        RE.callback()
       })
     }
   });
-  // setTimeout(function () {
-  //     RE.setHtml('<p><video poster="https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747" controls="controls" width="375" height="281.9548872180451" data-qf-origin="with_logo_20200428_1354_1588064712337.mp4" data-qf-poster-origin="20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747" data-mce-fragment="1"><source src="https://qiance.qianfanyun.com/with_logo_20200428_1354_1588064712337.mp4" type="video/mp4" /></video></p>')
-  // },300)
+  setTimeout(function () {
+  	let json = [
+          {
+          	typename: '今日常州',
+              typeid: '12',
+              isSelect: true
+          },
+          {
+              typename: '今日常州2',
+              typeid: '12',
+              isSelect: false
+          }
+      ]
+      RE.setThreadBlocks(JSON.stringify(json))
+  },1000)
 
   function insertImage() {
     let obj = {
@@ -185,13 +206,19 @@
     // RE.insertImage(obj)
   }
 
-  $('.qf-video-test,.qf-video').each(function () {
-    var $this = $(this);
-    var w = $('body').width();
-    var h = w / 1.33;//设置宽高比例为1.33
-    $this.css({'width':w,'height':h});
-  });
 
+  $('body').on('click', '.block_list', function (e) {
+    e.preventDefault();
+    let data_id = 0
+    if(e.target.classList.contains('active')){
+      e.target.classList.remove('active')
+    }else{
+      $('.block_list li').removeClass('active')
+      e.target.classList.add('active')
+      data_id = e.target.getAttribute('data-id')
+    }
+    RE.themeCallBack(data_id)
+  })
 
 
 </script>

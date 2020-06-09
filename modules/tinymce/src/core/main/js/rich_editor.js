@@ -7,12 +7,50 @@ RE.currentSelection = {
   "endContainer": 0,
   "endOffset": 0
 };
+
+RE.setTitle = function(str){
+  $('#qf_up_line').find('input').val(str)
+}
+
 // Initializations
 RE.callback = function () {
+  var e = {}
+  e.target = tinymce.activeEditor.selection.getNode()
+  RE.enabledEditingItems(e);
   window.location.href = "re-callback://" + encodeURI(RE.getEditHtml());
 }
+
+// 标题回调
+RE.titleCallBack = function(){
+  var title = $('#qf_up_line').find('input').val()
+  window.location.href = "re-title-callback://" + encodeURI(title);
+}
+
+// 点击主题分类的回调
+RE.themeCallBack = function(theme_id){
+  window.location.href = 're-theme-callback://' + theme_id
+}
+
+// 设置标题栏版块
+RE.setThreadBlocks = function(blocks){
+  let json = JSON.parse(blocks)
+  let html = ''
+  if(json.length <= 0){
+    return false
+  }
+  json.map(res => {
+    console.log(res)
+    if(res.isSelect){
+      html += `<li class="active" data-id="${res.typeid}">${res.typename}</li>`
+    }else{
+      html += `<li data-id="${res.typeid}">${res.typename}</li>`
+    }
+  })
+  $('#qf_up_line ul').html(html)
+}
+
+
 RE.getEditHtml = function () {
-  console.log(tinyMCE.activeEditor.getContent())
   return tinyMCE.activeEditor.getContent();
 }
 
@@ -85,9 +123,9 @@ RE.getAllImageList = function () {
 }
 
 
-RE.setHtml = function (html) {
-  tinymce.activeEditor.setContent(html);
-}
+// RE.setHtml = function (html) {
+//   tinymce.activeEditor.setContent(html);
+// }
 
 // 插入图片
 RE.insertImage = function (attach) {
@@ -312,10 +350,10 @@ RE.restorerange = function () {
 }
 
 RE.setPadding = function (left, top, right, bottom) {
-  document.body.style.paddingLeft = left
-  document.body.style.paddingTop = top
-  document.body.style.paddingRight = right
-  document.body.style.paddingBottom = bottom
+  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-left',left)
+  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-top',top)
+  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-right',right)
+  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-bottom',bottom)
 }
 // 加粗
 RE.setBold = function () {
@@ -392,11 +430,13 @@ RE.setUnderline = function () {
 // 撤销
 RE.undo = function () {
   tinymce.activeEditor.execCommand('Undo')
+  RE.callback()
 }
 
 // 恢复
 RE.redo = function () {
   tinymce.activeEditor.execCommand('Redo')
+  RE.callback()
 }
 
 // 插入h标签
@@ -495,7 +535,7 @@ RE.jumpEditImageMark = function (self) {
 RE.enabledEditingItems = function (e) {
   var items = [];
   if (tinymce.activeEditor.queryCommandValue('formatBlock')) {
-    if (e.target.parentNode.nodeName === 'BLOCKQUOTE') {
+    if (e.target.parentNode && e.target.parentNode.nodeName === 'BLOCKQUOTE') {
       items.push('formatQuota');
     }
   }
