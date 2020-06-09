@@ -173,7 +173,7 @@ RE.videoSelected = function (currentNode) {
 
 
 RE.imageHandleClick = function(selectedNode){
-  console.log(selectedNode)
+  // console.log(selectedNode)
   // 图片点击事件
   if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_image')) {
     RE.blur();
@@ -284,17 +284,17 @@ RE.addNote = function (seletedNode) {
 RE.clickImage = function (e) {
   var innerHtml = e.innerText
   window.markNode = e
-  window.markNode.innerText = '124421'
-  $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
-  $('#mytextarea_ifr').contents().find('.closeImg').remove();
-  $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
+  // window.markNode.innerText = '124421'
+  // $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
+  // $('#mytextarea_ifr').contents().find('.closeImg').remove();
+  // $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
   RE.restorerange();
   QFH5.showImageRemarkLayer(innerHtml, function (state, data) {
     if (state === 1)
       window.markNode.innerText = data.remark
-      $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
-      $('#mytextarea_ifr').contents().find('.closeImg').remove();
-      $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
+    $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
+    $('#mytextarea_ifr').contents().find('.closeImg').remove();
+    $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
   })
 }
 
@@ -319,7 +319,7 @@ RE.setPadding = function (left, top, right, bottom) {
 }
 // 加粗
 RE.setBold = function () {
-  tinymce.activeEditor.execCommand('bold')
+  tinymce.activeEditor.execCommand('Bold')
 }
 
 // 无序列表
@@ -401,7 +401,8 @@ RE.redo = function () {
 
 // 插入h标签
 RE.setHeading = function (heading) {
-  document.execCommand('formatBlock', false, '<h' + heading + '>');
+  let name = 'h'+heading
+  tinymce.activeEditor.execCommand('FormatBlock', false, name)
 }
 
 // 获取选取内容
@@ -494,8 +495,7 @@ RE.jumpEditImageMark = function (self) {
 RE.enabledEditingItems = function (e) {
   var items = [];
   if (tinymce.activeEditor.queryCommandValue('formatBlock')) {
-    var formatBlock = document.queryCommandValue('formatBlock');
-    if (formatBlock == 'div') {
+    if (e.target.parentNode.nodeName === 'BLOCKQUOTE') {
       items.push('formatQuota');
     }
   }
@@ -543,6 +543,7 @@ RE.enabledEditingItems = function (e) {
     items.push(formatBlock);
   }
 
+  console.log(items)
   window.location.href = "re-state://" + encodeURI(items.join(','));
 }
 
