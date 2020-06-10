@@ -53,12 +53,18 @@ RE.setThreadBlocks = function(blocks){
 
 
 RE.getEditHtml = function () {
+  $('#mytextarea').find('.qf_image').removeClass('borderline')
+  $('#mytextarea').find('.closeImg').remove()
+  $('#mytextarea').find('.qf_img_operate').remove()
+  $('#mytextarea').find('.closeImg').remove()
   return tinyMCE.activeEditor.getContent();
 }
 
 RE.setHtml = function (html) {
   html = decodeURIComponent(html.replace(/\+/g, '%20'))
-  tinymce.DOM.setHTML('mytextarea', html);
+  // tinymce.get('mytextarea').getBody().innerHTML = html;
+  // tinymce.DOM.setHTML('mytextarea', html);
+  tinymce.activeEditor.setContent(html);
 }
 
 RE.setContent = function (html) {
