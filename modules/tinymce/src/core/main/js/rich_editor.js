@@ -7,17 +7,19 @@ RE.currentSelection = {
   "endContainer": 0,
   "endOffset": 0
 };
-
-RE.setTitle = function(str){
-  $('#qf_up_line').find('input').val(str)
-}
-
 // Initializations
 RE.callback = function () {
+  // $('.tox-tinymce').css({height: height})
   var e = {}
   e.target = tinymce.activeEditor.selection.getNode()
   RE.enabledEditingItems(e);
   window.location.href = "re-callback://" + encodeURI(RE.getEditHtml());
+}
+
+// resize
+RE.resizeHeight = function(){
+  let height = $('#mytextarea').find('#tinymce')[0].scrollHeight + 100
+  $('.tox-tinymce').css({height: height})
 }
 
 // 标题回调
@@ -69,7 +71,7 @@ RE.deleteContent = function () {
 
 RE.blur = function () {
   // 编辑器blur掉光标
-  $("#mytextarea_ifr").contents().find('#tinymce').blur()
+  $('#mytextarea').blur()
 }
 
 RE.getText = function () {
@@ -91,8 +93,8 @@ RE.setPlaceholder = function (content) {
 }
 
 RE.getAllImageList = function () {
-  let qf_insert_video = $("#mytextarea_ifr").contents().find('.qf_insert_video')
-  let qf_image = $("#mytextarea_ifr").contents().find('.qf_image')
+  let qf_insert_video = $('#mytextarea').find('.qf_insert_video')
+  let qf_image = $('#mytextarea').find('.qf_image')
 
   // TODO: 需要修改
   var obj = []
@@ -211,20 +213,19 @@ RE.videoSelected = function (currentNode) {
 
 
 RE.imageHandleClick = function(selectedNode){
-  // console.log(selectedNode)
+  let parentNode = selectedNode.parentNode
   // 图片点击事件
   if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_image')) {
     RE.blur();
-    $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
-    $('#mytextarea_ifr').contents().find('.closeImg').remove();
-    $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
+    $('#mytextarea').find('.qf_image').removeClass('borderline');
+    $('#mytextarea').find('.closeImg').remove();
+    $('#mytextarea').find('.qf_img_operate').remove();
 
-
-    if (!selectedNode.parentNode.classList.contains('borderline')) {
-      selectedNode.parentNode.classList.add('borderline');
+    if (!parentNode.classList.contains('borderline')) {
+      parentNode.classList.add('borderline');
       /// <reference path="./re.ts">
-      RE.videoSelected(selectedNode.parentNode);
-      RE.showOperate(selectedNode.parentNode);
+      RE.videoSelected(parentNode);
+      RE.showOperate(parentNode);
     }
   }
 
@@ -247,7 +248,7 @@ RE.imageHandleClick = function(selectedNode){
     QFH5.listCoverImages(function (state, data) {
       if (data.attaches.length > 0) {
 
-        let src = selectedNode.parentNode.children[0].getAttribute('src')
+        let src = parentNode.children[0].getAttribute('src')
 
         let result = data.attaches.findIndex(res => res.origin_url === src)
         if (result >= 0) {
@@ -255,7 +256,7 @@ RE.imageHandleClick = function(selectedNode){
           return false
         }
       }
-      selectedNode.parentNode.remove()
+      parentNode.remove()
     })
   }
 }
@@ -323,16 +324,16 @@ RE.clickImage = function (e) {
   var innerHtml = e.innerText
   window.markNode = e
   // window.markNode.innerText = '124421'
-  // $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
-  // $('#mytextarea_ifr').contents().find('.closeImg').remove();
-  // $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
+  // $('#mytextarea').find('.qf_image').removeClass('borderline');
+  // $('#mytextarea').find('.closeImg').remove();
+  // $('#mytextarea').find('.qf_img_operate').remove();
   RE.restorerange();
   QFH5.showImageRemarkLayer(innerHtml, function (state, data) {
     if (state === 1)
       window.markNode.innerText = data.remark
-    $('#mytextarea_ifr').contents().find('.qf_image').removeClass('borderline');
-    $('#mytextarea_ifr').contents().find('.closeImg').remove();
-    $('#mytextarea_ifr').contents().find('.qf_img_operate').remove();
+    $('#mytextarea').find('.qf_image').removeClass('borderline');
+    $('#mytextarea').find('.closeImg').remove();
+    $('#mytextarea').find('.qf_img_operate').remove();
   })
 }
 
@@ -350,10 +351,10 @@ RE.restorerange = function () {
 }
 
 RE.setPadding = function (left, top, right, bottom) {
-  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-left',left)
-  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-top',top)
-  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-right',right)
-  $("#mytextarea_ifr").contents().find('#tinymce').css('padding-bottom',bottom)
+  document.body.style.paddingLeft = left
+  document.body.style.paddingTop = top
+  document.body.style.paddingRight = right
+  document.body.style.paddingBottom = bottom
 }
 // 加粗
 RE.setBold = function () {
@@ -467,7 +468,7 @@ RE.insertLink = function (url, title) {
 
 // 链接点击事件
 RE.clickLink = function () {
-  $("#mytextarea_ifr").contents().find('.qf_insert_link').on('click', function (e) {
+  $('#mytextarea').find('.qf_insert_link').on('click', function (e) {
     RE.jumpEditLink(e.target)
   });
 }
@@ -507,7 +508,7 @@ RE.jumpEditLink = function (self) {
   // 		break bbq;
   // 	}
   // }
-  $("#mytextarea_ifr").contents().find('#tinymce').blur()
+  $('#mytextarea').find('#tinymce').blur()
   QFH5.jumpEditLink(text, href, function (state, data) {
     if (state == 1) {
       window.linkNode.innerHTML = data.text
@@ -521,7 +522,7 @@ RE.insertAllImages = function (attaches) {
   attaches = JSON.parse(attaches)
   if (attaches.length > 0) {
     attaches.map((item, index) => {
-      RE.insertImage2(item)
+      RE.insertImage(item)
     })
   }
 }

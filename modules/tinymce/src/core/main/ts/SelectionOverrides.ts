@@ -151,7 +151,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
         const contentEditableRoot = getContentEditableRoot(editor, e.target);
         if (isContentEditableFalse(contentEditableRoot)) {
           e.preventDefault();
-          setContentEditableSelection(CefUtils.selectNode(editor, contentEditableRoot));
+          // setContentEditableSelection(CefUtils.selectNode(editor, contentEditableRoot));
         }
       }, true);
     };
