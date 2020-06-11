@@ -62,9 +62,17 @@ const setup = function (editor: Editor) {
           className = node.attr('class');
           if (className && className.indexOf('mce-preview-object') !== -1) {
             realElm.attr({
+              class: node.firstChild.attr('class'),
               width: node.firstChild.attr('width'),
               height: node.firstChild.attr('height')
             });
+            // 提交的时候加上自定义属性
+            if (node.firstChild.attr('data-qf-origin') && node.firstChild.attr('data-qf-poster-origin')) {
+              realElm.attr({
+                'data-qf-origin': node.firstChild.attr('data-qf-origin'),
+                'data-qf-poster-origin': node.firstChild.attr('data-qf-poster-origin'),
+              });
+            }
           } else {
             realElm.attr({
               width: node.attr('width'),
