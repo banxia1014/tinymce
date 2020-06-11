@@ -81,12 +81,21 @@
       editor.on('mousedown', function (e) {
       })
       editor.on('input',function(e){
+        console.log('input')
         RE.callback()
       })
       editor.on('keyup',function (e) {
+        console.log('keyup')
+
         var currentNode = tinymce.activeEditor.selection.getNode();
+        var target_obj = {}
+        target_obj.target = currentNode
         console.log(currentNode)
         var KEY_DELETE = 8; // 删除键
+        var KEY_BACK = 13; // 回车键
+        if(e.which === KEY_BACK){
+          RE.enabledEditingItems(target_obj)
+        }
         if(e.which === KEY_DELETE){
 
           // 删除的时候，如果是删到视频，就blur掉，然后选中视频
@@ -141,6 +150,8 @@
             }
           }
 
+          RE.enabledEditingItems(target_obj)
+
         }
 
 
@@ -154,8 +165,8 @@
         }
       })
       editor.on('change',function (e) {
-        // RE.resizeHeight()
-        RE.callback()
+        console.log('change')
+        // RE.callback()
       })
     }
   });
@@ -199,6 +210,26 @@
   });
 
 
+  window.onload = function () {
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyload/1.9.1/jquery.lazyload.min.js'
+    script.onload = script.onreadystatechange = function () {
+      /*懒加载*/
+      $('.lazy').lazyload({
+        "effect": "fadeIn",
+        "placeholder_real_img": "",
+        "placeholder_data_img": "",
+        "load": function (e) {
+          $(e).css({
+            "background-color": "#FFFFFF",
+            "background-image": "none"
+          });
+        }
+      });
+    }
+
+    document.body.appendChild(script);
+  };
 
 </script>
 </body>

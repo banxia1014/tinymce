@@ -10,41 +10,42 @@ RE.currentSelection = {
 // Initializations
 RE.callback = function () {
   // $('.tox-tinymce').css({height: height})
-  var e = {}
-  e.target = tinymce.activeEditor.selection.getNode()
-  RE.enabledEditingItems(e);
+  // var e = {}
+  // e.target = tinymce.activeEditor.selection.getNode()
+  // RE.enabledEditingItems(e);
+  // console.log('内容回调')
   window.location.href = "re-callback://" + encodeURI(RE.getEditHtml());
 }
 
 // resize
-RE.resizeHeight = function(){
+RE.resizeHeight = function () {
   let height = $('#mytextarea').find('#tinymce')[0].scrollHeight + 100
   $('.tox-tinymce').css({height: height})
 }
 
 // 标题回调
-RE.titleCallBack = function(){
+RE.titleCallBack = function () {
   var title = $('#qf_up_line').find('input').val()
   window.location.href = "re-title-callback://" + encodeURI(title);
 }
 
 // 点击主题分类的回调
-RE.themeCallBack = function(theme_id){
+RE.themeCallBack = function (theme_id) {
   window.location.href = 're-theme-callback://' + theme_id
 }
 
 // 设置标题栏版块
-RE.setThreadBlocks = function(blocks){
+RE.setThreadBlocks = function (blocks) {
   let json = JSON.parse(blocks)
   let html = ''
-  if(json.length <= 0){
+  if (json.length <= 0) {
     return false
   }
   json.map(res => {
     console.log(res)
-    if(res.isSelect){
+    if (res.isSelect) {
       html += `<li class="active" data-id="${res.typeid}">${res.typename}</li>`
-    }else{
+    } else {
       html += `<li data-id="${res.typeid}">${res.typename}</li>`
     }
   })
@@ -218,7 +219,7 @@ RE.videoSelected = function (currentNode) {
 }
 
 
-RE.imageHandleClick = function(selectedNode){
+RE.imageHandleClick = function (selectedNode) {
   let parentNode = selectedNode.parentNode
   // 图片点击事件
   if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_image')) {
@@ -250,7 +251,7 @@ RE.imageHandleClick = function(selectedNode){
     RE.clickImage(selectedNode);
   }
   // 图片删除
-  if (selectedNode && selectedNode.classList.contains('closeImg')){
+  if (selectedNode && selectedNode.classList.contains('closeImg')) {
     QFH5.listCoverImages(function (state, data) {
       if (data.attaches.length > 0) {
 
@@ -314,14 +315,14 @@ RE.tabSize = function (selectedNode) {
 // 图片添加备注
 RE.addNote = function (seletedNode) {
   let children_mark = seletedNode.parentNode.parentNode.children[1]
-  if(!children_mark.classList.contains('qf_image_mark')){
+  if (!children_mark.classList.contains('qf_image_mark')) {
     let remark = document.createElement('a')
-    remark.setAttribute('href','javascirpt:void(0)')
+    remark.setAttribute('href', 'javascirpt:void(0)')
     remark.classList.add('qf_image_mark')
-    remark.setAttribute('contenteditable',false)
+    remark.setAttribute('contenteditable', false)
     seletedNode.parentNode.parentNode.insertBefore(remark, seletedNode.parentNode.parentNode.children[1])
     RE.clickImage(remark)
-  }else{
+  } else {
     RE.clickImage(children_mark)
   }
 }
@@ -369,10 +370,16 @@ RE.setBold = function () {
 
 // 无序列表
 RE.setBullets = function () {
-  if (tinymce.activeEditor.selection.getNode().nodeName === 'LI') {
+  var selection = tinymce.activeEditor.selection.getNode()
+  if(selection.parentNode && selection.parentNode.nodeName === 'LI'){
     tinymce.activeEditor.execCommand('RemoveList');
     return false
   }
+  if (selection.nodeName === 'LI') {
+    tinymce.activeEditor.execCommand('RemoveList');
+    return false
+  }
+
   tinymce.activeEditor.execCommand('insertUnorderedList', false, {
     'list-style-type': 'disc',
     'list-attributes': {class: 'mylistclass'},
@@ -382,10 +389,16 @@ RE.setBullets = function () {
 
 // 有序列表
 RE.setNumbers = function () {
-  if (tinymce.activeEditor.selection.getNode().nodeName === 'LI') {
+  var selection = tinymce.activeEditor.selection.getNode()
+  if(selection.parentNode && selection.parentNode.nodeName === 'LI'){
     tinymce.activeEditor.execCommand('RemoveList');
     return false
   }
+  if (selection.nodeName === 'LI') {
+    tinymce.activeEditor.execCommand('RemoveList');
+    return false
+  }
+
   tinymce.activeEditor.execCommand('insertOrderedList', false, {
     'list-style-type': 'decimal',
     'list-attributes': {class: 'mylistclass'},
@@ -448,7 +461,7 @@ RE.redo = function () {
 
 // 插入h标签
 RE.setHeading = function (heading) {
-  let name = 'h'+heading
+  let name = 'h' + heading
   tinymce.activeEditor.execCommand('FormatBlock', false, name)
 }
 
@@ -590,7 +603,8 @@ RE.enabledEditingItems = function (e) {
     items.push(formatBlock);
   }
 
-  console.log(items)
+  // console.log('状态回调')
+  // console.log(items)
   window.location.href = "re-state://" + encodeURI(items.join(','));
 }
 
