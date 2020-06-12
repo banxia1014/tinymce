@@ -8,9 +8,9 @@
 import { Node, HTMLElement, Range } from '@ephox/dom-globals';
 import { Option } from '@ephox/katamari';
 import * as CaretContainer from '../caret/CaretContainer';
-import NodeType from '../dom/NodeType';
+import * as NodeType from '../dom/NodeType';
 import TreeWalker from '../api/dom/TreeWalker';
-import RangeCompare from './RangeCompare';
+import * as RangeCompare from './RangeCompare';
 import DOMUtils from '../api/dom/DOMUtils';
 import { isCaretNode } from '../fmt/FormatContainer';
 import { CaretPosition } from '../caret/CaretPosition';
@@ -27,27 +27,17 @@ const findParent = (node: Node, rootNode: Node, predicate: (node: Node) => boole
   return null;
 };
 
-const hasParent = (node: Node, rootNode: Node, predicate: (node: Node) => boolean) => {
-  return findParent(node, rootNode, predicate) !== null;
-};
+const hasParent = (node: Node, rootNode: Node, predicate: (node: Node) => boolean) => findParent(node, rootNode, predicate) !== null;
 
-const hasParentWithName = (node: Node, rootNode: Node, name: string) => {
-  return hasParent(node, rootNode, function (node) {
-    return node.nodeName === name;
-  });
-};
+const hasParentWithName = (node: Node, rootNode: Node, name: string) => hasParent(node, rootNode, function (node) {
+  return node.nodeName === name;
+});
 
-const isTable = (node: Node) => {
-  return node && node.nodeName === 'TABLE';
-};
+const isTable = (node: Node) => node && node.nodeName === 'TABLE';
 
-const isTableCell = (node: Node) => {
-  return node && /^(TD|TH|CAPTION)$/.test(node.nodeName);
-};
+const isTableCell = (node: Node) => node && /^(TD|TH|CAPTION)$/.test(node.nodeName);
 
-const isCeFalseCaretContainer = (node: Node, rootNode: Node) => {
-  return CaretContainer.isCaretContainer(node) && hasParent(node, rootNode, isCaretNode) === false;
-};
+const isCeFalseCaretContainer = (node: Node, rootNode: Node) => CaretContainer.isCaretContainer(node) && hasParent(node, rootNode, isCaretNode) === false;
 
 const hasBrBeforeAfter = (dom: DOMUtils, node: Node, left: boolean) => {
   const walker = new TreeWalker(node, dom.getParent(node.parentNode, dom.isBlock) || dom.getRoot());
@@ -59,9 +49,7 @@ const hasBrBeforeAfter = (dom: DOMUtils, node: Node, left: boolean) => {
   }
 };
 
-const isPrevNode = (node: Node, name: string) => {
-  return node.previousSibling && node.previousSibling.nodeName === name;
-};
+const isPrevNode = (node: Node, name: string) => node.previousSibling && node.previousSibling.nodeName === name;
 
 const hasContentEditableFalseParent = (body: HTMLElement, node: Node) => {
   while (node && node !== body) {
@@ -296,6 +284,6 @@ const normalize = (dom: DOMUtils, rng: Range): Option<Range> => {
   return RangeCompare.isEq(rng, normRng) ? Option.none() : Option.some(normRng);
 };
 
-export default {
+export {
   normalize
 };

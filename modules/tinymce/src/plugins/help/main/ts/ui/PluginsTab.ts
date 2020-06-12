@@ -6,10 +6,10 @@
  */
 
 import { Types } from '@ephox/bridge';
-import { Arr, Fun, Obj, Strings } from '@ephox/katamari';
+import { Arr, Obj } from '@ephox/katamari';
 import Editor from 'tinymce/core/api/Editor';
 import I18n from 'tinymce/core/api/util/I18n';
-import PluginUrls from '../data/PluginUrls';
+import * as PluginUrls from '../data/PluginUrls';
 
 export interface PluginUrlType {
   key: string;
@@ -39,9 +39,7 @@ const tab = (editor: Editor): Types.Dialog.TabApi => {
       'Spell Checker Pro'
     ];
 
-    const premiumPluginList = Arr.map(premiumPlugins, (plugin) => {
-      return '<li>' + I18n.translate(plugin) + '</li>';
-    }).join('');
+    const premiumPluginList = Arr.map(premiumPlugins, (plugin) => '<li>' + I18n.translate(plugin) + '</li>').join('');
 
     return '<div data-mce-tabstop="1" tabindex="-1">' +
       '<p><b>' + I18n.translate('Premium plugins:') + '</b></p>' +
@@ -52,24 +50,23 @@ const tab = (editor: Editor): Types.Dialog.TabApi => {
       '</div>';
   };
 
-  const makeLink = Fun.curry(Strings.supplant, '<a href="${url}" target="_blank" rel="noopener">${name}</a>');
+  const makeLink = (p: {name: string; url: string}): string =>
+    `<a href="${p.url}" target="_blank" rel="noopener">${p.name}</a>`;
 
-  const maybeUrlize = (editor, key: string) => {
-    return Arr.find(PluginUrls.urls, function (x: PluginUrlType) {
-      return x.key === key;
-    }).fold(function () {
-      const getMetadata = editor.plugins[key].getMetadata;
-      return typeof getMetadata === 'function' ? makeLink(getMetadata()) : key;
-    }, function (x) {
-      return makeLink({ name: x.name, url: 'https://www.tiny.cloud/docs/plugins/' + x.key });
-    });
-  };
+  const maybeUrlize = (editor, key: string) => Arr.find(PluginUrls.urls, function (x: PluginUrlType) {
+    return x.key === key;
+  }).fold(function () {
+    const getMetadata = editor.plugins[key].getMetadata;
+    return typeof getMetadata === 'function' ? makeLink(getMetadata()) : key;
+  }, function (x) {
+    return makeLink({ name: x.name, url: 'https://www.tiny.cloud/docs/plugins/' + x.key });
+  });
 
   const getPluginKeys = (editor) => {
     const keys = Obj.keys(editor.plugins);
     return editor.settings.forced_plugins === undefined ?
       keys :
-      Arr.filter(keys, Fun.not(Fun.curry(Arr.contains, editor.settings.forced_plugins)));
+      Arr.filter(keys, (k) => !Arr.contains(editor.settings.forced_plugins, k));
   };
 
   const pluginLister = (editor) => {
@@ -80,7 +77,7 @@ const tab = (editor: Editor): Types.Dialog.TabApi => {
     const count = pluginLis.length;
     const pluginsString = pluginLis.join('');
 
-    const html = '<p><b>' + I18n.translate(['Plugins installed ({0}):', count]) + '</b></p>' +
+    const html = '<p><b>' + I18n.translate([ 'Plugins installed ({0}):', count ]) + '</b></p>' +
       '<ul>' + pluginsString + '</ul>';
 
     return html;
@@ -112,6 +109,6 @@ const tab = (editor: Editor): Types.Dialog.TabApi => {
   };
 };
 
-export default {
+export {
   tab
 };

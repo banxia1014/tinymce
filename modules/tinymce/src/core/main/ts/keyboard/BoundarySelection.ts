@@ -5,17 +5,18 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { Node, HTMLElement, Text } from '@ephox/dom-globals';
+import { HTMLElement, Node, Text } from '@ephox/dom-globals';
 import { Arr, Cell, Fun } from '@ephox/katamari';
-import Env from '../api/Env';
-import CaretContainerRemove from '../caret/CaretContainerRemove';
-import CaretPosition from '../caret/CaretPosition';
-import BoundaryCaret from './BoundaryCaret';
-import BoundaryLocation from './BoundaryLocation';
-import InlineUtils from './InlineUtils';
-import WordSelection from '../selection/WordSelection';
-import Editor from '../api/Editor';
+import { Element, SelectorFilter } from '@ephox/sugar';
 import DOMUtils from '../api/dom/DOMUtils';
+import Editor from '../api/Editor';
+import Env from '../api/Env';
+import * as CaretContainerRemove from '../caret/CaretContainerRemove';
+import CaretPosition from '../caret/CaretPosition';
+import * as WordSelection from '../selection/WordSelection';
+import * as BoundaryCaret from './BoundaryCaret';
+import * as BoundaryLocation from './BoundaryLocation';
+import * as InlineUtils from './InlineUtils';
 
 const setCaretPosition = function (editor: Editor, pos: CaretPosition) {
   const rng = editor.dom.createRng();
@@ -56,7 +57,8 @@ const findLocation = function (editor: Editor, caret: Cell<Text>, forward: boole
 };
 
 const toggleInlines = function (isInlineTarget: NodePredicate, dom: DOMUtils, elms: Node[]) {
-  const selectedInlines = Arr.filter(dom.select('*[data-mce-selected="inline-boundary"]'), isInlineTarget);
+  const inlineBoundaries = Arr.map(SelectorFilter.descendants(Element.fromDom(dom.getRoot()), '*[data-mce-selected="inline-boundary"]'), (e) => e.dom());
+  const selectedInlines = Arr.filter(inlineBoundaries, isInlineTarget);
   const targetInlines = Arr.filter(elms, isInlineTarget);
   Arr.each(Arr.difference(selectedInlines, targetInlines), Fun.curry(setSelected, false));
   Arr.each(Arr.difference(targetInlines, selectedInlines), Fun.curry(setSelected, true));
@@ -75,7 +77,7 @@ const safeRemoveCaretContainer = function (editor: Editor, caret: Cell<Text>) {
 const renderInsideInlineCaret = function (isInlineTarget: NodePredicate, editor: Editor, caret: Cell<Text>, elms: Node[]) {
   if (editor.selection.isCollapsed()) {
     const inlines = Arr.filter(elms, isInlineTarget);
-    Arr.each(inlines, function (inline) {
+    Arr.each(inlines, function (_inline) {
       const pos = CaretPosition.fromRangeStart(editor.selection.getRng());
       BoundaryLocation.readLocation(isInlineTarget, editor.getBody(), pos).bind(function (location) {
         return renderCaretLocation(editor, caret, location);
@@ -90,7 +92,7 @@ const move = function (editor: Editor, caret: Cell<Text>, forward: boolean) {
   };
 };
 
-const moveWord = function (forward: boolean, editor: Editor, caret: Cell<Text>) {
+const moveWord = function (forward: boolean, editor: Editor, _caret: Cell<Text>) {
   return function () {
     return isFeatureEnabled(editor) ? WordSelection.moveByWord(forward, editor) : false;
   };
@@ -120,7 +122,7 @@ type MoveWordFn = (editor: Editor, caret: Cell<Text>) => () => boolean;
 const moveNextWord = Fun.curry(moveWord, true) as MoveWordFn;
 const movePrevWord = Fun.curry(moveWord, false) as MoveWordFn;
 
-export default {
+export {
   move,
   moveNextWord,
   movePrevWord,

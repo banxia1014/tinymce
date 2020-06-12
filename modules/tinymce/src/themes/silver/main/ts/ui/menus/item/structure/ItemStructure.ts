@@ -92,17 +92,17 @@ const renderColorStructure = (itemText: Option<string>, itemValue: string, iconS
 
 // TODO: Maybe need aria-label
 const renderNormalItemStructure = (info: NormalItemSpec, icon: Option<string>, renderIcons: boolean, textRender: (text: string) => AlloySpec, rtlClass: boolean): ItemStructure => {
-  // checkmark has priority, otherwise render icon if we have one, otherwise empty icon for spacing
-  const leftIcon: Option<AlloySpec> = renderIcons ? info.checkMark.orThunk(() => icon.or(Option.some('')).map(renderIcon)) : Option.none();
-  const domTitle = info.ariaLabel.map((label): {attributes?: {title: string}} => {
-    return {
-      attributes: {
-        // TODO: AP-213 change this temporary solution to use tooltips, ensure its aria readable still.
-        // for icon only implementations we need either a title or aria label to satisfy aria requirements.
-        title: I18n.translate(label)
-      }
-    };
-  }).getOr({});
+  // Note: renderIcons indicates if any icons are present in the menu - if false then the icon column will not be present for the whole menu
+  const leftIcon: Option<AlloySpec> = renderIcons ? icon.or(Option.some('')).map(renderIcon) : Option.none();
+  // TINY-3345: Dedicated columns for icon and checkmark if applicable
+  const checkmark = info.checkMark;
+  const domTitle = info.ariaLabel.map((label): {attributes?: {title: string}} => ({
+    attributes: {
+      // TODO: AP-213 change this temporary solution to use tooltips, ensure its aria readable still.
+      // for icon only implementations we need either a title or aria label to satisfy aria requirements.
+      title: I18n.translate(label)
+    }
+  })).getOr({});
 
   const dom = {
     tag: 'div',
@@ -120,6 +120,7 @@ const renderNormalItemStructure = (info: NormalItemSpec, icon: Option<string>, r
       leftIcon,
       content,
       info.shortcutContent.map(renderShortcut),
+      checkmark,
       info.caret
     ]
   };
@@ -145,12 +146,10 @@ const rtlTransform = [
 ];
 
 // TODO: Maybe need aria-label
-const renderItemStructure = <T>(info: ItemStructureSpec, providersBackstage: UiFactoryBackstageProviders, renderIcons: boolean, fallbackIcon: Option<string> = Option.none()): { dom: RawDomSchema, optComponents: Array<Option<AlloySpec>> } => {
+const renderItemStructure = <T>(info: ItemStructureSpec, providersBackstage: UiFactoryBackstageProviders, renderIcons: boolean, fallbackIcon: Option<string> = Option.none()): { dom: RawDomSchema; optComponents: Array<Option<AlloySpec>> } => {
   // If RTL and icon is in whitelist, add RTL icon class for icons that don't have a `-rtl` icon available.
   // Use `-rtl` icon suffix for icons that do.
-  const getIconName = (iconName: Option<string>): Option<string> => {
-    return iconName.map((name) => I18n.isRtl() && Arr.contains(rtlIcon, name) ? name + '-rtl' : name);
-  };
+  const getIconName = (iconName: Option<string>): Option<string> => iconName.map((name) => I18n.isRtl() && Arr.contains(rtlIcon, name) ? name + '-rtl' : name);
 
   const needRtlClass = I18n.isRtl() && info.iconContent.exists((name) => Arr.contains(rtlTransform, name));
 
@@ -161,9 +160,7 @@ const renderItemStructure = <T>(info: ItemStructureSpec, providersBackstage: UiF
   // This could probably be more stable...
   const textRender: (text: string) => AlloySpec = Option.from(info.meta).fold(
     () => renderText,
-    (meta) => {
-      return Obj.has(meta, 'style') ? Fun.curry(renderStyledText, meta.style) : renderText;
-    }
+    (meta) => Obj.has(meta, 'style') ? Fun.curry(renderStyledText, meta.style) : renderText
   );
 
   if (info.presets === 'color') {

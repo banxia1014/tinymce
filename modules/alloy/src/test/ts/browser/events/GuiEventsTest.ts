@@ -2,7 +2,7 @@ import { Chain, Cleaner, Cursors, FocusTools, GeneralSteps, Keyboard, Keys, Logg
 import { UnitTest } from '@ephox/bedrock-client';
 import { document } from '@ephox/dom-globals';
 import { Attr, DomEvent, Element, EventArgs, Insert, Node, Remove, Text } from '@ephox/sugar';
-import TestStore from 'ephox/alloy/api/testhelpers/TestStore';
+import { TestStore } from 'ephox/alloy/api/testhelpers/TestStore';
 
 import * as GuiEvents from 'ephox/alloy/events/GuiEvents';
 
@@ -205,18 +205,16 @@ UnitTest.asynctest('GuiEventsTest', (success, failure) => {
     store.sClear
   ]);
 
-  const sTestMouseOperation = (eventName: string, op: Chain<any, any>) => {
-    return GeneralSteps.sequence([
-      Chain.asStep(page, [ op ]),
-      store.sAssertEq(
-        'Checking event log after ' + eventName + ' on root',
-        [
-          { eventName, target: 'gui-events-test-container' }
-        ]
-      ),
-      store.sClear
-    ]);
-  };
+  const sTestMouseOperation = (eventName: string, op: Chain<any, any>) => GeneralSteps.sequence([
+    Chain.asStep(page, [ op ]),
+    store.sAssertEq(
+      'Checking event log after ' + eventName + ' on root',
+      [
+        { eventName, target: 'gui-events-test-container' }
+      ]
+    ),
+    store.sClear
+  ]);
 
   const sTestUnbind = GeneralSteps.sequence([
     Step.sync(() => {

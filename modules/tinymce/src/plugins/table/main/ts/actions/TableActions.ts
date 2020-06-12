@@ -7,12 +7,12 @@
 
 import { Arr, Fun, Option } from '@ephox/katamari';
 import {
-    CellMutations, TableDirection, TableFill, TableGridSize, TableOperations
+  CellMutations, TableDirection, TableFill, TableGridSize, TableOperations
 } from '@ephox/snooker';
 import { Element, Node } from '@ephox/sugar';
 
 import * as Util from '../alien/Util';
-import Direction from '../queries/Direction';
+import * as Direction from '../queries/Direction';
 import { getCloneElements } from '../api/Settings';
 import { fireNewCell, fireNewRow } from '../api/Events';
 import Editor from 'tinymce/core/api/Editor';

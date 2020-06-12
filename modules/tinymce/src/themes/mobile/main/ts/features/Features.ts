@@ -11,15 +11,16 @@ import { Arr, Obj, Option, Type } from '@ephox/katamari';
 
 import Editor from 'tinymce/core/api/Editor';
 
-import Receivers from '../channels/Receivers';
-import TinyChannels from '../channels/TinyChannels';
-import Styles from '../style/Styles';
-import Buttons from '../ui/Buttons';
-import ColorSlider from '../ui/ColorSlider';
+import * as Receivers from '../channels/Receivers';
+import * as TinyChannels from '../channels/TinyChannels';
+import * as Styles from '../style/Styles';
+import * as Buttons from '../ui/Buttons';
+import * as ColorSlider from '../ui/ColorSlider';
 import * as FontSizeSlider from '../ui/FontSizeSlider';
 import * as ImagePicker from '../ui/ImagePicker';
 import * as LinkButton from '../ui/LinkButton';
-import StyleFormats from '../util/StyleFormats';
+import * as StyleFormats from '../util/StyleFormats';
+import { MobileRealm } from '../ui/IosRealm';
 
 const defaults = [ 'undo', 'bold', 'italic', 'link', 'image', 'bullist', 'styleselect' ];
 
@@ -41,7 +42,7 @@ const identify = function (settings) {
   return Type.isArray(toolbar) ? identifyFromArray(toolbar) : extract(toolbar);
 };
 
-const setup = function (realm, editor: Editor) {
+const setup = function (realm: MobileRealm, editor: Editor) {
   const commandSketch = function (name) {
     return function () {
       return Buttons.forToolbarCommand(editor, name);
@@ -116,8 +117,8 @@ const setup = function (realm, editor: Editor) {
       }),
       Receiving.config({
         channels: Objects.wrapAll([
-          Receivers.receive(TinyChannels.orientationChanged(), Toggling.off),
-          Receivers.receive(TinyChannels.dropupDismissed(), Toggling.off)
+          Receivers.receive(TinyChannels.orientationChanged, Toggling.off),
+          Receivers.receive(TinyChannels.dropupDismissed, Toggling.off)
         ])
       })
     ]), editor);
@@ -125,7 +126,7 @@ const setup = function (realm, editor: Editor) {
 
   const feature = function (prereq, sketch) {
     return {
-      isSupported () {
+      isSupported() {
         // NOTE: forall is true for none
         const buttons = editor.ui.registry.getAll().buttons;
         return prereq.forall(function (p) {
@@ -169,7 +170,7 @@ const detect = function (settings, features) {
   });
 };
 
-export default {
+export {
   identify,
   setup,
   detect

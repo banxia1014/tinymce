@@ -9,21 +9,19 @@ import { Document, document } from '@ephox/dom-globals';
 import { Arr, Cell, Option } from '@ephox/katamari';
 import { Element, Html, Remove, SelectorFilter } from '@ephox/sugar';
 import Editor from '../api/Editor';
-import TrimHtml from '../dom/TrimHtml';
-import Fragments from './Fragments';
+import * as TrimHtml from '../dom/TrimHtml';
+import * as Fragments from './Fragments';
 import { UndoLevel, UndoLevelType } from './UndoManagerTypes';
 
 const undoLevelDocument = Cell<Option<Document>>(Option.none());
 
 // We need to create a temporary document instead of using the global document since
 // innerHTML on a detached element will still make http requests to the images
-const lazyTempDocument = () => {
-  return undoLevelDocument.get().getOrThunk(() => {
-    const doc = document.implementation.createHTMLDocument('undo');
-    undoLevelDocument.set(Option.some(doc));
-    return doc;
-  });
-};
+const lazyTempDocument = () => undoLevelDocument.get().getOrThunk(() => {
+  const doc = document.implementation.createHTMLDocument('undo');
+  undoLevelDocument.set(Option.some(doc));
+  return doc;
+});
 
 const hasIframes = function (html: string) {
   return html.indexOf('</iframe>') !== -1;
@@ -55,7 +53,7 @@ const createFromEditor = function (editor: Editor): UndoLevel {
   fragments = Fragments.read(editor.getBody());
   trimmedFragments = Arr.bind(fragments, function (html) {
     const trimmed = TrimHtml.trimInternal(editor.serializer, html);
-    return trimmed.length > 0 ? [trimmed] : [];
+    return trimmed.length > 0 ? [ trimmed ] : [];
   });
   content = trimmedFragments.join('');
 
@@ -83,13 +81,9 @@ const getCleanLevelContent = (level: UndoLevel): string => {
   return Html.get(elm);
 };
 
-const hasEqualContent = (level1: UndoLevel, level2: UndoLevel): boolean => {
-  return getLevelContent(level1) === getLevelContent(level2);
-};
+const hasEqualContent = (level1: UndoLevel, level2: UndoLevel): boolean => getLevelContent(level1) === getLevelContent(level2);
 
-const hasEqualCleanedContent = (level1: UndoLevel, level2: UndoLevel): boolean => {
-  return getCleanLevelContent(level1) === getCleanLevelContent(level2);
-};
+const hasEqualCleanedContent = (level1: UndoLevel, level2: UndoLevel): boolean => getCleanLevelContent(level1) === getCleanLevelContent(level2);
 
 // Most of the time the contents is equal so it's faster to first check that using strings then fallback to a cleaned dom comparison
 const isEq = function (level1: UndoLevel, level2: UndoLevel): boolean {
@@ -102,7 +96,7 @@ const isEq = function (level1: UndoLevel, level2: UndoLevel): boolean {
   }
 };
 
-export default {
+export {
   createFragmentedLevel,
   createCompleteLevel,
   createFromEditor,

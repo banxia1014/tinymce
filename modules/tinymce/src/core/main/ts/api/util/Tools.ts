@@ -7,7 +7,7 @@
 
 import { window } from '@ephox/dom-globals';
 import Env from '../Env';
-import ArrUtils from '../../util/ArrUtils';
+import * as ArrUtils from '../../util/ArrUtils';
 
 type ArrayCallback<T, R> = (x: T, i: number, xs: ReadonlyArray<T>) => R;
 type ObjCallback<T, R> = (value: T[keyof T], key: string, obj: T) => R;
@@ -241,31 +241,25 @@ const create = function (s, p, root?) {
   }
 
   // Add static methods
-  /*jshint sub:true*/
-  /*eslint dot-notation:0*/
+  /* jshint sub:true*/
+  /* eslint dot-notation:0*/
   self.each(p.static, function (f, n) {
     ns[cn][n] = f;
   });
 };
 
-const extend = function (obj, ext, ...x: any[]) {
-  let i, l, name;
-  const args = arguments;
-  let value;
-
-  for (i = 1, l = args.length; i < l; i++) {
-    ext = args[i];
-    for (name in ext) {
+const extend = function (obj, ...exts: any[]) {
+  for (let i = 0; i < exts.length; i++) {
+    const ext = exts[i];
+    for (let name in ext) {
       if (ext.hasOwnProperty(name)) {
-        value = ext[name];
-
+        const value = ext[name];
         if (value !== undefined) {
           obj[name] = value;
         }
       }
     }
   }
-
   return obj;
 };
 

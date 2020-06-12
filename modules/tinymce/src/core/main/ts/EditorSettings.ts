@@ -5,7 +5,7 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { Arr, Fun, Merger, Obj, Option, Strings, Struct, Type } from '@ephox/katamari';
+import { Arr, Fun, Merger, Obj, Option, Strings, Type } from '@ephox/katamari';
 import { PlatformDetection } from '@ephox/sand';
 
 import Editor from './api/Editor';
@@ -26,7 +26,11 @@ interface SectionResult {
   settings: () => RawEditorSettings;
 }
 
-const sectionResult = Struct.immutable('sections', 'settings');
+const sectionResult = (sections: Record<string, Partial<RawEditorSettings>>, settings: RawEditorSettings): SectionResult => ({
+  sections: Fun.constant(sections),
+  settings: Fun.constant(settings)
+});
+
 const deviceDetection = PlatformDetection.detect().deviceType;
 const isTouch = deviceDetection.isTouch();
 const isPhone = deviceDetection.isPhone();
@@ -78,12 +82,12 @@ const getSectionConfig = function (sectionResult: SectionResult, name: string) {
   return hasSection(sectionResult, name) ? sectionResult.sections()[name] : {};
 };
 
-const getToolbarMode = (settings: RawEditorSettings, defaultVal) => {
+const getToolbarMode = (settings: RawEditorSettings, defaultVal) =>
   // If toolbar_mode is unset by the user, fall back to:
-  return Obj.get(settings, 'toolbar_mode')
+  Obj.get(settings, 'toolbar_mode')
     .orThunk(() => Obj.get(settings, 'toolbar_drawer').map((val) => val === false ? 'wrap' : val))     // #1 toolbar_drawer
-    .getOr(defaultVal);                                 // #2 defaultVal
-};
+    .getOr(defaultVal);                                // #2 defaultVal
+
 
 const getDefaultSettings = function (settings: RawEditorSettings, id: string, documentBaseUrl: string, isTouch: boolean, editor: Editor): RawEditorSettings {
   const baseDefaults: RawEditorSettings = {
@@ -124,10 +128,10 @@ const getDefaultSettings = function (settings: RawEditorSettings, id: string, do
   };
 };
 
-const getDefaultMobileSettings = (settings: RawEditorSettings, isPhone: boolean): RawEditorSettings => {
+const getDefaultMobileSettings = (mobileSettings: RawEditorSettings, isPhone: boolean): RawEditorSettings => {
   const defaultMobileSettings: RawEditorSettings = {
     resize: false,               // Editor resize doesn't make sense on mobile
-    toolbar_mode: getToolbarMode(settings, 'scrolling'),   // Use the default side-scrolling toolbar for tablets/phones
+    toolbar_mode: getToolbarMode(mobileSettings, 'scrolling'),   // Use the default side-scrolling toolbar for tablets/phones
     toolbar_sticky: false        // Only enable sticky toolbar on desktop by default
   };
 
@@ -166,9 +170,9 @@ const processPlugins = function (isMobileDevice: boolean, sectionResult: Section
     // is a mobile device with mobile theme
     isMobileDevice && isSectionTheme(sectionResult, 'mobile', 'mobile') ? filterLegacyMobilePlugins(mobilePlugins) :
     // is a mobile device with any mobile settings
-    isMobileDevice && hasSection(sectionResult, 'mobile') ? mobilePlugins :
-    // is desktop
-    desktopPlugins;
+      isMobileDevice && hasSection(sectionResult, 'mobile') ? mobilePlugins :
+      // is desktop
+        desktopPlugins;
 
   const combinedPlugins = combinePlugins(forcedPlugins, platformPlugins);
 
@@ -183,8 +187,8 @@ const isOnMobile = function (isMobileDevice: boolean, sectionResult: SectionResu
 
 const combineSettings = (isMobileDevice: boolean, isPhone: boolean,  defaultSettings: RawEditorSettings, defaultOverrideSettings: RawEditorSettings, settings: RawEditorSettings): EditorSettings => {
   // Use mobile mode by default on phones, so patch in the default mobile settings
-  const defaultDeviceSettings = isMobileDevice ? { mobile: getDefaultMobileSettings(settings, isPhone) } : { };
-  const sectionResult = extractSections(['mobile'], Merger.deepMerge(defaultDeviceSettings, settings));
+  const defaultDeviceSettings = isMobileDevice ? { mobile: getDefaultMobileSettings(settings.mobile || {}, isPhone) } : { };
+  const sectionResult = extractSections([ 'mobile' ], Merger.deepMerge(defaultDeviceSettings, settings));
 
   const extendedSettings = Tools.extend(
     // Default settings
@@ -214,9 +218,7 @@ const getEditorSettings = function (editor: Editor, id: string, documentBaseUrl:
   return combineSettings(isPhone || isTablet, isPhone, defaultSettings, defaultOverrideSettings, settings);
 };
 
-const getFiltered = <K extends keyof EditorSettings> (predicate: (x: any) => boolean, editor: Editor, name: K): Option<EditorSettings[K]> => {
-  return Option.from(editor.settings[name]).filter(predicate);
-};
+const getFiltered = <K extends keyof EditorSettings> (predicate: (x: any) => boolean, editor: Editor, name: K): Option<EditorSettings[K]> => Option.from(editor.settings[name]).filter(predicate);
 
 const getParamObject = (value: string) => {
   let output = {};

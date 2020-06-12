@@ -14,7 +14,7 @@ const hasProPlugin = function (editor: Editor) {
   if (/(^|[ ,])powerpaste([, ]|$)/.test(editor.settings.plugins) && PluginManager.get('powerpaste')) {
 
     if (typeof window.console !== 'undefined' && window.console.log) {
-      window.console.log('PowerPaste is incompatible with Paste plugin! Remove \'paste\' from the \'plugins\' option.');
+      window.console.log(`PowerPaste is incompatible with Paste plugin! Remove 'paste' from the 'plugins' option.`);
     }
     return true;
   } else {
@@ -22,6 +22,6 @@ const hasProPlugin = function (editor: Editor) {
   }
 };
 
-export default {
+export {
   hasProPlugin
 };

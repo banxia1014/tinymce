@@ -7,7 +7,7 @@
 
 import Editor from 'tinymce/core/api/Editor';
 import { getCellClassList } from '../api/Settings';
-import Helpers from './Helpers';
+import * as Helpers from './Helpers';
 import { Option } from '@ephox/katamari';
 import { Types } from '@ephox/bridge';
 
@@ -18,9 +18,7 @@ const getClassList = (editor: Editor) => {
     rowClassList,
     (item) => {
       if (item.value) {
-        item.textStyle = () => {
-          return editor.formatter.getCssText({ block: 'tr', classes: [item.value] });
-        };
+        item.textStyle = () => editor.formatter.getCssText({ block: 'tr', classes: [ item.value ] });
       }
     }
   );
@@ -92,15 +90,11 @@ const children: Types.Dialog.BodyComponentApi[] = [
   }
 ];
 
-const getItems = (editor: Editor): Types.Dialog.BodyComponentApi[] => {
+const getItems = (editor: Editor): Types.Dialog.BodyComponentApi[] => getClassList(editor).fold(
+  () => children,
+  (classlist) => children.concat(classlist)
+);
 
-  return getClassList(editor).fold(
-    () => children,
-    (classlist) => children.concat(classlist)
-  );
-
-};
-
-export default {
+export {
   getItems
 };

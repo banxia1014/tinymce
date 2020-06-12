@@ -5,7 +5,7 @@ import Editor from 'tinymce/core/api/Editor';
 import Env from 'tinymce/core/api/Env';
 import Plugin from 'tinymce/plugins/autolink/Plugin';
 import Theme from 'tinymce/themes/silver/Theme';
-import KeyUtils from '../module/test/KeyUtils';
+import * as KeyUtils from '../module/test/KeyUtils';
 
 UnitTest.asynctest('browser.tinymce.plugins.autolink.AutoLinkPluginTest', (success, failure) => {
   const suite = LegacyUnit.createSuite<Editor>();
@@ -109,7 +109,7 @@ UnitTest.asynctest('browser.tinymce.plugins.autolink.AutoLinkPluginTest', (succe
     );
   });
 
-  suite.test('TestCase-TBA: AutoLink: default_link_target=\'_self\'', function (editor) {
+  suite.test(`TestCase-TBA: AutoLink: default_link_target='_self'`, function (editor) {
     editor.settings.default_link_target = '_self';
     LegacyUnit.equal(
       typeUrl(editor, 'http://www.domain.com'),

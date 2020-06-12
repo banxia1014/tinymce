@@ -11,26 +11,22 @@ import { Element, Elements, Node, Replication } from '@ephox/sugar';
 
 import Editor from 'tinymce/core/api/Editor';
 
-import TableTargets from '../queries/TableTargets';
-import Ephemera from '../selection/Ephemera';
+import * as TableTargets from '../queries/TableTargets';
+import * as Ephemera from '../selection/Ephemera';
 import { Selections } from '../selection/Selections';
-import SelectionTypes from '../selection/SelectionTypes';
+import * as SelectionTypes from '../selection/SelectionTypes';
 import { TableActions } from './TableActions';
 
 const extractSelected = function (cells) {
   // Assume for now that we only have one table (also handles the case where we multi select outside a table)
   return TableLookup.table(cells[0]).map(Replication.deep).map(function (replica) {
-    return [ CopySelected.extract(replica, Ephemera.attributeSelector()) ];
+    return [ CopySelected.extract(replica, Ephemera.attributeSelector) ];
   });
 };
 
-const serializeElements = (editor: Editor, elements: Element[]): string => {
-  return Arr.map(elements, (elm) => editor.selection.serializer.serialize(elm.dom(), {})).join('');
-};
+const serializeElements = (editor: Editor, elements: Element[]): string => Arr.map(elements, (elm) => editor.selection.serializer.serialize(elm.dom(), {})).join('');
 
-const getTextContent = (elements: Element[]): string => {
-  return Arr.map(elements, (element) => element.dom().innerText).join('');
-};
+const getTextContent = (elements: Element[]): string => Arr.map(elements, (element) => element.dom().innerText).join('');
 
 const registerEvents = function (editor: Editor, selections: Selections, actions: TableActions, cellSelection) {
   editor.on('BeforeGetContent', function (e) {
@@ -75,6 +71,6 @@ const registerEvents = function (editor: Editor, selections: Selections, actions
   });
 };
 
-export default {
+export {
   registerEvents
 };

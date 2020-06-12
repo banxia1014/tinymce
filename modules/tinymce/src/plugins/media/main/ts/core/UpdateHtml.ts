@@ -12,15 +12,15 @@ import Schema from 'tinymce/core/api/html/Schema';
 import Writer from 'tinymce/core/api/html/Writer';
 import { MediaData } from './Types';
 
-type AttrList = Array<{ name: string, value: string }> & { map: Record<string, string> };
+type AttrList = Array<{ name: string; value: string }> & { map: Record<string, string> };
 
 const DOM = DOMUtils.DOM;
 
 const addPx = (value: string) => /^[0-9.]+$/.test(value) ? (value + 'px') : value;
 
 const setAttributes = (attrs: AttrList, updatedAttrs: Record<string, any>) => {
-  for (const name in updatedAttrs) {
-    const value = '' + updatedAttrs[name];
+  Obj.each(updatedAttrs, (val, name) => {
+    const value = '' + val;
 
     if (attrs.map[name]) {
       let i = attrs.length;
@@ -45,7 +45,7 @@ const setAttributes = (attrs: AttrList, updatedAttrs: Record<string, any>) => {
 
       attrs.map[name] = value;
     }
-  }
+  });
 };
 
 const updateEphoxEmbed = (data: Partial<MediaData>, attrs: AttrList) => {
@@ -58,7 +58,7 @@ const updateEphoxEmbed = (data: Partial<MediaData>, attrs: AttrList) => {
   });
 };
 
-const sources = ['source', 'altsource'];
+const sources = [ 'source', 'altsource' ];
 
 const updateHtml = (html: string, data: Partial<MediaData>, updateAll?: boolean): string => {
   const writer = Writer();
@@ -70,19 +70,19 @@ const updateHtml = (html: string, data: Partial<MediaData>, updateAll?: boolean)
     validate: false,
     allow_conditional_comments: true,
 
-    comment (text) {
+    comment(text) {
       writer.comment(text);
     },
 
-    cdata (text) {
+    cdata(text) {
       writer.cdata(text);
     },
 
-    text (text, raw) {
+    text(text, raw) {
       writer.text(text, raw);
     },
 
-    start (name, attrs, empty) {
+    start(name, attrs, empty) {
       if (isEphoxEmbed.get()) {
         // Don't make any changes to children of an EME embed
       } else if (Obj.has(attrs.map, 'data-ephox-embed-iri')) {
@@ -153,7 +153,7 @@ const updateHtml = (html: string, data: Partial<MediaData>, updateAll?: boolean)
       writer.start(name, attrs, empty);
     },
 
-    end (name) {
+    end(name) {
       if (!isEphoxEmbed.get()) {
         if (name === 'video' && updateAll) {
           for (let index = 0; index < 2; index++) {
@@ -194,6 +194,6 @@ const updateHtml = (html: string, data: Partial<MediaData>, updateAll?: boolean)
   return writer.getContent();
 };
 
-export default {
+export {
   updateHtml
 };

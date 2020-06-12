@@ -6,7 +6,7 @@ import { DomEvent, Element, EventUnbinder, Html, Insert, Remove } from '@ephox/s
 import { AlloyComponent } from '../component/ComponentApi';
 import * as Attachment from '../system/Attachment';
 import * as Gui from '../system/Gui';
-import TestStore from './TestStore';
+import { TestStore } from './TestStore';
 
 interface KeyLoggerState {
   log: string[];
@@ -51,49 +51,43 @@ const setup = (createComponent: (store: TestStore, doc: Element, body: Element) 
  * @param failure
  */
 const guiSetup = <A, B> (createComponent: (store: TestStore, doc: Element, body: Element) => AlloyComponent,
-                         f: (doc: Element, body: Element, gui: Gui.GuiSystem, component: AlloyComponent, store: TestStore) => Step<A, B>, success: () => void, failure: (err: any, logs?: TestLogs) => void) => {
- setup(createComponent, (doc, body, gui, component, store) => [f(doc, body, gui, component, store)], success, failure);
+  f: (doc: Element, body: Element, gui: Gui.GuiSystem, component: AlloyComponent, store: TestStore) => Step<A, B>, success: () => void, failure: (err: any, logs?: TestLogs) => void) => {
+  setup(createComponent, (doc, body, gui, component, store) => [ f(doc, body, gui, component, store) ], success, failure);
 };
 
-const mSetupKeyLogger = (body: Element) => {
-  return Step.stateful((oldState: Record<string, any>, next, die) => {
-    const onKeydown: EventUnbinder = DomEvent.bind(body, 'keydown', (event) => {
-      newState.log.push('keydown.to.body: ' + event.raw().which);
-    });
-
-    const log: string[] = [ ];
-    const newState: any = {
-      ...oldState,
-      log,
-      onKeydown
-    };
-    next(newState);
+const mSetupKeyLogger = (body: Element) => Step.stateful((oldState: Record<string, any>, next, _die) => {
+  const onKeydown: EventUnbinder = DomEvent.bind(body, 'keydown', (event) => {
+    newState.log.push('keydown.to.body: ' + event.raw().which);
   });
-};
 
-const mTeardownKeyLogger = (body: Element, expected: string[]) => {
-  return Step.stateful((state: KeyLoggerState, next, die) => {
-    Assertions.assertEq('Checking key log outside context (on teardown)', expected, state.log);
-    state.onKeydown.unbind();
-    const { onKeydown, log, ...rest } = state;
-    next(rest);
-  });
-};
+  const log: string[] = [ ];
+  const newState: any = {
+    ...oldState,
+    log,
+    onKeydown
+  };
+  next(newState);
+});
 
-const mAddStyles = (doc: Element<HTMLDocument>, styles: string[]) => {
-  return Step.stateful((value: any, next, die) => {
-    const style = Element.fromTag('style');
-    const head = Element.fromDom(doc.dom().head);
-    Insert.append(head, style);
-    Html.set(style, styles.join('\n'));
+const mTeardownKeyLogger = (body: Element, expected: string[]) => Step.stateful((state: KeyLoggerState, next, _die) => {
+  Assertions.assertEq('Checking key log outside context (on teardown)', expected, state.log);
+  state.onKeydown.unbind();
+  const { onKeydown, log, ...rest } = state;
+  next(rest);
+});
 
-    next(Merger.deepMerge(value, {
-      style
-    }));
-  });
-};
+const mAddStyles = (doc: Element<HTMLDocument>, styles: string[]) => Step.stateful((value: any, next, _die) => {
+  const style = Element.fromTag('style');
+  const head = Element.fromDom(doc.dom().head);
+  Insert.append(head, style);
+  Html.set(style, styles.join('\n'));
 
-const mRemoveStyles = Step.stateful((value: any, next, die) => {
+  next(Merger.deepMerge(value, {
+    style
+  }));
+});
+
+const mRemoveStyles = Step.stateful((value: any, next, _die) => {
   Remove.remove(value.style);
   next(value);
 });

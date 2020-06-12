@@ -13,26 +13,26 @@ import { AlloyEventRecord } from '../events/AlloyEvents';
 import * as Gui from './Gui';
 
 export interface ForeignGuiSpec {
-  root: Element;
-  dispatchers: Dispatcher[];
-  insertion?: (root: Element, system: Gui.GuiSystem) => void;
+  readonly root: Element;
+  readonly dispatchers: Dispatcher[];
+  readonly insertion?: (root: Element, system: Gui.GuiSystem) => void;
 }
 
 export interface DispatchedAlloyConfig {
-  events?: AlloyEventRecord;
-  behaviours: AlloyBehaviourRecord;
-  eventOrder?: Record<string, string[]>;
+  readonly events?: AlloyEventRecord;
+  readonly behaviours: AlloyBehaviourRecord;
+  readonly eventOrder?: Record<string, string[]>;
 }
 
 export interface Dispatcher {
-  getTarget: (elem: Element) => Option<Element>;
-  alloyConfig: DispatchedAlloyConfig;
+  readonly getTarget: (elem: Element) => Option<Element>;
+  readonly alloyConfig: DispatchedAlloyConfig;
 }
 
 export interface ForeignGuiDetail {
-  root: Element;
-  dispatchers: Dispatcher[];
-  insertion: (root: Element, system: Gui.GuiSystem) => void;
+  readonly root: Element;
+  readonly dispatchers: Dispatcher[];
+  readonly insertion: (root: Element, system: Gui.GuiSystem) => void;
 }
 
 const schema = ValueSchema.objOfOnly([
@@ -93,16 +93,10 @@ interface DispatcherMission {
 
 // Find the dispatcher information for the target if available. Note, the
 // dispatcher may also change the target.
-const findDispatcher = (dispatchers: Dispatcher[], target: Element): Option<DispatcherMission> => {
-  return Arr.findMap(dispatchers, (dispatcher: Dispatcher) => {
-    return dispatcher.getTarget(target).map((newTarget) => {
-      return {
-        target: newTarget,
-        dispatcher
-      };
-    });
-  });
-};
+const findDispatcher = (dispatchers: Dispatcher[], target: Element): Option<DispatcherMission> => Arr.findMap(dispatchers, (dispatcher: Dispatcher) => dispatcher.getTarget(target).map((newTarget) => ({
+  target: newTarget,
+  dispatcher
+})));
 
 const getProxy = <T extends SimulatedEvent.EventFormat>(event: T, target: Element) => {
   // Setup the component wrapping for the target element
@@ -128,11 +122,9 @@ const engage = (spec: ForeignGuiSpec) => {
 
   const cache = ForeignCache();
 
-  const domEvents = Arr.map(supportedEvents, (type) => {
-    return DomEvent.bind(detail.root, type, (event) => {
-      dispatchTo(type, event);
-    });
-  });
+  const domEvents = Arr.map(supportedEvents, (type) => DomEvent.bind(detail.root, type, (event) => {
+    dispatchTo(type, event);
+  }));
 
   const proxyFor = <T extends SimulatedEvent.EventFormat>(event: T, target: Element, descHandler: UncurriedHandler) => {
     // create a simple alloy wrapping around the element, and add it to the world
@@ -168,7 +160,7 @@ const engage = (spec: ForeignGuiSpec) => {
 
       // get any info for this current element, creating it if necessary
       const data = cache.getEvents(mission.target, mission.dispatcher.alloyConfig);
-      const events = data.evts();
+      const events = data.evts;
 
       // if this dispatcher defines this event, proxy it and fire the handler
       if (Obj.hasNonNullableKey(events, type)) { proxyFor(event, mission.target, events[type]); }

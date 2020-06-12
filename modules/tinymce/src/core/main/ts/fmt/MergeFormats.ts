@@ -6,10 +6,9 @@
  */
 
 import { Element, Node } from '@ephox/dom-globals';
-import { Fun } from '@ephox/katamari';
-import Bookmarks from '../bookmark/Bookmarks';
+import * as Bookmarks from '../bookmark/Bookmarks';
 import ElementUtils from '../api/dom/ElementUtils';
-import NodeType from '../dom/NodeType';
+import * as NodeType from '../dom/NodeType';
 import * as FormatUtils from './FormatUtils';
 import * as MatchFormat from './MatchFormat';
 import * as RemoveFormat from './RemoveFormat';
@@ -86,22 +85,17 @@ const processChildElements = function (node: Node, filter: (node: Node) => boole
   });
 };
 
-const hasStyle = function (dom: DOMUtils, name: string) {
-  return Fun.curry(function (name: string, node: Node) {
-    return !!(node && FormatUtils.getStyle(dom, node, name));
-  }, name);
-};
+const hasStyle = (dom: DOMUtils, name: string) => (node: Node): boolean =>
+  !!(node && FormatUtils.getStyle(dom, node, name));
 
-const applyStyle = function (dom: DOMUtils, name: string, value: string) {
-  return Fun.curry(function (name: string, value: string, node: Element) {
-    dom.setStyle(node, name, value);
+const applyStyle = (dom: DOMUtils, name: string, value: string) => (node: Element): void => {
+  dom.setStyle(node, name, value);
 
-    if (node.getAttribute('style') === '') {
-      node.removeAttribute('style');
-    }
+  if (node.getAttribute('style') === '') {
+    node.removeAttribute('style');
+  }
 
-    unwrapEmptySpan(dom, node);
-  }, name, value);
+  unwrapEmptySpan(dom, node);
 };
 
 const unwrapEmptySpan = function (dom: DOMUtils, node: Node) {
@@ -110,22 +104,22 @@ const unwrapEmptySpan = function (dom: DOMUtils, node: Node) {
   }
 };
 
-const processTextDecorationsAndColor = function (dom: DOMUtils, node: Node) {
-  if (node.nodeType === 1 && node.parentNode && node.parentNode.nodeType === 1) {
-    const textDecoration = FormatUtils.getTextDecoration(dom, node.parentNode);
-    if (dom.getStyle(node, 'color') && textDecoration) {
-      dom.setStyle(node, 'text-decoration', textDecoration);
-    } else if (dom.getStyle(node, 'text-decoration') === textDecoration) {
-      dom.setStyle(node, 'text-decoration', null);
-    }
-  }
-};
-
 const mergeTextDecorationsAndColor = function (dom: DOMUtils, format, vars: FormatVars, node: Node) {
+  const processTextDecorationsAndColor = function (n: Node) {
+    if (n.nodeType === 1 && n.parentNode && n.parentNode.nodeType === 1) {
+      const textDecoration = FormatUtils.getTextDecoration(dom, n.parentNode);
+      if (dom.getStyle(n, 'color') && textDecoration) {
+        dom.setStyle(n, 'text-decoration', textDecoration);
+      } else if (dom.getStyle(n, 'text-decoration') === textDecoration) {
+        dom.setStyle(n, 'text-decoration', null);
+      }
+    }
+  };
+
   // Colored nodes should be underlined so that the color of the underline matches the text color.
   if (format.styles && (format.styles.color || format.styles.textDecoration)) {
-    Tools.walk(node, Fun.curry(processTextDecorationsAndColor, dom), 'childNodes');
-    processTextDecorationsAndColor(dom, node);
+    Tools.walk(node, processTextDecorationsAndColor, 'childNodes');
+    processTextDecorationsAndColor(node);
   }
 };
 

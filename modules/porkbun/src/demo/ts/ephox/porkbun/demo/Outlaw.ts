@@ -1,5 +1,5 @@
 import { Event, Bindable } from 'ephox/porkbun/Event';
-import Events from 'ephox/porkbun/Events';
+import * as Events from 'ephox/porkbun/Events';
 import { Saloon, ShootEvent, DieEvent, Outlaw } from './Types';
 import { Singleton } from '@ephox/katamari';
 
@@ -52,7 +52,7 @@ const create = function (name: string): Outlaw {
   };
 
   const events = Events.create({
-    shoot: Event(['target']),
+    shoot: Event([ 'target' ]),
     die:   Event([])
   }) as OutlawEvents;
 
@@ -96,6 +96,6 @@ const create = function (name: string): Outlaw {
   return api;
 };
 
-export default {
+export {
   create
 };

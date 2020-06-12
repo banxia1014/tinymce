@@ -6,12 +6,12 @@
  */
 
 import Editor from '../api/Editor';
-import Levels from './Levels';
+import * as Levels from './Levels';
 import Tools from '../api/util/Tools';
 import { Event } from '@ephox/dom-globals';
 import { Option } from '@ephox/katamari';
 import { UndoManager, Locks, Index, UndoLevel, UndoBookmark } from './UndoManagerTypes';
-import GetBookmark from '../bookmark/GetBookmark';
+import * as GetBookmark from '../bookmark/GetBookmark';
 import { setTyping, endTyping } from './TypingState';
 import { isUnlocked } from './Locks';
 
@@ -142,14 +142,11 @@ export const reset = (undoManager: UndoManager) => {
   undoManager.add();
 };
 
-export const hasUndo = (editor: Editor, undoManager: UndoManager, index: Index) => {
+export const hasUndo = (editor: Editor, undoManager: UndoManager, index: Index) =>
   // Has undo levels or typing and content isn't the same as the initial level
-  return index.get() > 0 || (undoManager.typing && undoManager.data[0] && !Levels.isEq(Levels.createFromEditor(editor), undoManager.data[0]));
-};
+  index.get() > 0 || (undoManager.typing && undoManager.data[0] && !Levels.isEq(Levels.createFromEditor(editor), undoManager.data[0]));
 
-export const hasRedo = (undoManager: UndoManager, index: Index) => {
-  return index.get() < undoManager.data.length - 1 && !undoManager.typing;
-};
+export const hasRedo = (undoManager: UndoManager, index: Index) => index.get() < undoManager.data.length - 1 && !undoManager.typing;
 
 export const transact = (undoManager: UndoManager, locks: Locks, callback: () => void) => {
   endTyping(undoManager, locks);

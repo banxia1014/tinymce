@@ -5,12 +5,46 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import Tools from '../api/util/Tools';
-import { isEmpty, paddEmptyNode } from './ParserUtils';
+import { Arr, Option, Unicode } from '@ephox/katamari';
+import Env from '../api/Env';
+import DomParser, { DomParserSettings } from '../api/html/DomParser';
 import Node from '../api/html/Node';
-import { Unicode } from '@ephox/katamari';
+import Tools from '../api/util/Tools';
+import * as Conversions from '../file/Conversions';
+import { uniqueId } from '../file/ImageScanner';
+import { parseDataUri } from './Base64Uris';
+import { isEmpty, paddEmptyNode } from './ParserUtils';
 
-const register = (parser, settings: any): void => {
+const isInternalImageSource = (src: string) => src === Env.transparentSrc;
+
+const registerBase64ImageFilter = (parser: DomParser, settings: DomParserSettings) => {
+  const { blob_cache: blobCache } = settings;
+  const processImage = (img: Node): void => {
+    const inputSrc = img.attr('src');
+
+    if (isInternalImageSource(inputSrc)) {
+      return;
+    }
+
+    parseDataUri(inputSrc).bind(({ type, data }) =>
+      Option.from(blobCache.getByData(data, type)).orThunk(() =>
+        Conversions.buildBlob(type, data).map((blob) => {
+          const blobInfo = blobCache.create(uniqueId(), blob, data);
+          blobCache.add(blobInfo);
+          return blobInfo;
+        })
+      )
+    ).each((blobInfo) => {
+      img.attr('src', blobInfo.blobUri());
+    });
+  };
+
+  if (blobCache) {
+    parser.addAttributeFilter('src', (nodes) => Arr.each(nodes, processImage));
+  }
+};
+
+const register = (parser: DomParser, settings: DomParserSettings): void => {
   const schema = parser.schema;
 
   // Remove <br> at end of block elements Gecko and WebKit injects BR elements to
@@ -100,17 +134,15 @@ const register = (parser, settings: any): void => {
     });
   }
 
-  parser.addAttributeFilter('href', function (nodes) {
-    let i = nodes.length, node;
+  parser.addAttributeFilter('href', (nodes) => {
+    let i = nodes.length;
 
-    const appendRel = function (rel) {
-      const parts = rel.split(' ').filter(function (p) {
-        return p.length > 0;
-      });
-      return parts.concat(['noopener']).sort().join(' ');
+    const appendRel = (rel: string) => {
+      const parts = rel.split(' ').filter((p) => p.length > 0);
+      return parts.concat([ 'noopener' ]).sort().join(' ');
     };
 
-    const addNoOpener = function (rel) {
+    const addNoOpener = (rel: string) => {
       const newRel = rel ? Tools.trim(rel) : '';
       if (!/\b(noopener)\b/g.test(newRel)) {
         return appendRel(newRel);
@@ -121,7 +153,7 @@ const register = (parser, settings: any): void => {
 
     if (!settings.allow_unsafe_link_target) {
       while (i--) {
-        node = nodes[i];
+        const node = nodes[i];
         if (node.name === 'a' && node.attr('target') === '_blank') {
           node.attr('rel', addNoOpener(node.attr('rel')));
         }
@@ -131,7 +163,7 @@ const register = (parser, settings: any): void => {
 
   // Force anchor names closed, unless the setting "allow_html_in_named_anchor" is explicitly included.
   if (!settings.allow_html_in_named_anchor) {
-    parser.addAttributeFilter('id,name', function (nodes) {
+    parser.addAttributeFilter('id,name', (nodes) => {
       let i = nodes.length, sibling, prevSibling, parent, node;
 
       while (i--) {
@@ -152,7 +184,7 @@ const register = (parser, settings: any): void => {
   }
 
   if (settings.fix_list_elements) {
-    parser.addNodeFilter('ul,ol', function (nodes) {
+    parser.addNodeFilter('ul,ol', (nodes) => {
       let i = nodes.length, node, parentNode;
 
       while (i--) {
@@ -173,7 +205,7 @@ const register = (parser, settings: any): void => {
   }
 
   if (settings.validate && schema.getValidClasses()) {
-    parser.addAttributeFilter('class', function (nodes) {
+    parser.addAttributeFilter('class', (nodes) => {
       let i = nodes.length, node, classList, ci, className, classValue;
       const validClasses = schema.getValidClasses();
       let validClassesMap, valid;
@@ -214,6 +246,8 @@ const register = (parser, settings: any): void => {
       }
     });
   }
+
+  registerBase64ImageFilter(parser, settings);
 };
 
 export {

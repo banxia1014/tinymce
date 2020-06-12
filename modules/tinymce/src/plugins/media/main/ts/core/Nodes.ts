@@ -7,8 +7,8 @@
 
 import Env from 'tinymce/core/api/Env';
 import Node from 'tinymce/core/api/html/Node';
-import Settings from '../api/Settings';
-import Sanitize from './Sanitize';
+import * as Settings from '../api/Settings';
+import * as Sanitize from './Sanitize';
 import * as VideoScript from './VideoScript';
 import Editor from 'tinymce/core/api/Editor';
 
@@ -130,7 +130,7 @@ const retainAttributesAndInnerHtml = function (editor: Editor, sourceNode: Node,
 };
 
 const isPageEmbedWrapper = (node: Node) => {
-  const nodeClass = node.attr('class') as string;
+  const nodeClass = node.attr('class');
   return nodeClass && /\btiny-pageembed\b/.test(nodeClass);
 };
 
@@ -190,7 +190,7 @@ const placeHolderConverter = function (editor: Editor) {
   };
 };
 
-export default {
+export {
   createPreviewIframeNode,
   createPlaceholderNode,
   placeHolderConverter

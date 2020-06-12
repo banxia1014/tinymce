@@ -7,8 +7,8 @@
 
 import { Node, ClientRect, HTMLElement } from '@ephox/dom-globals';
 import { Fun, Arr } from '@ephox/katamari';
-import ArrUtils from '../util/ArrUtils';
-import NodeType from '../dom/NodeType';
+import * as ArrUtils from '../util/ArrUtils';
+import * as NodeType from '../dom/NodeType';
 import { NodeClientRect, getClientRects } from '../dom/Dimensions';
 import * as GeomClientRect from '../geom/ClientRect';
 import * as CaretUtils from './CaretUtils';
@@ -27,33 +27,31 @@ const distanceToRectLeft = (clientRect: NodeClientRect, clientX: number) => Math
 const distanceToRectRight = (clientRect: NodeClientRect, clientX: number) => Math.abs(clientRect.right - clientX);
 const isInside = (clientX: number, clientRect: ClientRect): boolean => clientX >= clientRect.left && clientX <= clientRect.right;
 
-const findClosestClientRect = (clientRects: ClientRect[], clientX: number): NodeClientRect => {
-  return ArrUtils.reduce(clientRects, (oldClientRect, clientRect) => {
-    let oldDistance, newDistance;
+const findClosestClientRect = (clientRects: ClientRect[], clientX: number): NodeClientRect => ArrUtils.reduce(clientRects, (oldClientRect, clientRect) => {
+  let oldDistance, newDistance;
 
-    oldDistance = Math.min(distanceToRectLeft(oldClientRect, clientX), distanceToRectRight(oldClientRect, clientX));
-    newDistance = Math.min(distanceToRectLeft(clientRect, clientX), distanceToRectRight(clientRect, clientX));
+  oldDistance = Math.min(distanceToRectLeft(oldClientRect, clientX), distanceToRectRight(oldClientRect, clientX));
+  newDistance = Math.min(distanceToRectLeft(clientRect, clientX), distanceToRectRight(clientRect, clientX));
 
-    if (isInside(clientX, clientRect)) {
-      return clientRect;
-    }
+  if (isInside(clientX, clientRect)) {
+    return clientRect;
+  }
 
-    if (isInside(clientX, oldClientRect)) {
-      return oldClientRect;
-    }
-
-    // cE=false has higher priority
-    if (newDistance === oldDistance && isContentEditableFalse(clientRect.node)) {
-      return clientRect;
-    }
-
-    if (newDistance < oldDistance) {
-      return clientRect;
-    }
-
+  if (isInside(clientX, oldClientRect)) {
     return oldClientRect;
-  });
-};
+  }
+
+  // cE=false has higher priority
+  if (newDistance === oldDistance && isContentEditableFalse(clientRect.node)) {
+    return clientRect;
+  }
+
+  if (newDistance < oldDistance) {
+    return clientRect;
+  }
+
+  return oldClientRect;
+});
 
 const walkUntil = (direction: VDirection, root: Node, predicateFn: (node: Node) => boolean, node: Node): void => {
   while ((node = findNode(node, direction, CaretCandidate.isEditableCaretCandidate, root))) {
@@ -69,7 +67,7 @@ const findLineNodeRects = (root: Node, targetNodeRect: NodeClientRect): ClientRe
   const collect = (checkPosFn, node) => {
     let lineRects;
 
-    lineRects = Arr.filter(getClientRects([node]), function (clientRect) {
+    lineRects = Arr.filter(getClientRects([ node ]), function (clientRect) {
       return !checkPosFn(clientRect, targetNodeRect);
     });
 
@@ -85,16 +83,12 @@ const findLineNodeRects = (root: Node, targetNodeRect: NodeClientRect): ClientRe
   return clientRects;
 };
 
-const getFakeCaretTargets = (root: HTMLElement): HTMLElement[] => {
-  return Arr.filter(Arr.from(root.getElementsByTagName('*')), isFakeCaretTarget) as HTMLElement[];
-};
+const getFakeCaretTargets = (root: HTMLElement): HTMLElement[] => Arr.filter(Arr.from(root.getElementsByTagName('*')), isFakeCaretTarget) as HTMLElement[];
 
-const caretInfo = (clientRect: NodeClientRect, clientX: number): CaretInfo => {
-  return {
-    node: clientRect.node,
-    before: distanceToRectLeft(clientRect, clientX) < distanceToRectRight(clientRect, clientX)
-  };
-};
+const caretInfo = (clientRect: NodeClientRect, clientX: number): CaretInfo => ({
+  node: clientRect.node,
+  before: distanceToRectLeft(clientRect, clientX) < distanceToRectRight(clientRect, clientX)
+});
 
 const closestCaret = (root: HTMLElement, clientX: number, clientY: number): CaretInfo => {
   let closestNodeRect;

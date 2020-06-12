@@ -9,7 +9,7 @@ import Editor from 'tinymce/core/api/Editor';
 import SaxParser from 'tinymce/core/api/html/SaxParser';
 import Schema from 'tinymce/core/api/html/Schema';
 import Writer from 'tinymce/core/api/html/Writer';
-import Settings from '../api/Settings';
+import * as Settings from '../api/Settings';
 
 const sanitize = function (editor: Editor, html: string) {
   if (Settings.shouldFilterHtml(editor) === false) {
@@ -23,19 +23,19 @@ const sanitize = function (editor: Editor, html: string) {
     validate: false,
     allow_conditional_comments: false,
 
-    comment (text) {
+    comment(text) {
       writer.comment(text);
     },
 
-    cdata (text) {
+    cdata(text) {
       writer.cdata(text);
     },
 
-    text (text, raw) {
+    text(text, raw) {
       writer.text(text, raw);
     },
 
-    start (name, attrs, empty) {
+    start(name, attrs, empty) {
       blocked = true;
 
       if (name === 'script' || name === 'noscript' || name === 'svg') {
@@ -59,7 +59,7 @@ const sanitize = function (editor: Editor, html: string) {
       blocked = false;
     },
 
-    end (name) {
+    end(name) {
       if (blocked) {
         return;
       }
@@ -71,6 +71,6 @@ const sanitize = function (editor: Editor, html: string) {
   return writer.getContent();
 };
 
-export default {
+export {
   sanitize
 };

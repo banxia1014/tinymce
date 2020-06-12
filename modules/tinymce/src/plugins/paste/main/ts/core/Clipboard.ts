@@ -5,22 +5,23 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { DataTransfer, ClipboardEvent, HTMLImageElement, Range, Image, Event, DragEvent, navigator, KeyboardEvent, File } from '@ephox/dom-globals';
-import { Cell, Futures, Future, Arr, Singleton } from '@ephox/katamari';
+import { ClipboardEvent, DataTransfer, DragEvent, Event, File, HTMLImageElement, Image, KeyboardEvent, navigator, Range } from '@ephox/dom-globals';
+import { Arr, Cell, Singleton } from '@ephox/katamari';
 import Editor from 'tinymce/core/api/Editor';
 import Env from 'tinymce/core/api/Env';
 import Delay from 'tinymce/core/api/util/Delay';
 import { EditorEvent } from 'tinymce/core/api/util/EventDispatcher';
+import Promise from 'tinymce/core/api/util/Promise';
 import Tools from 'tinymce/core/api/util/Tools';
 import VK from 'tinymce/core/api/util/VK';
-import Events from '../api/Events';
-import InternalHtml from './InternalHtml';
-import Newlines from './Newlines';
+import * as Events from '../api/Events';
+import * as InternalHtml from './InternalHtml';
+import * as Newlines from './Newlines';
 import { PasteBin } from './PasteBin';
-import ProcessFilters from './ProcessFilters';
-import SmartPaste from './SmartPaste';
+import * as ProcessFilters from './ProcessFilters';
+import * as SmartPaste from './SmartPaste';
+import * as Utils from './Utils';
 import * as Whitespace from './Whitespace';
-import Utils from './Utils';
 
 declare let window: any;
 
@@ -112,28 +113,20 @@ const getClipboardContent = (editor: Editor, clipboardEvent: ClipboardEvent) => 
   return Utils.isMsEdge() ? Tools.extend(content, { 'text/html': '' }) : content;
 };
 
-const hasContentType = (clipboardContent: ClipboardContents, mimeType: string) => {
-  return mimeType in clipboardContent && clipboardContent[mimeType].length > 0;
-};
+const hasContentType = (clipboardContent: ClipboardContents, mimeType: string) => mimeType in clipboardContent && clipboardContent[mimeType].length > 0;
 
-const hasHtmlOrText = (content: ClipboardContents) => {
-  return hasContentType(content, 'text/html') || hasContentType(content, 'text/plain');
-};
+const hasHtmlOrText = (content: ClipboardContents) => hasContentType(content, 'text/html') || hasContentType(content, 'text/plain');
 
-const getBase64FromUri = (uri: string) => {
-  let idx;
-
-  idx = uri.indexOf(',');
-  if (idx !== -1) {
-    return uri.substr(idx + 1);
+const parseDataUri = (uri: string) => {
+  const matches = /data:([^;]+);base64,([a-z0-9\+\/=]+)/i.exec(uri);
+  if (matches) {
+    return { type: matches[1], data: decodeURIComponent(matches[2]) };
+  } else {
+    return { type: null, data: null };
   }
-
-  return null;
 };
 
-const isValidDataUriImage = (settings, imgElm: HTMLImageElement) => {
-  return settings.images_dataimg_filter ? settings.images_dataimg_filter(imgElm) : true;
-};
+const isValidDataUriImage = (settings, imgElm: HTMLImageElement) => settings.images_dataimg_filter ? settings.images_dataimg_filter(imgElm) : true;
 
 const extractFilename = (editor: Editor, str: string) => {
   const m = str.match(/([\s\S]+?)\.(?:jpeg|jpg|png|gif)$/i);
@@ -143,7 +136,7 @@ const extractFilename = (editor: Editor, str: string) => {
 const uniqueId = Utils.createIdGenerator('mceclip');
 
 const pasteImage = (editor: Editor, imageItem) => {
-  const base64 = getBase64FromUri(imageItem.uri);
+  const { data: base64, type } = parseDataUri(imageItem.uri);
   const id = uniqueId();
   const name = editor.settings.images_reuse_filename && imageItem.blob.name ? extractFilename(editor, imageItem.blob.name) : id;
   const img = new Image();
@@ -153,12 +146,9 @@ const pasteImage = (editor: Editor, imageItem) => {
   // TODO: Move the bulk of the cache logic to EditorUpload
   if (isValidDataUriImage(editor.settings, img)) {
     const blobCache = editor.editorUpload.blobCache;
-    let blobInfo, existingBlobInfo;
+    let blobInfo;
 
-    existingBlobInfo = blobCache.findFirst(function (cachedBlobInfo) {
-      return cachedBlobInfo.base64() === base64;
-    });
-
+    const existingBlobInfo = blobCache.getByData(base64, type);
     if (!existingBlobInfo) {
       blobInfo = blobCache.create(id, imageItem.blob, base64, name);
       blobCache.add(blobInfo);
@@ -174,22 +164,18 @@ const pasteImage = (editor: Editor, imageItem) => {
 
 const isClipboardEvent = (event: Event): event is ClipboardEvent => event.type === 'paste';
 
-const readBlobsAsDataUris = (items: File[]) => {
-  return Futures.traverse(items, (item: any) => {
-    return Future.nu((resolve) => {
-      const blob = item.getAsFile ? item.getAsFile() : item;
+const readBlobsAsDataUris = (items: File[]) => Promise.all(Arr.map(items, (item: any) => new Promise((resolve) => {
+  const blob = item.getAsFile ? item.getAsFile() : item;
 
-      const reader = new window.FileReader();
-      reader.onload = () => {
-        resolve({
-          blob,
-          uri: reader.result
-        });
-      };
-      reader.readAsDataURL(blob);
+  const reader = new window.FileReader();
+  reader.onload = () => {
+    resolve({
+      blob,
+      uri: reader.result
     });
-  });
-};
+  };
+  reader.readAsDataURL(blob);
+})));
 
 const getImagesFromDataTransfer = (dataTransfer: DataTransfer) => {
   const items = dataTransfer.items ? Arr.map(Arr.from(dataTransfer.items), (item) => item.getAsFile()) : [];
@@ -215,7 +201,7 @@ const pasteImageData = (editor, e: ClipboardEvent | DragEvent, rng: Range) => {
     if (images.length > 0) {
       e.preventDefault();
 
-      readBlobsAsDataUris(images).get((blobResults) => {
+      readBlobsAsDataUris(images).then((blobResults) => {
         if (rng) {
           editor.selection.setRng(rng);
         }
@@ -244,9 +230,7 @@ const isBrokenAndroidClipboardEvent = (e: ClipboardEvent) => {
   return navigator.userAgent.indexOf('Android') !== -1 && clipboardData && clipboardData.items && clipboardData.items.length === 0;
 };
 
-const isKeyboardPasteEvent = (e: KeyboardEvent) => {
-  return (VK.metaKeyPressed(e) && e.keyCode === 86) || (e.shiftKey && e.keyCode === 45);
-};
+const isKeyboardPasteEvent = (e: KeyboardEvent) => (VK.metaKeyPressed(e) && e.keyCode === 86) || (e.shiftKey && e.keyCode === 45);
 
 const registerEventHandlers = (editor: Editor, pasteBin: PasteBin, pasteFormat: Cell<string>) => {
   const keyboardPasteEvent = Singleton.value();
@@ -443,9 +427,7 @@ const registerEventsAndFilters = (editor: Editor, pasteBin: PasteBin, pasteForma
   // Remove all data images from paste for example from Gecko
   // except internal images like video elements
   editor.parser.addNodeFilter('img', (nodes, name, args) => {
-    const isPasteInsert = (args) => {
-      return args.data && args.data.paste === true;
-    };
+    const isPasteInsert = (args) => args.data && args.data.paste === true;
 
     const remove = (node) => {
       if (!node.attr('data-mce-object') && src !== Env.transparentSrc) {
@@ -453,13 +435,9 @@ const registerEventsAndFilters = (editor: Editor, pasteBin: PasteBin, pasteForma
       }
     };
 
-    const isWebKitFakeUrl = (src) => {
-      return src.indexOf('webkit-fake-url') === 0;
-    };
+    const isWebKitFakeUrl = (src) => src.indexOf('webkit-fake-url') === 0;
 
-    const isDataUri = (src) => {
-      return src.indexOf('data:') === 0;
-    };
+    const isDataUri = (src: string) => src.indexOf('data:') === 0;
 
     if (!editor.settings.paste_data_images && isPasteInsert(args)) {
       let i = nodes.length;

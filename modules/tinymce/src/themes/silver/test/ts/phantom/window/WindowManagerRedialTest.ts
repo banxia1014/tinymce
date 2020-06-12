@@ -4,7 +4,7 @@ import { Types } from '@ephox/bridge';
 import { console } from '@ephox/dom-globals';
 import { Cell } from '@ephox/katamari';
 import { Body, Value } from '@ephox/sugar';
-import WindowManager from 'tinymce/themes/silver/ui/dialog/WindowManager';
+import * as WindowManager from 'tinymce/themes/silver/ui/dialog/WindowManager';
 
 import { TestHelpers } from '@ephox/alloy';
 import TestExtras from '../../module/TestExtras';
@@ -136,9 +136,7 @@ UnitTest.asynctest('WindowManager:redial Test', (success, failure) => {
   };
 
   const sTestOpen = Chain.asStep({ }, [
-    Chain.injectThunked(() => {
-      return windowManager.open(dialogA, {}, () => store.adder('closeWindow')() );
-    }),
+    Chain.injectThunked(() => windowManager.open(dialogA, {}, () => store.adder('closeWindow')() )),
     Chain.op((dialogApi) => {
       currentDialogApi.set(dialogApi);
     })

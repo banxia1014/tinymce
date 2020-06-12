@@ -7,12 +7,12 @@
 
 import { Types } from '@ephox/bridge';
 import { HTMLAnchorElement } from '@ephox/dom-globals';
-import { Arr, Future, Option, Options } from '@ephox/katamari';
+import { Arr, Option, Options } from '@ephox/katamari';
 import Editor from 'tinymce/core/api/Editor';
 
-import Settings from '../api/Settings';
+import * as Settings from '../api/Settings';
 import { ListOptions } from '../core/ListOptions';
-import Utils from '../core/Utils';
+import * as Utils from '../core/Utils';
 import { DialogChanges } from './DialogChanges';
 import { DialogConfirms } from './DialogConfirms';
 import { DialogInfo } from './DialogInfo';
@@ -30,9 +30,7 @@ const handleSubmit = (editor: Editor, info: LinkDialogInfo) => (api: Types.Dialo
 
   // Check if a key is defined, meaning it was a field in the dialog. If it is,
   // then check if it's changed and return none if nothing has changed.
-  const getChangedValue = (key: string) => {
-    return Option.from(data[key]).filter((value) => !info.anchor[key].is(value));
-  };
+  const getChangedValue = (key: string) => Option.from(data[key]).filter((value) => !info.anchor[key].is(value));
 
   const changedData = {
     href: data.url.value,
@@ -48,14 +46,14 @@ const handleSubmit = (editor: Editor, info: LinkDialogInfo) => (api: Types.Dialo
     attach: data.url.meta !== undefined && data.url.meta.attach ? data.url.meta.attach : () => {}
   };
 
-  DialogConfirms.preprocess(editor, changedData).get((pData) => {
+  DialogConfirms.preprocess(editor, changedData).then((pData) => {
     Utils.link(editor, attachState, pData);
   });
 
   api.close();
 };
 
-const collectData = (editor): Future<LinkDialogInfo> => {
+const collectData = (editor): Promise<LinkDialogInfo> => {
   const anchorNode: HTMLAnchorElement = Utils.getAnchorElement(editor);
   return DialogInfo.collect(editor, anchorNode);
 };
@@ -149,7 +147,7 @@ const makeDialog = (settings: LinkDialogInfo, onSubmit, editor: Editor): Types.D
       }
     ],
     initialData,
-    onChange: (api: Types.Dialog.DialogInstanceApi<LinkDialogData>, {name}) => {
+    onChange: (api: Types.Dialog.DialogInstanceApi<LinkDialogData>, { name }) => {
       dialogDelta.onChange(api.getData, { name }).each((newData) => {
         api.setData(newData);
       });
@@ -160,14 +158,14 @@ const makeDialog = (settings: LinkDialogInfo, onSubmit, editor: Editor): Types.D
 
 const open = function (editor: Editor) {
   const data = collectData(editor);
-  data.map((info) => {
+  data.then((info) => {
     const onSubmit = handleSubmit(editor, info);
     return makeDialog(info, onSubmit, editor);
-  }).get((spec) => {
+  }).then((spec) => {
     editor.windowManager.open(spec);
   });
 };
 
-export default {
+export {
   open
 };

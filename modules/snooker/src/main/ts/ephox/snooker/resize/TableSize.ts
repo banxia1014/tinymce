@@ -1,8 +1,8 @@
 import { Arr, Fun } from '@ephox/katamari';
 import { Width, Element } from '@ephox/sugar';
-import CellUtils from '../util/CellUtils';
-import ColumnSizes from './ColumnSizes';
-import Sizes from './Sizes';
+import * as CellUtils from '../util/CellUtils';
+import * as ColumnSizes from './ColumnSizes';
+import * as Sizes from './Sizes';
 import { TableSize } from './Types';
 
 const percentageSize = function (width: string, element: Element): TableSize {
@@ -13,7 +13,7 @@ const percentageSize = function (width: string, element: Element): TableSize {
   };
   const singleColumnWidth = function (w: number, _delta: number) {
     // If we have one column in a percent based table, that column should be 100% of the width of the table.
-    return [100 - w];
+    return [ 100 - w ];
   };
   // Get the width of a 10 pixel wide cell over the width of the table as a percentage
   const minCellWidth = function () {
@@ -83,6 +83,6 @@ const getTableSize = function (element: Element) {
   });
 };
 
-export default {
+export {
   getTableSize
 };

@@ -5,20 +5,19 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { Arr, Fun, Option, Cell } from '@ephox/katamari';
+import { Arr, Cell, Fun, Option } from '@ephox/katamari';
 import { CopyRows, TableFill, TableLookup } from '@ephox/snooker';
 import { Element, Insert, Remove, Replication } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
 import Tools from 'tinymce/core/api/util/Tools';
-import * as Util from '../alien/Util';
-import TableTargets from '../queries/TableTargets';
-import CellDialog from '../ui/CellDialog';
-import RowDialog from '../ui/RowDialog';
-import TableDialog from '../ui/TableDialog';
 import { TableActions } from '../actions/TableActions';
+import * as Util from '../alien/Util';
+import * as TableTargets from '../queries/TableTargets';
 import { Selections } from '../selection/Selections';
 import * as TableSelection from '../selection/TableSelection';
-import * as Events from '../api/Events';
+import * as CellDialog from '../ui/CellDialog';
+import * as RowDialog from '../ui/RowDialog';
+import * as TableDialog from '../ui/TableDialog';
 
 const each = Tools.each;
 
@@ -47,33 +46,13 @@ const registerCommands = (editor: Editor, actions: TableActions, cellSelection, 
       });
   };
 
-  const getTableFromCell = (cell: Element): Option<Element> => {
-    return TableLookup.table(cell, isRoot);
-  };
-
-  const getSize = (table) => {
-    return {
-      width: Util.getPixelWidth(table.dom()),
-      height: Util.getPixelWidth(table.dom())
-    };
-  };
-
-  const resizeChange = (editor: Editor, oldSize, table) => {
-    const newSize = getSize(table);
-
-    if (oldSize.width !== newSize.width || oldSize.height !== newSize.height) {
-      Events.fireObjectResizeStart(editor, table.dom(), oldSize.width, oldSize.height);
-      Events.fireObjectResized(editor, table.dom(), newSize.width, newSize.height);
-    }
-  };
+  const getTableFromCell = (cell: Element): Option<Element> => TableLookup.table(cell, isRoot);
 
   const actOnSelection = (execute) => {
     TableSelection.getSelectionStartCell(editor).each((cell) => {
       getTableFromCell(cell).each((table) => {
         const targets = TableTargets.forMenu(selections, table, cell);
-        const beforeSize = getSize(table);
         execute(table, targets).each((rng) => {
-          resizeChange(editor, beforeSize, table);
           editor.selection.setRng(rng);
           editor.focus();
           cellSelection.clear(table);
@@ -83,23 +62,17 @@ const registerCommands = (editor: Editor, actions: TableActions, cellSelection, 
     });
   };
 
-  const copyRowSelection = (execute?) => {
-    return TableSelection.getSelectionStartCell(editor).map((cell) => {
-      return getTableFromCell(cell).bind((table) => {
-        const doc = Element.fromDom(editor.getDoc());
-        const targets = TableTargets.forMenu(selections, table, cell);
-        const generators = TableFill.cellOperations(Fun.noop, doc, Option.none());
-        return CopyRows.copyRows(table, targets, generators);
-      });
-    });
-  };
+  const copyRowSelection = (_execute?) => TableSelection.getSelectionStartCell(editor).map((cell) => getTableFromCell(cell).bind((table) => {
+    const doc = Element.fromDom(editor.getDoc());
+    const targets = TableTargets.forMenu(selections, table, cell);
+    const generators = TableFill.cellOperations(Fun.noop, doc, Option.none());
+    return CopyRows.copyRows(table, targets, generators);
+  }));
 
   const pasteOnSelection = (execute) => {
     // If we have clipboard rows to paste
     clipboardRows.get().each((rows) => {
-      const clonedRows = Arr.map(rows, (row) => {
-        return Replication.deep(row);
-      });
+      const clonedRows = Arr.map(rows, (row) => Replication.deep(row));
       TableSelection.getSelectionStartCell(editor).each((cell) => {
         getTableFromCell(cell).each((table) => {
           const doc = Element.fromDom(editor.getDoc());
@@ -117,56 +90,56 @@ const registerCommands = (editor: Editor, actions: TableActions, cellSelection, 
 
   // Register action commands
   each({
-    mceTableSplitCells () {
+    mceTableSplitCells() {
       actOnSelection(actions.unmergeCells);
     },
 
-    mceTableMergeCells () {
+    mceTableMergeCells() {
       actOnSelection(actions.mergeCells);
     },
 
-    mceTableInsertRowBefore () {
+    mceTableInsertRowBefore() {
       actOnSelection(actions.insertRowsBefore);
     },
 
-    mceTableInsertRowAfter () {
+    mceTableInsertRowAfter() {
       actOnSelection(actions.insertRowsAfter);
     },
 
-    mceTableInsertColBefore () {
+    mceTableInsertColBefore() {
       actOnSelection(actions.insertColumnsBefore);
     },
 
-    mceTableInsertColAfter () {
+    mceTableInsertColAfter() {
       actOnSelection(actions.insertColumnsAfter);
     },
 
-    mceTableDeleteCol () {
+    mceTableDeleteCol() {
       actOnSelection(actions.deleteColumn);
     },
 
-    mceTableDeleteRow () {
+    mceTableDeleteRow() {
       actOnSelection(actions.deleteRow);
     },
 
-    mceTableCutRow (grid) {
+    mceTableCutRow(_grid) {
       copyRowSelection().each((selection) => {
         clipboardRows.set(selection);
         actOnSelection(actions.deleteRow);
       });
     },
 
-    mceTableCopyRow (grid) {
+    mceTableCopyRow(_grid) {
       copyRowSelection().each((selection) => {
         clipboardRows.set(selection);
       });
     },
 
-    mceTablePasteRowBefore (grid) {
+    mceTablePasteRowBefore(_grid) {
       pasteOnSelection(actions.pasteRowsBefore);
     },
 
-    mceTablePasteRowAfter (grid) {
+    mceTablePasteRowAfter(_grid) {
       pasteOnSelection(actions.pasteRowsAfter);
     },
 
@@ -189,6 +162,6 @@ const registerCommands = (editor: Editor, actions: TableActions, cellSelection, 
   });
 };
 
-export default {
+export {
   registerCommands
 };

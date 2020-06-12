@@ -1,6 +1,7 @@
 import { Arr, Fun, Option } from '@ephox/katamari';
-import { Attr, Element, Node, SelectorFilter, SelectorFind, Selectors, Traverse } from '@ephox/sugar';
-import LayerSelector from '../util/LayerSelector';
+import { Element, Node, SelectorFilter, SelectorFind, Selectors, Traverse } from '@ephox/sugar';
+import { getAttrValue } from '../util/CellUtils';
+import * as LayerSelector from '../util/LayerSelector';
 import * as Structs from './Structs';
 
 // lookup inside this table
@@ -55,7 +56,7 @@ const table = function (element: Element, isRoot?: (e: Element) => boolean) {
 };
 
 const row = function (element: Element, isRoot?: (e: Element) => boolean) {
-   return lookup([ 'tr' ], element, isRoot);
+  return lookup([ 'tr' ], element, isRoot);
 };
 
 const rows = function (ancestor: Element) {
@@ -63,7 +64,7 @@ const rows = function (ancestor: Element) {
 };
 
 const attr = function (element: Element, property: string) {
-  return parseInt(Attr.get(element, property), 10);
+  return getAttrValue(element, property);
 };
 
 const grid = function (element: Element, rowProp: string, colProp: string) {
@@ -72,7 +73,7 @@ const grid = function (element: Element, rowProp: string, colProp: string) {
   return Structs.grid(rowsCount, cols);
 };
 
-export default {
+export {
   cell,
   firstCell,
   cells,

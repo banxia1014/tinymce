@@ -5,7 +5,7 @@ import { LegacyUnit, TinyLoader } from '@ephox/mcagar';
 import Editor from 'tinymce/core/api/Editor';
 import Env from 'tinymce/core/api/Env';
 import * as CaretContainer from 'tinymce/core/caret/CaretContainer';
-import Zwsp from 'tinymce/core/text/Zwsp';
+import * as Zwsp from 'tinymce/core/text/Zwsp';
 import Theme from 'tinymce/themes/silver/Theme';
 
 UnitTest.asynctest('browser.tinymce.core.dom.SelectionTest', function (success, failure) {
@@ -82,6 +82,15 @@ UnitTest.asynctest('browser.tinymce.core.dom.SelectionTest', function (success, 
     editor.selection.setRng(rng);
     editor.selection.setContent('<div>test</div>');
     LegacyUnit.equal(editor.getContent(), '<div>test</div>', 'Set contents at selection');
+
+    // Insert XSS at selection
+    editor.setContent('<p>text</p>');
+    rng = editor.dom.createRng();
+    rng.setStart(editor.getBody(), 0);
+    rng.setEnd(editor.getBody(), 1);
+    editor.selection.setRng(rng);
+    editor.selection.setContent('<img src="a" onerror="alert(1)" />');
+    LegacyUnit.equal(editor.getContent(), '<img src="a" />', 'Set XSS at selection');
 
     // Set contents at selection (collapsed)
     editor.setContent('<p>text</p>');
@@ -866,7 +875,7 @@ UnitTest.asynctest('browser.tinymce.core.dom.SelectionTest', function (success, 
     LegacyUnit.equal(rng.startOffset, 0);
   });
 
-  suite.test('normalize lean left but don\'t walk out the parent block', function (editor) {
+  suite.test(`normalize lean left but don't walk out the parent block`, function (editor) {
     let rng;
 
     editor.getBody().innerHTML = '<p>a</p><p><b>b</b></p>';
@@ -908,7 +917,7 @@ UnitTest.asynctest('browser.tinymce.core.dom.SelectionTest', function (success, 
     LegacyUnit.equal(rng.startOffset, 1);
   });
 
-  suite.test('normalize don\'t lean left into empty inline elements if there is a br element after caret', function (editor) {
+  suite.test(`normalize don't lean left into empty inline elements if there is a br element after caret`, function (editor) {
     let rng;
 
     editor.getBody().innerHTML = '<p><i><b></b></i><br /><br /></p>';
@@ -923,7 +932,7 @@ UnitTest.asynctest('browser.tinymce.core.dom.SelectionTest', function (success, 
     LegacyUnit.equal(rng.startOffset, 2);
   });
 
-  suite.test('normalize don\'t lean left into empty inline elements if there is a br element before caret', function (editor) {
+  suite.test(`normalize don't lean left into empty inline elements if there is a br element before caret`, function (editor) {
     let rng;
 
     editor.getBody().innerHTML = '<p><i><b><br /></b></i><br /></p>';
@@ -938,7 +947,7 @@ UnitTest.asynctest('browser.tinymce.core.dom.SelectionTest', function (success, 
     LegacyUnit.equal(rng.startOffset, 1);
   });
 
-  suite.test('normalize don\'t move start/end if it\'s before/after table', function (editor) {
+  suite.test(`normalize don't move start/end if it's before/after table`, function (editor) {
     let rng;
 
     editor.getBody().innerHTML = '<table><tr><td>X</td></tr></table>';
@@ -1185,7 +1194,7 @@ UnitTest.asynctest('browser.tinymce.core.dom.SelectionTest', function (success, 
     LegacyUnit.equal(curRng.endContainer.nodeName, 'BODY');
     LegacyUnit.equal(curRng.endOffset, 0);
   });
-/*
+  /*
   // TODO: Re-implement this test as a separate test if needed by destroying an editor etc
   suite.test('getRng should return null if win.document is not defined or null', function (editor) {
     const win = editor.selection.win;

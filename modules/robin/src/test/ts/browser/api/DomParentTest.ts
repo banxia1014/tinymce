@@ -1,7 +1,7 @@
 import { Assert, UnitTest } from '@ephox/bedrock-client';
 import { Arr, Fun, Option } from '@ephox/katamari';
 import { Attr, Compare, Element, Hierarchy, Html, SelectorFind } from '@ephox/sugar';
-import DomParent from 'ephox/robin/api/dom/DomParent';
+import * as DomParent from 'ephox/robin/api/dom/DomParent';
 import { KAssert } from '@ephox/katamari-assertions';
 
 UnitTest.test(
@@ -103,7 +103,7 @@ UnitTest.test(
       '<span>Dog</span>' +
       '</font>' +
       '</div>',
-      [0, 0], [0, 0, 1, 0]);
+      [ 0, 0 ], [ 0, 0, 1, 0 ]);
 
     checkPath(
       '<div>' +
@@ -133,7 +133,7 @@ UnitTest.test(
       '<span>Dog</span>' +
       '</font>' +
       '</div>',
-      [0, 0], [0, 0, 1, 1]);
+      [ 0, 0 ], [ 0, 0, 1, 1 ]);
 
     checkPath(
       '<div>' +
@@ -162,7 +162,7 @@ UnitTest.test(
       '<span>Dog</span>' +
       '</font>' +
       '</div>',
-      [0, 0], [0, 0, 1, 2]);
+      [ 0, 0 ], [ 0, 0, 1, 2 ]);
 
     checkPath(
       '<div>' +
@@ -192,7 +192,7 @@ UnitTest.test(
       '<span>Dog</span>' +
       '</font>' +
       '</div>',
-      [0, 0], [0, 0, 1, 0]);
+      [ 0, 0 ], [ 0, 0, 1, 0 ]);
 
     (function () {
       const check = function (expected: Option<string[]>, s: string, f: string) {
@@ -226,10 +226,10 @@ UnitTest.test(
         KAssert.eqOption('eq', expected_, actual);
       };
 
-      check(Option.some(['three-five']), 'three-five', 'five');
-      check(Option.some(['three-five']), 'five', 'three-five');
-      check(Option.some(['two', 'three-five']), 'two', 'five');
-      check(Option.some(['two', 'three-five', 'six', 'seven-nine']), 'two', 'eight');
+      check(Option.some([ 'three-five' ]), 'three-five', 'five');
+      check(Option.some([ 'three-five' ]), 'five', 'three-five');
+      check(Option.some([ 'two', 'three-five' ]), 'two', 'five');
+      check(Option.some([ 'two', 'three-five', 'six', 'seven-nine' ]), 'two', 'eight');
     })();
   }
 );

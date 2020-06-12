@@ -7,9 +7,9 @@
 
 import BookmarkManager from 'tinymce/core/api/dom/BookmarkManager';
 import Tools from 'tinymce/core/api/util/Tools';
-import Bookmark from '../core/Bookmark';
-import NodeType from '../core/NodeType';
-import Selection from '../core/Selection';
+import * as Bookmark from '../core/Bookmark';
+import * as NodeType from '../core/NodeType';
+import * as Selection from '../core/Selection';
 import { HTMLElement } from '@ephox/dom-globals';
 import { flattenListSelection } from './Indendation';
 import { fireListEvent } from '../api/Events';
@@ -238,7 +238,7 @@ const toggleMultipleLists = function (editor, parentList, lists, listName, detai
   } else {
     const bookmark = Bookmark.createBookmark(editor.selection.getRng(true));
 
-    Tools.each([parentList].concat(lists), function (elm) {
+    Tools.each([ parentList ].concat(lists), function (elm) {
       updateList(editor, elm, listName, detail);
     });
 
@@ -285,7 +285,7 @@ const toggleList = function (editor, listName, detail) {
   }
 };
 
-export default {
+export {
   toggleList,
   mergeWithAdjacentLists
 };

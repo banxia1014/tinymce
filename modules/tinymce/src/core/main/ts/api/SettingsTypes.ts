@@ -12,6 +12,8 @@ import { Formats } from './fmt/Format';
 import { AllowedFormat } from './fmt/StyleFormat';
 import { SchemaType } from './html/Schema';
 
+export type EntityEncoding = 'named' | 'numeric' | 'raw';
+
 export type ThemeInitFunc = (editor: Editor, elm: HTMLElement) => {
   editorContainer: HTMLElement;
   iframeContainer: HTMLElement;
@@ -23,7 +25,7 @@ export type SetupCallback = (editor: Editor) => void;
 
 export type FilePickerCallback = (callback: Function, value: any, meta: Record<string, any>) => void;
 export type FilePickerValidationStatus = 'valid' | 'unknown' | 'invalid' | 'none';
-export type FilePickerValidationCallback = (info: { type: string, url: string }, callback: (validation: { status: FilePickerValidationStatus, message: string}) => void) => void;
+export type FilePickerValidationCallback = (info: { type: string; url: string }, callback: (validation: { status: FilePickerValidationStatus; message: string}) => void) => void;
 
 // dom-globals is outdated and missing a number of valid values
 export type ReferrerPolicy = DomReferrerPolicy | 'origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin';
@@ -36,7 +38,9 @@ interface ToolbarGroup {
   items: string[];
 }
 
-export interface RawEditorSettings {
+export type ToolbarMode = 'floating' | 'sliding' | 'scrolling' | 'wrap';
+
+interface BaseEditorSettings {
   add_form_submit_trigger?: boolean;
   add_unload_trigger?: boolean;
   allow_conditional_comments?: boolean;
@@ -78,9 +82,8 @@ export interface RawEditorSettings {
   encoding?: string;
   end_container_on_empty_block?: boolean;
   entities?: string;
-  entity_encoding?: string;
+  entity_encoding?: EntityEncoding;
   extended_valid_elements?: string;
-  external_plugins?: Record<string, string>;
   event_root?: string;
   file_picker_callback?: FilePickerCallback;
   file_picker_types?: string;
@@ -127,16 +130,14 @@ export interface RawEditorSettings {
   language_url?: string;
   max_height?: number;
   max_width?: number;
-  menu?: Record<string, { title: string, items: string }>;
+  menu?: Record<string, { title: string; items: string }>;
   menubar?: boolean | string;
   min_height?: number;
   min_width?: number;
-  mobile?: RawEditorSettings;
   no_newline_selector?: string;
   nowrap?: boolean;
   object_resizing?: boolean | string;
   placeholder?: string;
-  plugins?: string | string[];
   preserve_cdata?: boolean;
   preview_styles?: boolean | string;
   protect?: RegExp[];
@@ -173,7 +174,7 @@ export interface RawEditorSettings {
   toolbar7?: string;
   toolbar8?: string;
   toolbar9?: string;
-  toolbar_mode?: 'floating' | 'sliding' | 'scrolling' | 'wrap';
+  toolbar_mode?: ToolbarMode;
   typeahead_urls?: boolean;
   url_converter?: URLConverter;
   url_converter_scope?: {};
@@ -221,8 +222,15 @@ export interface RawEditorSettings {
   [key: string]: any;
 }
 
+export interface RawEditorSettings extends BaseEditorSettings {
+  external_plugins?: Record<string, string>;
+  mobile?: RawEditorSettings;
+  plugins?: string | string[];
+}
+
 // EditorSettings.ts processes the plugins setting to turn it into a string
-export interface EditorSettings extends RawEditorSettings {
-  mobile?: EditorSettings;
-  plugins?: string;
+// and merges in the mobile settings
+export interface EditorSettings extends BaseEditorSettings {
+  external_plugins: Record<string, string>;
+  plugins: string;
 }

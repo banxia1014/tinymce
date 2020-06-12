@@ -1,5 +1,5 @@
 import { Types } from '@ephox/bridge';
-import Helpers from './Helpers';
+import * as Helpers from './Helpers';
 import { getTableClassList, hasAppearanceOptions } from '../api/Settings';
 import Editor from 'tinymce/core/api/Editor';
 
@@ -86,9 +86,7 @@ const getItems = (editor: Editor, hasClasses: boolean, insertNewTable: boolean) 
         getTableClassList(editor),
         (item) => {
           if (item.value) {
-            item.textStyle = () => {
-              return editor.formatter.getCssText({ block: 'table', classes: [item.value] });
-            };
+            item.textStyle = () => editor.formatter.getCssText({ block: 'table', classes: [ item.value ] });
           }
         }
       )
@@ -98,6 +96,6 @@ const getItems = (editor: Editor, hasClasses: boolean, insertNewTable: boolean) 
   return rowColCountItems.concat(alwaysItems).concat(appearanceItems).concat(alignmentItem).concat(classListItem);
 };
 
-export default {
+export {
   getItems
 };

@@ -1,6 +1,6 @@
 import { Arr, Option } from '@ephox/katamari';
 import * as Structs from '../api/Structs';
-import GridRow from '../model/GridRow';
+import * as GridRow from '../model/GridRow';
 import { Element } from '@ephox/sugar';
 
 type CompElm = (e1: Element, e2: Element) => boolean;
@@ -43,9 +43,9 @@ const unmerge = function (grid: Structs.RowCells[], target: Element, comparator:
 
 const uniqueCells = function (row: Structs.ElementNew[], comparator: CompElm) {
   return Arr.foldl(row, function (rest, cell) {
-      return Arr.exists(rest, function (currentCell) {
-        return comparator(currentCell.element(), cell.element());
-      }) ? rest : rest.concat([cell]);
+    return Arr.exists(rest, function (currentCell) {
+      return comparator(currentCell.element(), cell.element());
+    }) ? rest : rest.concat([ cell ]);
   }, [] as Structs.ElementNew[]);
 };
 
@@ -78,7 +78,7 @@ const splitRows = function (grid: Structs.RowCells[], index: number, comparator:
   return grid;
 };
 
-export default {
+export {
   merge,
   unmerge,
   splitRows

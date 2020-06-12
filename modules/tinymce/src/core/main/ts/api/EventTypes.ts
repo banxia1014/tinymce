@@ -7,40 +7,39 @@
 
 import { Types } from '@ephox/bridge';
 import { Element, Event, FocusEvent, HTMLElement, Node, Range, TouchEvent, UIEvent } from '@ephox/dom-globals';
-import { GetContentArgs } from '../content/GetContent';
-import { SetContentArgs } from '../content/SetContent';
+import { GetContentArgs, SetContentArgs } from '../content/ContentTypes';
 import { UndoLevel } from '../undo/UndoManagerTypes';
 import Editor from './Editor';
 import { NativeEventMap } from './util/EventDispatcher';
 
-export type ExecCommandEvent = { command: string, ui?: boolean, value?: any };
+export type ExecCommandEvent = { command: string; ui?: boolean; value?: any };
 
 // TODO Figure out if these properties should be on the ContentArgs types
-export type GetContentEvent = GetContentArgs & { source_view: boolean, selection: boolean, save: boolean };
-export type SetContentEvent = SetContentArgs & { paste: boolean, selection: boolean };
+export type GetContentEvent = GetContentArgs & { source_view: boolean; selection: boolean; save: boolean };
+export type SetContentEvent = SetContentArgs & { paste: boolean; selection: boolean };
 
 export type NewBlockEvent = { newBlock: Element };
 
-export type NodeChangedEvent = { element: Element, parents: Node[], selectionChange?: boolean, initial?: boolean };
+export type NodeChangeEvent = { element: Element; parents: Node[]; selectionChange?: boolean; initial?: boolean };
 
-export type ObjectResizedEvent = { target: HTMLElement, width: number, height: number };
+export type ObjectResizedEvent = { target: HTMLElement; width: number; height: number };
 
-export type ObjectSelectedEvent = { target: Node, targetClone?: Node };
+export type ObjectSelectedEvent = { target: Node; targetClone?: Node };
 
-export type ScrollIntoViewEvent = { elm: HTMLElement, alignToTop: boolean };
+export type ScrollIntoViewEvent = { elm: HTMLElement; alignToTop: boolean };
 
-export type SetSelectionRangeEvent = { range: Range, forward: boolean };
+export type SetSelectionRangeEvent = { range: Range; forward: boolean };
 
-export type ShowCaretEvent = { target: Node, direction: number, before: boolean };
+export type ShowCaretEvent = { target: Node; direction: number; before: boolean };
 
 export type SwitchModeEvent = { mode: string };
 
-export type AddUndoEvent = { level: UndoLevel, lastLevel: UndoLevel, originalEvent: Event };
+export type AddUndoEvent = { level: UndoLevel; lastLevel: UndoLevel; originalEvent: Event };
 export type UndoRedoEvent = { level: UndoLevel };
 
 export type WindowEvent<T extends Types.Dialog.DialogData> = { dialog: Types.Dialog.DialogInstanceApi<T> };
 
-export type ProgressStateEvent = { state: boolean, time?: number };
+export type ProgressStateEvent = { state: boolean; time?: number };
 
 export type PlaceholderToggleEvent = { state: boolean };
 
@@ -70,7 +69,7 @@ export interface EditorEventMap extends NativeEventMap {
   'LanguageLoadError': LoadErrorEvent;
   'BeforeExecCommand': ExecCommandEvent;
   'ExecCommand': ExecCommandEvent;
-  'NodeChange': NodeChangedEvent;
+  'NodeChange': NodeChangeEvent;
   'ShowCaret': ShowCaretEvent;
   'SelectionChange': { };
   'ObjectSelected': ObjectSelectedEvent;

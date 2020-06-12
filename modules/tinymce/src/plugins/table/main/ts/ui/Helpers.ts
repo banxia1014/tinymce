@@ -11,7 +11,7 @@ import { Css, Element } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
 import Tools from 'tinymce/core/api/util/Tools';
 
-import Styles from '../actions/Styles';
+import * as Styles from '../actions/Styles';
 import { shouldStyleWithCss, getDefaultStyles, getDefaultAttributes } from '../api/Settings';
 import { Types } from '@ephox/bridge';
 
@@ -124,7 +124,7 @@ const getAdvancedTab = (dialogName: 'table' | 'row' | 'cell') => {
     label: 'Border width'
   };
 
-  const items = dialogName === 'cell' ? ([borderWidth] as Types.Dialog.BodyComponentApi[]).concat(advTabItems) : advTabItems;
+  const items = dialogName === 'cell' ? ([ borderWidth ] as Types.Dialog.BodyComponentApi[]).concat(advTabItems) : advTabItems;
 
   return {
     title: 'Advanced',
@@ -321,7 +321,7 @@ const extractDataFromCellElement = (editor: Editor, elm: HTMLElement, hasAdvance
   return data;
 };
 
-export default {
+export {
   buildListItems,
   extractAdvancedStyles,
   getSharedValues,

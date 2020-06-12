@@ -4,42 +4,38 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  */
-import {AddEventsBehaviour, AlloyComponent, AlloyEvents, AlloyParts, AlloySpec, Behaviour, Button, Container, DomFactory, Focusing, Keying, ModalDialog, NativeEvents, SystemEvents, Tabstopping } from '@ephox/alloy';
+import { AddEventsBehaviour, AlloyComponent, AlloyEvents, AlloyParts, AlloySpec, Behaviour, Button, Container, DomFactory, Focusing, Keying, ModalDialog, NativeEvents, SystemEvents, Tabstopping } from '@ephox/alloy';
 import { Option, Result } from '@ephox/katamari';
 import { Body, Class } from '@ephox/sugar';
 import Env from 'tinymce/core/api/Env';
 
 import { UiFactoryBackstageProviders } from '../../backstage/Backstage';
-import NavigableObject from '../general/NavigableObject';
+import * as NavigableObject from '../general/NavigableObject';
 
 const isTouch = Env.deviceType.isTouch();
 
-const hiddenHeader = (title: AlloyParts.ConfiguredPart, close: AlloyParts.ConfiguredPart): AlloySpec => {
-  return {
-    dom: {
-      tag: 'div',
-      styles: { display: 'none' },
-      classes: [ 'tox-dialog__header' ]
-    },
-    components: [
-      title,
-      close
-    ]
-  };
-};
+const hiddenHeader = (title: AlloyParts.ConfiguredPart, close: AlloyParts.ConfiguredPart): AlloySpec => ({
+  dom: {
+    tag: 'div',
+    styles: { display: 'none' },
+    classes: [ 'tox-dialog__header' ]
+  },
+  components: [
+    title,
+    close
+  ]
+});
 
-const defaultHeader = (title: AlloyParts.ConfiguredPart, close: AlloyParts.ConfiguredPart): AlloySpec => {
-  return {
-    dom: {
-      tag: 'div',
-      classes: [ 'tox-dialog__header' ]
-    },
-    components: [
-      title,
-      close
-    ]
-  };
-};
+const defaultHeader = (title: AlloyParts.ConfiguredPart, close: AlloyParts.ConfiguredPart): AlloySpec => ({
+  dom: {
+    tag: 'div',
+    classes: [ 'tox-dialog__header' ]
+  },
+  components: [
+    title,
+    close
+  ]
+});
 
 const pClose = (onClose: () => void, providersBackstage: UiFactoryBackstageProviders) => ModalDialog.parts().close(
   // Need to find a way to make it clear in the docs whether parts can be sketches
@@ -79,7 +75,7 @@ const pBodyMessage = (message: string, providersBackstage: UiFactoryBackstagePro
     {
       dom: {
         tag: 'div',
-        classes: ['tox-dialog__body-content']
+        classes: [ 'tox-dialog__body-content' ]
       },
       components: [
         {
@@ -98,24 +94,22 @@ const pFooter = (buttons: AlloySpec[]) => ModalDialog.parts().footer({
   components: buttons,
 });
 
-const pFooterGroup = (startButtons: AlloySpec[], endButtons: AlloySpec[]) => {
-  return [
-    Container.sketch({
-      dom: {
-        tag: 'div',
-        classes: [ `tox-dialog__footer-start` ]
-      },
-      components: startButtons
-    }),
-    Container.sketch({
-      dom: {
-        tag: 'div',
-        classes: [ `tox-dialog__footer-end` ]
-      },
-      components: endButtons
-    })
-  ];
-};
+const pFooterGroup = (startButtons: AlloySpec[], endButtons: AlloySpec[]) => [
+  Container.sketch({
+    dom: {
+      tag: 'div',
+      classes: [ 'tox-dialog__footer-start' ]
+    },
+    components: startButtons
+  }),
+  Container.sketch({
+    dom: {
+      tag: 'div',
+      classes: [ 'tox-dialog__footer-end' ]
+    },
+    components: endButtons
+  })
+];
 
 export interface DialogSpec {
   lazySink: () => Result<AlloyComponent, any>;
@@ -178,7 +172,7 @@ const renderDialog = (spec: DialogSpec) => {
         AddEventsBehaviour.config('dialog-events', spec.dialogEvents.concat([
           // Note: `runOnSource` here will only listen to the event at the outer component level.
           // Using just `run` instead will cause an infinite loop as `focusIn` would fire a `focusin` which would then get responded to and so forth.
-          AlloyEvents.runOnSource(NativeEvents.focusin(), (comp, se) => {
+          AlloyEvents.runOnSource(NativeEvents.focusin(), (comp, _se) => {
             Keying.focusIn(comp);
           })
         ])),

@@ -1,11 +1,12 @@
 import { GeneralSteps, Logger, Pipeline, Step, Waiter } from '@ephox/agar';
 import { UnitTest } from '@ephox/bedrock-client';
+import { TouchEvent } from '@ephox/dom-globals';
 import { Fun } from '@ephox/katamari';
 import { Element, EventArgs } from '@ephox/sugar';
 
 import * as NativeEvents from 'ephox/alloy/api/events/NativeEvents';
 import * as SystemEvents from 'ephox/alloy/api/events/SystemEvents';
-import TestStore from 'ephox/alloy/api/testhelpers/TestStore';
+import { TestStore } from 'ephox/alloy/api/testhelpers/TestStore';
 import * as TapEvent from 'ephox/alloy/events/TapEvent';
 
 UnitTest.asynctest('browser events.TapEventsTest', (success, failure) => {
@@ -14,7 +15,7 @@ UnitTest.asynctest('browser events.TapEventsTest', (success, failure) => {
   const store = TestStore();
 
   const monitor = TapEvent.monitor({
-    triggerEvent (name) {
+    triggerEvent(name) {
       store.adder(name)();
       return true;
     },
@@ -22,22 +23,18 @@ UnitTest.asynctest('browser events.TapEventsTest', (success, failure) => {
 
   const alpha = Element.fromText('alpha');
 
-  const touches = (x: number, y: number, target: Element) => {
-    return {
-      raw: Fun.constant({
-        touches: [
-          { clientX: x, clientY: y }
-        ]
-      }),
-      target: Fun.constant(target)
-    } as EventArgs;
-  };
+  const touches = (x: number, y: number, target: Element) => ({
+    raw: Fun.constant({
+      touches: [
+        { clientX: x, clientY: y }
+      ]
+    }),
+    target: Fun.constant(target)
+  } as unknown as EventArgs<TouchEvent>);
 
-  const sFireIfReady = (event: EventArgs, type: string) => {
-    return Step.sync(() => {
-      monitor.fireIfReady(event, type);
-    });
-  };
+  const sFireIfReady = (event: EventArgs, type: string) => Step.sync(() => {
+    monitor.fireIfReady(event, type);
+  });
 
   Pipeline.async({ }, [
     Logger.t(

@@ -5,9 +5,9 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import NodeType from '../dom/NodeType';
+import * as NodeType from '../dom/NodeType';
 import DOMUtils from '../api/dom/DOMUtils';
-import ArrUtils from '../util/ArrUtils';
+import * as ArrUtils from '../util/ArrUtils';
 import CaretPosition from '../caret/CaretPosition';
 import { Node } from '@ephox/dom-globals';
 import { Fun } from '@ephox/katamari';
@@ -89,7 +89,7 @@ const normalizedNodeIndex = (node: Node): number => {
     return result;
   }, 0);
 
-  nodes = ArrUtils.filter(nodes, NodeType.matchNodeNames([node.nodeName]));
+  nodes = ArrUtils.filter(nodes, NodeType.matchNodeNames([ node.nodeName ]));
   index = ArrUtils.findIndex(nodes, equal(node), node);
 
   return index - numTextFragments;
@@ -159,7 +159,7 @@ const resolvePathItem = (node: Node, name: string, index: number): Node => {
     return !isText(node) || !isText(nodes[index - 1]);
   });
 
-  nodes = ArrUtils.filter(nodes, NodeType.matchNodeNames([name]));
+  nodes = ArrUtils.filter(nodes, NodeType.matchNodeNames([ name ]));
   return nodes[index];
 };
 

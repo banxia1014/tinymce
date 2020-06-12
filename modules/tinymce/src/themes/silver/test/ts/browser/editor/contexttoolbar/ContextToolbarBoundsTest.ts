@@ -8,9 +8,11 @@ import { Body, Css, Element, Scroll, SelectorFind } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
 import SilverTheme from 'tinymce/themes/silver/Theme';
 import { getContextToolbarBounds } from 'tinymce/themes/silver/ui/context/ContextToolbarBounds';
+import TestBackstage from '../../../module/TestBackstage';
 
 UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
   SilverTheme();
+  const backstage = TestBackstage();
 
   interface TestBounds {
     header: Bounds;
@@ -58,8 +60,8 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
     label: string;
     settings: Record<string, any>;
     scroll?: {
-      relativeTop: boolean,
-      delta: number
+      relativeTop: boolean;
+      delta: number;
     };
     assertBounds: (currentBounds: TestBounds) => {
       x: number;
@@ -69,42 +71,41 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
     };
   }
 
-  const sTestScenario = (scenario: Scenario) => {
-    return Logger.t(scenario.label, Chain.asStep({ }, [
-      NamedChain.asChain([
-        NamedChain.write('editor', McEditor.cFromSettings({
-          theme: 'silver',
-          base_url: '/project/tinymce/js/tinymce',
-          ...scenario.settings
-        })),
-        NamedChain.write('tearDownScroll', Chain.mapper(() => setupPageScroll())),
-        NamedChain.read('editor', Chain.op((editor: Editor) => editor.focus())),
-        NamedChain.read('editor', cScrollRelativeEditorContainer(scenario.scroll.relativeTop, scenario.scroll.delta)),
-        NamedChain.read('editor', Chain.op((editor) => {
-          const assertBounds = (bound: 'x' | 'y' | 'right' | 'bottom') => {
-            const expectedBound = asserted[bound];
-            const actualBound = actual[bound]();
+  const sTestScenario = (scenario: Scenario) => Logger.t(scenario.label, Chain.asStep({ }, [
+    NamedChain.asChain([
+      NamedChain.write('editor', McEditor.cFromSettings({
+        theme: 'silver',
+        base_url: '/project/tinymce/js/tinymce',
+        ...scenario.settings
+      })),
+      NamedChain.read('editor', Chain.op((editor) => backstage.shared.header.setDockingMode(editor.settings.toolbar_location))),
+      NamedChain.write('tearDownScroll', Chain.mapper(() => setupPageScroll())),
+      NamedChain.read('editor', Chain.op((editor: Editor) => editor.focus())),
+      NamedChain.read('editor', cScrollRelativeEditorContainer(scenario.scroll.relativeTop, scenario.scroll.delta)),
+      NamedChain.read('editor', Chain.op((editor) => {
+        const assertBounds = (bound: 'x' | 'y' | 'right' | 'bottom') => {
+          const expectedBound = asserted[bound];
+          const actualBound = actual[bound];
 
-            Assertions.assertEq(
-              `Expect context toolbar bounds.${bound} === ${expectedBound} (Actual: ${actualBound})`,
-              actualBound,
-              expectedBound
-            );
-          };
+          Assertions.assertEq(
+            `Expect context toolbar bounds.${bound} === ${expectedBound} (Actual: ${actualBound})`,
+            actualBound,
+            expectedBound
+          );
+        };
 
-          const asserted = scenario.assertBounds(getBounds(editor));
-          const actual = getContextToolbarBounds(editor);
+        const asserted = scenario.assertBounds(getBounds(editor));
+        const actual = getContextToolbarBounds(editor, backstage.shared);
 
-          assertBounds('x');
-          assertBounds('y');
-          assertBounds('right');
-          assertBounds('bottom');
-        })),
-        NamedChain.read('tearDownScroll', Chain.op(Fun.call)),
-        NamedChain.read('editor', McEditor.cRemove),
-      ])
-    ]));
-  };
+        assertBounds('x');
+        assertBounds('y');
+        assertBounds('right');
+        assertBounds('bottom');
+      })),
+      NamedChain.read('tearDownScroll', Chain.op(Fun.call)),
+      NamedChain.read('editor', McEditor.cRemove),
+    ])
+  ]));
 
   Pipeline.async({}, [
     Logger.t('Test Context toolbar bounds with toolbar top', GeneralSteps.sequence([
@@ -113,10 +114,10 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
         settings: { inline: true },
         scroll: { relativeTop: true, delta: -10 },
         assertBounds: (bounds: TestBounds) => ({
-          x: bounds.content.x(),
-          y: bounds.header.bottom(),
-          right: bounds.content.right(),
-          bottom: bounds.viewport.bottom(),
+          x: bounds.content.x,
+          y: bounds.header.bottom,
+          right: bounds.content.right,
+          bottom: bounds.viewport.bottom,
         }),
       }),
       sTestScenario({
@@ -124,10 +125,10 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
         settings: { menubar: false, inline: true, toolbar: false },
         scroll: { relativeTop: true, delta: -10 },
         assertBounds: (bounds: TestBounds) => ({
-          x: bounds.content.x(),
-          y: bounds.viewport.y(),
-          right: bounds.content.right(),
-          bottom: bounds.viewport.bottom(),
+          x: bounds.content.x,
+          y: bounds.viewport.y,
+          right: bounds.content.right,
+          bottom: bounds.viewport.bottom,
         }),
       }),
       sTestScenario({
@@ -135,10 +136,10 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
         settings: { },
         scroll: { relativeTop: true, delta: -10 },
         assertBounds: (bounds: TestBounds) => ({
-          x: bounds.content.x(),
-          y: bounds.header.bottom(),
-          right: bounds.content.right(),
-          bottom: bounds.container.bottom(),
+          x: bounds.content.x,
+          y: bounds.header.bottom,
+          right: bounds.content.right,
+          bottom: bounds.container.bottom,
         }),
       }),
       sTestScenario({
@@ -146,10 +147,10 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
         settings: { height: 400 },
         scroll: { relativeTop: true, delta: 200 },
         assertBounds: (bounds: TestBounds) => ({
-          x: bounds.content.x(),
-          y: bounds.viewport.y(),
-          right: bounds.content.right(),
-          bottom: bounds.container.bottom(),
+          x: bounds.content.x,
+          y: bounds.viewport.y,
+          right: bounds.content.right,
+          bottom: bounds.container.bottom,
         }),
       }),
       sTestScenario({
@@ -157,10 +158,10 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
         settings: { height: 400 },
         scroll: { relativeTop: false, delta: -200 },
         assertBounds: (bounds: TestBounds) => ({
-          x: bounds.content.x(),
-          y: bounds.content.y(),
-          right: bounds.content.right(),
-          bottom: bounds.viewport.bottom(),
+          x: bounds.content.x,
+          y: bounds.content.y,
+          right: bounds.content.right,
+          bottom: bounds.viewport.bottom,
         }),
       }),
     ])),
@@ -171,10 +172,10 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
         settings: { toolbar_location: 'bottom' },
         scroll: { relativeTop: true, delta: -10 },
         assertBounds: (bounds: TestBounds) => ({
-          x: bounds.content.x(),
-          y: bounds.container.y(),
-          right: bounds.content.right(),
-          bottom: bounds.header.y(),
+          x: bounds.content.x,
+          y: bounds.container.y,
+          right: bounds.content.right,
+          bottom: bounds.header.y,
         }),
       }),
       sTestScenario({
@@ -182,10 +183,10 @@ UnitTest.asynctest('ContextToolbarBoundsTest', (success, failure) => {
         settings: { inline: true, toolbar_location: 'bottom' },
         scroll: { relativeTop: true, delta: -10 },
         assertBounds: (bounds: TestBounds) => ({
-          x: bounds.content.x(),
-          y: bounds.viewport.y(),
-          right: bounds.content.right(),
-          bottom: bounds.header.y(),
+          x: bounds.content.x,
+          y: bounds.viewport.y,
+          right: bounds.content.right,
+          bottom: bounds.header.y,
         }),
       }),
     ])),

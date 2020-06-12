@@ -2,7 +2,7 @@ import { Arr, Cell, Option, Thunk } from '@ephox/katamari';
 import { TableLookup } from '@ephox/snooker';
 import { Element, Node } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
-import TableTargets from '../queries/TableTargets';
+import * as TableTargets from '../queries/TableTargets';
 import { Selections } from './Selections';
 import * as TableSelection from './TableSelection';
 
@@ -19,18 +19,16 @@ export const getSelectionTargets = (editor: Editor, selections: Selections) => {
   const targets = Cell<Option<Targets>>(Option.none());
   const changeHandlers = Cell([]);
 
-  const findTargets = (): Option<Targets> => {
-    return TableSelection.getSelectionStartCellOrCaption(editor).bind((cellOrCaption) => {
-      const table = TableLookup.table(cellOrCaption);
-      return table.map((table) => {
-        if (Node.name(cellOrCaption) === 'caption') {
-          return TableTargets.notCell(cellOrCaption);
-        } else {
-          return TableTargets.forMenu(selections, table, cellOrCaption);
-        }
-      });
+  const findTargets = (): Option<Targets> => TableSelection.getSelectionStartCellOrCaption(editor).bind((cellOrCaption) => {
+    const table = TableLookup.table(cellOrCaption);
+    return table.map((table) => {
+      if (Node.name(cellOrCaption) === 'caption') {
+        return TableTargets.notCell(cellOrCaption);
+      } else {
+        return TableTargets.forMenu(selections, table, cellOrCaption);
+      }
     });
-  };
+  });
 
   const resetTargets = () => {
     // Reset the targets
@@ -51,7 +49,7 @@ export const getSelectionTargets = (editor: Editor, selections: Selections) => {
     handler();
 
     // Register the handler so we can update the state when resetting targets
-    changeHandlers.set(changeHandlers.get().concat([handler]));
+    changeHandlers.set(changeHandlers.get().concat([ handler ]));
 
     return () => {
       changeHandlers.set(Arr.filter(changeHandlers.get(), (h) => h !== handler));

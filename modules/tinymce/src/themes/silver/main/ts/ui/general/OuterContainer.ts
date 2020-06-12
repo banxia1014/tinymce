@@ -9,7 +9,7 @@ import { AlloyComponent, AlloySpec, Behaviour, Composite, CustomList, Keying, Ra
 import { FieldSchema } from '@ephox/boulder';
 import { Arr, Id, Option, Result } from '@ephox/katamari';
 import { ToolbarMode } from '../../api/Settings';
-import { UiFactoryBackstage } from '../../backstage/Backstage';
+import { UiFactoryBackstageProviders } from '../../backstage/Backstage';
 
 import { HeaderSpec, renderHeader } from '../header/CommonHeader';
 import SilverMenubar, { SilverMenubarSpec } from '../menus/menubar/SilverMenubar';
@@ -36,6 +36,7 @@ interface MultipleToolbarSketchSpec {
   dom: RawDomSchema;
   onEscape: () => { };
   type: ToolbarMode;
+  providers: UiFactoryBackstageProviders;
 }
 
 interface ToolbarSketchSpec extends MoreDrawerData {
@@ -45,7 +46,7 @@ interface ToolbarSketchSpec extends MoreDrawerData {
   onEscape: () => { };
   type: ToolbarMode;
   getSink: () => Result<AlloyComponent, string>;
-  backstage: UiFactoryBackstage;
+  providers: UiFactoryBackstageProviders;
 }
 
 interface OuterContainerApis {
@@ -70,7 +71,7 @@ interface ToolbarApis {
   refresh: (toolbar: AlloyComponent) => void;
 }
 
-const factory: UiSketcher.CompositeSketchFactory<OuterContainerSketchDetail, OuterContainerSketchSpec> = function (detail, components, spec) {
+const factory: UiSketcher.CompositeSketchFactory<OuterContainerSketchDetail, OuterContainerSketchSpec> = function (detail, components, _spec) {
   const apis: OuterContainerApis = {
     getSocket(comp) {
       return Composite.parts.getPart(comp, detail, 'socket');
@@ -108,17 +109,13 @@ const factory: UiSketcher.CompositeSketchFactory<OuterContainerSketchDetail, Out
     },
     refreshToolbar(comp) {
       const toolbar = Composite.parts.getPart(comp, detail, 'toolbar');
-      toolbar.each((toolbar) => {
-        return toolbar.getApis<ToolbarApis>().refresh(toolbar);
-      });
+      toolbar.each((toolbar) => toolbar.getApis<ToolbarApis>().refresh(toolbar));
     },
     getThrobber(comp) {
       return Composite.parts.getPart(comp, detail, 'throbber');
     },
     focusToolbar(comp) {
-      const optToolbar = Composite.parts.getPart(comp, detail, 'toolbar').orThunk(() => {
-        return Composite.parts.getPart(comp, detail, 'multiple-toolbar');
-      });
+      const optToolbar = Composite.parts.getPart(comp, detail, 'toolbar').orThunk(() => Composite.parts.getPart(comp, detail, 'multiple-toolbar'));
 
       optToolbar.each(function (toolbar) {
         Keying.focusIn(toolbar);
@@ -165,33 +162,30 @@ const toolbarFactory = (spec: ToolbarSketchSpec) => {
 
 const partMultipleToolbar = Composite.partType.optional<OuterContainerSketchDetail, MultipleToolbarSketchSpec>({
   factory: {
-    sketch: (spec) => {
-      return CustomList.sketch({
-        uid: spec.uid,
-        dom: spec.dom,
+    sketch: (spec) => CustomList.sketch({
+      uid: spec.uid,
+      dom: spec.dom,
 
-        listBehaviours: Behaviour.derive([
-          Keying.config({
-            mode: 'acyclic',
-            selector: '.tox-toolbar'
-          })
-        ]),
+      listBehaviours: Behaviour.derive([
+        Keying.config({
+          mode: 'acyclic',
+          selector: '.tox-toolbar'
+        })
+      ]),
 
-        makeItem: () => {
-          return renderToolbar({
-            type: spec.type,
-            uid: Id.generate('multiple-toolbar-item'),
-            cyclicKeying: false,
-            initGroups: [ ],
-            onEscape: () => Option.none()
-          });
-        },
-        setupItem: (mToolbar, tc, data, index) => {
-          Toolbar.setGroups(tc, data);
-        },
-        shell: true
-      });
-    }
+      makeItem: () => renderToolbar({
+        type: spec.type,
+        uid: Id.generate('multiple-toolbar-item'),
+        cyclicKeying: false,
+        initGroups: [ ],
+        providers: spec.providers,
+        onEscape: () => Option.none()
+      }),
+      setupItem: (_mToolbar, tc, data, _index) => {
+        Toolbar.setGroups(tc, data);
+      },
+      shell: true
+    })
   },
   name: 'multiple-toolbar',
   schema: [
@@ -214,7 +208,7 @@ const partToolbar = Composite.partType.optional<OuterContainerSketchDetail, Tool
         cyclicKeying: false,
         initGroups: [],
         getSink: spec.getSink,
-        backstage: spec.backstage,
+        providers: spec.providers,
         moreDrawerData: {
           lazyToolbar: spec.lazyToolbar,
           lazyMoreButton: spec.lazyMoreButton,
@@ -315,9 +309,7 @@ export default Sketcher.composite<OuterContainerSketchSpec, OuterContainerSketch
       apis.setToolbar(comp, groups);
     },
     setToolbars(apis, comp, ts) {
-      const renderedToolbars = Arr.map(ts, (g) => {
-        return Arr.map(g, renderToolbarGroup);
-      });
+      const renderedToolbars = Arr.map(ts, (g) => Arr.map(g, renderToolbarGroup));
 
       apis.setToolbars(comp, renderedToolbars);
     },

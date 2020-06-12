@@ -9,7 +9,7 @@ import DOMUtils from 'tinymce/core/api/dom/DOMUtils';
 import EditorManager from 'tinymce/core/api/EditorManager';
 import Env from 'tinymce/core/api/Env';
 import Tools from 'tinymce/core/api/util/Tools';
-import Settings from '../api/Settings';
+import * as Settings from '../api/Settings';
 import Editor from 'tinymce/core/api/Editor';
 import { generate } from './SelectorModel';
 
@@ -19,8 +19,8 @@ interface Group {
   selectors: {};
   filter: (value: string) => boolean;
   item: {
-    text: string,
-    menu: []
+    text: string;
+    menu: [];
   };
 }
 
@@ -223,7 +223,7 @@ const convertSelectorToFormat = function (editor, plugin, selector, group) {
 };
 
 const setup = function (editor: Editor) {
-  editor.on('init', function (e) {
+  editor.on('init', function (_e) {
     const model = generate();
 
     const globallyUniqueSelectors = {};
@@ -281,7 +281,7 @@ const setup = function (editor: Editor) {
   });
 };
 
-export default {
+export {
   defaultConvertSelectorToFormat,
   setup
 };

@@ -10,8 +10,8 @@ import { Option } from '@ephox/katamari';
 import { ResizeWire, TableDirection, TableResize } from '@ephox/snooker';
 import { Element as SugarElement } from '@ephox/sugar';
 import Tools from 'tinymce/core/api/util/Tools';
-import Direction from '../queries/Direction';
-import TableWire from './TableWire';
+import * as Direction from '../queries/Direction';
+import * as TableWire from './TableWire';
 import { hasTableResizeBars, hasObjectResizing, isPixelsForced, isPercentagesForced } from '../api/Settings';
 import Editor from 'tinymce/core/api/Editor';
 import * as Events from '../api/Events';
@@ -66,7 +66,7 @@ export const getResizeHandler = function (editor: Editor): ResizeHandler {
     if (hasObjectResizing(editor) && hasTableResizeBars(editor)) {
       const sz = TableResize.create(rawWire, direction);
       sz.on();
-      sz.events.startDrag.bind(function (event) {
+      sz.events.startDrag.bind(function (_event) {
         selectionRng = Option.some(editor.selection.getRng());
       });
 
@@ -111,7 +111,7 @@ export const getResizeHandler = function (editor: Editor): ResizeHandler {
     }
   });
 
-  interface CellSize { cell: HTMLTableCellElement; width: string; }
+  interface CellSize { cell: HTMLTableCellElement; width: string }
 
   editor.on('ObjectResized', function (e) {
     const targetElm = e.target;

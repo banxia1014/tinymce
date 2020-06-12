@@ -5,7 +5,7 @@ import { ApiChains, Editor as McEditor } from '@ephox/mcagar';
 import { Element } from '@ephox/sugar';
 import Plugin from 'tinymce/plugins/table/Plugin';
 import SilverTheme from 'tinymce/themes/silver/Theme';
-import TableTestUtils from '../module/test/TableTestUtils';
+import * as TableTestUtils from '../module/test/TableTestUtils';
 import Editor from 'tinymce/core/api/Editor';
 
 UnitTest.asynctest('browser.tinymce.plugins.table.ResizeTableTest', (success, failure) => {
@@ -67,7 +67,7 @@ UnitTest.asynctest('browser.tinymce.plugins.table.ResizeTableTest', (success, fa
     NamedChain.read('editor', TableTestUtils.cDragHandle('se', -100, -20)),
     NamedChain.write('widthAfter', TableTestUtils.cGetWidth),
     NamedChain.write('events', cUnbindResizeEvents),
-    NamedChain.merge(['widthBefore', 'widthAfter'], 'widths'),
+    NamedChain.merge([ 'widthBefore', 'widthAfter' ], 'widths'),
     NamedChain.output('widths')
   ]);
 

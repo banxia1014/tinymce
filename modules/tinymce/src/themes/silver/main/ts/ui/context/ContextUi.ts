@@ -27,7 +27,7 @@ export interface ChangeSlideEvent extends CustomEvent {
 
 const resizingClass = 'tox-pop--resizing';
 
-const renderContextToolbar = (spec: { onEscape: () => Option<boolean>, sink: AlloyComponent }) => {
+const renderContextToolbar = (spec: { onEscape: () => Option<boolean>; sink: AlloyComponent }) => {
   const stack = Cell([ ]);
 
   return InlineView.sketch({
@@ -50,10 +50,7 @@ const renderContextToolbar = (spec: { onEscape: () => Option<boolean>, sink: All
 
     inlineBehaviours: Behaviour.derive([
       AddEventsBehaviour.config('context-toolbar-events', [
-        AlloyEvents.runOnSource<EventArgs>(NativeEvents.transitionend(), (comp, se) => {
-          InlineView.getContent(comp).each((c) => {
-            // Css.remove(c.element(), 'opacity');
-          });
+        AlloyEvents.runOnSource<EventArgs>(NativeEvents.transitionend(), (comp, _se) => {
           Class.remove(comp.element(), resizingClass);
           Css.remove(comp.element(), 'width');
         }),
@@ -97,7 +94,7 @@ const renderContextToolbar = (spec: { onEscape: () => Option<boolean>, sink: All
           });
         }),
 
-        AlloyEvents.run<BackwardSlideEvent>(backSlideEvent, (comp, se) => {
+        AlloyEvents.run<BackwardSlideEvent>(backSlideEvent, (comp, _se) => {
           Arr.last(stack.get()).each((last) => {
             stack.set(stack.get().slice(0, stack.get().length - 1));
             AlloyTriggers.emitWith(comp, changeSlideEvent, {
@@ -112,19 +109,15 @@ const renderContextToolbar = (spec: { onEscape: () => Option<boolean>, sink: All
       ]),
       Keying.config({
         mode: 'special',
-        onEscape: (comp) => {
-
-          return Arr.last(stack.get()).fold(
-            () => {
-              // Escape just focuses the content. It no longer closes the toolbar.
-              return spec.onEscape();
-            },
-            (_) => {
-              AlloyTriggers.emit(comp, backSlideEvent);
-              return Option.some(true);
-            }
-          );
-        }
+        onEscape: (comp) => Arr.last(stack.get()).fold(
+          () =>
+          // Escape just focuses the content. It no longer closes the toolbar.
+            spec.onEscape(),
+          (_) => {
+            AlloyTriggers.emit(comp, backSlideEvent);
+            return Option.some(true);
+          }
+        )
       })
     ]),
     lazySink: () => Result.value(spec.sink)

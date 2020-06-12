@@ -28,7 +28,7 @@ const row = function (r: number, x: number, y: number, w: number, h: number) {
   return bar;
 };
 
-export default {
+export {
   col,
   row
 };

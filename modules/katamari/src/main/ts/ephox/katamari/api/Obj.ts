@@ -1,3 +1,4 @@
+import { Eq } from '@ephox/dispute';
 import { Option } from './Option';
 import * as Fun from './Fun';
 
@@ -25,7 +26,7 @@ export const map = function <T, R> (obj: T, f: (value: T[keyof T], key: string) 
   }));
 };
 
-export const tupleMap = function <R, T> (obj: T, f: (value: T[keyof T], key: string) => {k: string, v: any}): R {
+export const tupleMap = function <R, T> (obj: T, f: (value: T[keyof T], key: string) => {k: string; v: any}): R {
   const r: Record<string, any> = {};
   each(obj, function (x, i) {
     const tuple = f(x, i);
@@ -46,7 +47,7 @@ const internalFilter = function <V> (obj: Record<string, V>, pred: (value: V, ke
   return r;
 };
 
-export const bifilter = function <V> (obj: Record<string, V>, pred: (value: V, key: string) => boolean): {t: Record<string, V>, f: Record<string, V>} {
+export const bifilter = function <V> (obj: Record<string, V>, pred: (value: V, key: string) => boolean): {t: Record<string, V>; f: Record<string, V>} {
   const t: Record<string, V> = {};
   const f: Record<string, V> = {};
   internalFilter(obj, pred, objAcc(t), objAcc(f));
@@ -96,7 +97,7 @@ export const get = function <T, K extends keyof T> (obj: T, key: K): Option<NonN
 export const has = <T, K extends keyof T>(obj: T, key: K): boolean =>
   hasOwnProperty.call(obj, key);
 
-export const hasNonNullableKey = <T, K extends keyof T>(obj: T, key: K): boolean =>
+export const hasNonNullableKey = <T, K extends keyof T>(obj: T, key: K): obj is T & Record<K, NonNullable<T[K]>> =>
   has(obj, key) && obj[key] !== undefined && obj[key] !== null;
 
 export const isEmpty = (r: Record<any, any>): boolean => {
@@ -107,3 +108,6 @@ export const isEmpty = (r: Record<any, any>): boolean => {
   }
   return true;
 };
+
+export const equal = <T>(a1: Record<string, T>, a2:  Record<string, T>, eq: Eq.Eq<T> = Eq.eqAny) =>
+  Eq.eqRecord(eq).eq(a1, a2);

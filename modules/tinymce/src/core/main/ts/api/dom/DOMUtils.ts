@@ -8,10 +8,10 @@
 import { Attr, Document, document, DocumentFragment, Element, HTMLElement, HTMLElementEventMap, HTMLElementTagNameMap, NamedNodeMap, Node, Range, Window, window } from '@ephox/dom-globals';
 import { Type } from '@ephox/katamari';
 import { VisualViewport } from '@ephox/sugar';
-import NodeType from '../../dom/NodeType';
-import Position from '../../dom/Position';
+import * as NodeType from '../../dom/NodeType';
+import * as Position from '../../dom/Position';
 import { StyleSheetLoader } from '../../dom/StyleSheetLoader';
-import TrimNode from '../../dom/TrimNode';
+import * as TrimNode from '../../dom/TrimNode';
 import Env from '../Env';
 import { GeomRect } from '../geom/Rect';
 import Entities from '../html/Entities';
@@ -45,23 +45,27 @@ const whiteSpaceRegExp = /^[ \t\r\n]*$/;
 
 interface AttrHooks {
   style: {
-    set ($elm, value: string | {}): void;
-    get ($elm): string;
+    set ($elm: DomQuery, value: string | {} | null): void;
+    get ($elm: DomQuery): string;
   };
   href?: {
-    set ($elm, value: string, name: string): void;
-    get ($elm, name: string): string;
+    set ($elm: DomQuery, value: string | null, name: string): void;
+    get ($elm: DomQuery, name: string): string;
   };
   src?: {
-    set ($elm, value: string, name: string): void;
-    get ($elm, name: string): string;
+    set ($elm: DomQuery, value: string | null, name: string): void;
+    get ($elm: DomQuery, name: string): string;
+  };
+  [key: string]: {
+    set ($elm: DomQuery, value: string | {} | null, name: string): void;
+    get: ($elm: DomQuery, name: string) => string;
   };
 }
 
 const setupAttrHooks = function (styles: Styles, settings: Partial<DOMUtilsSettings>, getContext): AttrHooks {
   const keepValues: boolean = settings.keep_values;
   const keepUrlHook = {
-    set ($elm, value: string, name: string) {
+    set($elm, value: string, name: string) {
       if (settings.url_converter) {
         value = settings.url_converter.call(settings.url_converter_scope || getContext(), value, name, $elm[0]);
       }
@@ -69,21 +73,21 @@ const setupAttrHooks = function (styles: Styles, settings: Partial<DOMUtilsSetti
       $elm.attr('data-mce-' + name, value).attr(name, value);
     },
 
-    get ($elm, name: string) {
+    get($elm, name: string) {
       return $elm.attr('data-mce-' + name) || $elm.attr(name);
     }
   };
 
   const attrHooks: AttrHooks = {
     style: {
-      set ($elm, value: string | {}) {
+      set($elm, value: string | {}) {
         if (value !== null && typeof value === 'object') {
           $elm.css(value);
           return;
         }
 
         if (keepValues) {
-          $elm.attr('data-mce-style', value);
+          $elm.attr('data-mce-style', value as string);
         }
 
         // If setting a style then delegate to the css api, otherwise
@@ -92,11 +96,11 @@ const setupAttrHooks = function (styles: Styles, settings: Partial<DOMUtilsSetti
           $elm.removeAttr('style');
           $elm.css(styles.parse(value));
         } else {
-          $elm.attr('style', value);
+          $elm.attr('style', value as null);
         }
       },
 
-      get ($elm) {
+      get($elm) {
         let value = $elm.attr('data-mce-style') || $elm.attr('style');
 
         value = styles.serialize(styles.parse(value), $elm[0].nodeName);
@@ -180,40 +184,41 @@ interface DOMUtils {
   root: Node;
   $: DomQueryConstructor;
 
-  $$ (elm: string | Node | Node[] | DomQuery): DomQuery;
+  $$ <T extends Node>(elm: T | T[] | DomQuery<T>): DomQuery<T>;
+  $$ (elm: string): DomQuery<Node>;
   isBlock (node: string | Node): boolean;
   clone (node: Node, deep: boolean): Node;
   getRoot (): HTMLElement;
   getViewPort (argWin?: Window): GeomRect;
   getRect (elm: string | HTMLElement): GeomRect;
   getSize (elm: string | HTMLElement): {
-      w: number;
-      h: number;
+    w: number;
+    h: number;
   };
   getParent (node: string | Node, selector?: string | ((node: HTMLElement) => boolean | void), root?: Node): Element;
   getParents (elm: string | Node, selector?: string | ((node: HTMLElement) => boolean | void), root?: Node, collect?: boolean): Element[];
   get (elm: string | Node): HTMLElement;
-  getNext (node: Node, selector: string | Function): Node;
-  getPrev (node: Node, selector: string | Function): Node;
+  getNext (node: Node, selector: string | ((node: Node) => boolean)): Node;
+  getPrev (node: Node, selector: string | ((node: Node) => boolean)): Node;
   select <K extends keyof HTMLElementTagNameMap>(selector: K, scope?: string | Node): Array<HTMLElementTagNameMap[K]>;
   select (selector: string, scope?: string | Node): HTMLElement[];
   is (elm: Node | Node[], selector: string): boolean;
-  add (parentElm: RunArguments, name: string | Node, attrs?: Record<string, any>, html?: string | Node, create?: boolean): HTMLElement;
-  create (name: string, attrs?: Record<string, string | number>, html?: string | Node): HTMLElement;
-  createHTML (name: string, attrs?: Record<string, any>, html?: string): string;
+  add (parentElm: RunArguments, name: string | Node, attrs?: Record<string, string | boolean | number>, html?: string | Node, create?: boolean): HTMLElement;
+  create (name: string, attrs?: Record<string, string | boolean | number>, html?: string | Node): HTMLElement;
+  createHTML (name: string, attrs?: Record<string, string>, html?: string): string;
   createFragment (html?: string): DocumentFragment;
   remove (node: string | Node | Node[], keepChildren?: boolean): any;
-  setStyle (elm: string | Node, name: string, value: string | number): void;
+  setStyle (elm: string | Node, name: string, value: string | number | null): void;
   setStyle (elm: string | Node, styles: StyleMap): void;
   getStyle (elm: string | Node, name: string, computed?: boolean): string;
   setStyles (elm: string | Node, stylesArg: StyleMap): void;
   removeAllAttribs (e: RunArguments): any;
-  setAttrib (elm: string | Node, name: string, value: string): void;
-  setAttribs (elm: string | Node, attrs: Record<string, string>): void;
+  setAttrib (elm: string | Node, name: string, value: string | boolean | number | null): void;
+  setAttribs (elm: string | Node, attrs: Record<string, string | boolean | number | null>): void;
   getAttrib (elm: string | Node, name: string, defaultVal?: string): string;
   getPos (elm: string | Node, rootElm?: Node): {
-      x: number;
-      y: number;
+    x: number;
+    y: number;
   };
   parseStyle (cssText: string): Record<string, string>;
   serializeStyle (stylesArg: StyleMap, name?: string): string;
@@ -331,13 +336,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return elm as HTMLElement;
   };
 
-  const $$ = (elm: string | Node | Node[] | DomQuery): DomQuery => {
-    if (typeof elm === 'string') {
-      elm = get(elm);
-    }
-
-    return $(elm);
-  };
+  const $$ = <T extends Node>(elm: string | T | T[] | DomQuery<T>): DomQuery<T | Node> => $(typeof elm === 'string' ? get(elm) : elm);
 
   const getAttrib = (elm: string | Node, name: string, defaultVal?: string): string => {
     let hook, value;
@@ -371,7 +370,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return node.attributes;
   };
 
-  const setAttrib = (elm: string | Node, name: string, value: string) => {
+  const setAttrib = (elm: string | Node, name: string, value: string | boolean | number) => {
     let originalValue, hook;
 
     if (value === '') {
@@ -405,10 +404,8 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     // TODO: Add feature detection here in the future
     if (!isIE || node.nodeType !== 1 || deep) {
       return node.cloneNode(deep);
-    }
-
-    // Make a HTML5 safe shallow copy
-    if (!deep) {
+    } else {
+      // Make a HTML5 safe shallow copy
       const clone = doc.createElement(node.nodeName);
 
       // Copy attribs
@@ -418,29 +415,23 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
 
       return clone;
     }
-
-    return null;
   };
 
-  const getRoot = (): HTMLElement => {
-    return settings.root_element || doc.body;
-  };
+  const getRoot = (): HTMLElement => settings.root_element || doc.body;
 
   const getViewPort = (argWin?: Window): GeomRect => {
     const vp = VisualViewport.getBounds(argWin);
 
     // Returns viewport size excluding scrollbars
     return {
-      x: vp.x(),
-      y: vp.y(),
-      w: vp.width(),
-      h: vp.height()
+      x: vp.x,
+      y: vp.y,
+      w: vp.width,
+      h: vp.height
     };
   };
 
-  const getPos = (elm: string | Node, rootElm?: Node) => {
-    return Position.getPos(doc.body, get(elm), rootElm);
-  };
+  const getPos = (elm: string | Node, rootElm?: Node) => Position.getPos(doc.body, get(elm), rootElm);
 
   const setStyle = (elm: string | Node, name: string | StyleMap, value?: string | number) => {
     const $elm = Type.isString(name) ? $$(elm).css(name, value) : $$(elm).css(name);
@@ -477,7 +468,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return $elm[0] && $elm[0].style ? $elm[0].style[name] : undefined;
   };
 
-  const getSize = (elm: HTMLElement | string): {w: number, h: number} => {
+  const getSize = (elm: HTMLElement | string): {w: number; h: number} => {
     let w, h;
 
     elm = get(elm);
@@ -547,9 +538,9 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
       }
     }
 
-    const elms = !Array.isArray(elm) ? [elm] : elm;
+    const elms = !Array.isArray(elm) ? [ elm ] : elm;
 
-    /*eslint new-cap:0 */
+    /* eslint new-cap:0 */
     return Sizzle(selector, elms[0].ownerDocument || elms[0], null, elms).length > 0;
   };
 
@@ -587,7 +578,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
         if (collect) {
           result.push(node);
         } else {
-          return [node];
+          return [ node ];
         }
       }
 
@@ -602,7 +593,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return parents && parents.length > 0 ? parents[0] : null;
   };
 
-  const _findSib = (node: Node, selector: string | Function, name: string) => {
+  const _findSib = (node: Node, selector: string | ((node: Node) => boolean), name: string) => {
     let func = selector;
 
     if (node) {
@@ -624,17 +615,11 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return null;
   };
 
-  const getNext = (node: Node, selector: string | Function) => {
-    return _findSib(node, selector, 'nextSibling');
-  };
+  const getNext = (node: Node, selector: string | ((node: Node) => boolean)) => _findSib(node, selector, 'nextSibling');
 
-  const getPrev = (node: Node, selector: string | Function) => {
-    return _findSib(node, selector, 'previousSibling');
-  };
+  const getPrev = (node: Node, selector: string | ((node: Node) => boolean)) => _findSib(node, selector, 'previousSibling');
 
-  const select = (selector: string, scope?: Node | string) => {
-    return Sizzle(selector, get(scope) || settings.root_element || doc, []);
-  };
+  const select = (selector: string, scope?: Node | string) => Sizzle(selector, get(scope) || settings.root_element || doc, []);
 
   const run = (elm: RunArguments, func: (node: Element) => any, scope?) => {
     let result;
@@ -665,7 +650,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return func.call(context, node);
   };
 
-  const setAttribs = (elm: string | Node, attrs: Record<string, string>) => {
+  const setAttribs = (elm: string | Node, attrs: Record<string, string | boolean | number>) => {
     $$(elm).each(function (i, node) {
       each(attrs, function (value, name) {
         setAttrib(node, name, value);
@@ -704,31 +689,27 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     }
   };
 
-  const add = (parentElm: RunArguments, name: string | Node, attrs?: Record<string, any>, html?: string | Node, create?: boolean): HTMLElement => {
-    return run(parentElm, function (parentElm) {
-      const newElm = typeof name  === 'string' ? doc.createElement(name) : name;
-      setAttribs(newElm, attrs);
+  const add = (parentElm: RunArguments, name: string | Node, attrs?: Record<string, string | boolean | number>, html?: string | Node, create?: boolean): HTMLElement => run(parentElm, function (parentElm) {
+    const newElm = typeof name  === 'string' ? doc.createElement(name) : name;
+    setAttribs(newElm, attrs);
 
-      if (html) {
-        if (typeof html !== 'string' && html.nodeType) {
-          newElm.appendChild(html);
-        } else if (typeof html === 'string') {
-          setHTML(newElm, html);
-        }
+    if (html) {
+      if (typeof html !== 'string' && html.nodeType) {
+        newElm.appendChild(html);
+      } else if (typeof html === 'string') {
+        setHTML(newElm, html);
       }
+    }
 
-      return !create ? parentElm.appendChild(newElm) : newElm;
-    });
-  };
+    return !create ? parentElm.appendChild(newElm) : newElm;
+  });
 
-  const create = (name: string, attrs?: Record<string, string | number>, html?: string | Node): HTMLElement => {
-    return add(doc.createElement(name), name, attrs, html, true);
-  };
+  const create = (name: string, attrs?: Record<string, string | boolean | number>, html?: string | Node): HTMLElement => add(doc.createElement(name), name, attrs, html, true);
 
   const decode = Entities.decode;
   const encode = Entities.encodeAllRaw;
 
-  const createHTML = (name: string, attrs?: Record<string, any>, html?: string): string => {
+  const createHTML = (name: string, attrs?: Record<string, string>, html?: string): string => {
     let outHtml = '', key;
 
     outHtml += '<' + name;
@@ -793,23 +774,17 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return $node.length > 1 ? $node.toArray() : $node[0];
   };
 
-  const removeAllAttribs = (e: RunArguments) => {
-    return run(e, function (e) {
-      let i;
-      const attrs = e.attributes;
-      for (i = attrs.length - 1; i >= 0; i--) {
-        e.removeAttributeNode(attrs.item(i));
-      }
-    });
-  };
+  const removeAllAttribs = (e: RunArguments) => run(e, function (e) {
+    let i;
+    const attrs = e.attributes;
+    for (i = attrs.length - 1; i >= 0; i--) {
+      e.removeAttributeNode(attrs.item(i));
+    }
+  });
 
-  const parseStyle = (cssText: string): Record<string, string> => {
-    return styles.parse(cssText);
-  };
+  const parseStyle = (cssText: string): Record<string, string> => styles.parse(cssText);
 
-  const serializeStyle = (stylesArg: StyleMap, name?: string) => {
-    return styles.serialize(stylesArg, name);
-  };
+  const serializeStyle = (stylesArg: StyleMap, name?: string) => styles.serialize(stylesArg, name);
 
   const addStyle = (cssText: string) => {
     let head, styleElm;
@@ -899,9 +874,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     toggleClass(elm, cls, false);
   };
 
-  const hasClass = (elm: string | Node, cls: string) => {
-    return $$(elm).hasClass(cls);
-  };
+  const hasClass = (elm: string | Node, cls: string) => $$(elm).hasClass(cls);
 
   const show = (elm: string | Node) => {
     $$(elm).show();
@@ -911,13 +884,9 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     $$(elm).hide();
   };
 
-  const isHidden = (elm: string | Node) => {
-    return $$(elm).css('display') === 'none';
-  };
+  const isHidden = (elm: string | Node) => $$(elm).css('display') === 'none';
 
-  const uniqueId = (prefix?: string) => {
-    return (!prefix ? 'mce_' : prefix) + (counter++);
-  };
+  const uniqueId = (prefix?: string) => (!prefix ? 'mce_' : prefix) + (counter++);
 
   const getOuterHTML = (elm: string | Node): string => {
     const node = typeof elm === 'string' ? get(elm) : elm;
@@ -961,21 +930,19 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     });
   };
 
-  const replace = (newElm: Node, oldElm: RunArguments, keepChildren?: boolean) => {
-    return run(oldElm, function (oldElm) {
-      if (Tools.is(oldElm, 'array')) {
-        newElm = newElm.cloneNode(true);
-      }
+  const replace = (newElm: Node, oldElm: RunArguments, keepChildren?: boolean) => run(oldElm, function (oldElm) {
+    if (Tools.is(oldElm, 'array')) {
+      newElm = newElm.cloneNode(true);
+    }
 
-      if (keepChildren) {
-        each(grep(oldElm.childNodes), function (node) {
-          newElm.appendChild(node);
-        });
-      }
+    if (keepChildren) {
+      each(grep(oldElm.childNodes), function (node) {
+        newElm.appendChild(node);
+      });
+    }
 
-      return oldElm.parentNode.replaceChild(newElm, oldElm);
-    });
-  };
+    return oldElm.parentNode.replaceChild(newElm, oldElm);
+  });
 
   const rename = (elm: Node, name: string): Node => {
     let newElm;
@@ -1020,9 +987,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return ps;
   };
 
-  const toHex = (rgbVal: string) => {
-    return styles.toHex(Tools.trim(rgbVal));
-  };
+  const toHex = (rgbVal: string) => styles.toHex(Tools.trim(rgbVal));
 
   // Check if element has a data-bookmark attribute, name attribute or is a named anchor
   const isNonEmptyElement = (node: Node) => {
@@ -1101,9 +1066,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return brCount <= 1;
   };
 
-  const createRng = () => {
-    return doc.createRange();
-  };
+  const createRng = () => doc.createRange();
 
   const split = (parentElm: Node, splitElm: Node, replacementElm?: Node) => {
     let r = createRng(), bef, aft, pa;
@@ -1154,7 +1117,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
 
     // Collect all window/document events bound by editor instance
     if (settings.collect && (target === doc || target === win)) {
-      boundEvents.push([target, name, func, scope]);
+      boundEvents.push([ target, name, func, scope ]);
     }
 
     return events.bind(target, name, func, scope || self);
@@ -1175,7 +1138,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     }
 
     // Remove any bound events matching the input
-    if (boundEvents && (target === doc || target === win)) {
+    if (boundEvents.length > 0 && (target === doc || target === win)) {
       i = boundEvents.length;
 
       while (i--) {
@@ -1190,9 +1153,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return events.unbind(target, name, func);
   };
 
-  const fire = (target: Target, name: string, evt?) => {
-    return events.fire(target, name, evt);
-  };
+  const fire = (target: Target, name: string, evt?) => events.fire(target, name, evt);
 
   const getContentEditable = (node: Node) => {
     if (node && NodeType.isElement(node)) {
@@ -1226,7 +1187,7 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
 
   const destroy = () => {
     // Unbind all events bound to window/document by editor instance
-    if (boundEvents) {
+    if (boundEvents.length > 0) {
       let i = boundEvents.length;
 
       while (i--) {
@@ -1254,14 +1215,12 @@ function DOMUtils(doc: Document, settings: Partial<DOMUtilsSettings> = {}): DOMU
     return false;
   };
 
-  const dumpRng = (r: Range) => {
-    return (
-      'startContainer: ' + r.startContainer.nodeName +
+  const dumpRng = (r: Range) => (
+    'startContainer: ' + r.startContainer.nodeName +
       ', startOffset: ' + r.startOffset +
       ', endContainer: ' + r.endContainer.nodeName +
       ', endOffset: ' + r.endOffset
-    );
-  };
+  );
 
   const self: DOMUtils = {
     doc,

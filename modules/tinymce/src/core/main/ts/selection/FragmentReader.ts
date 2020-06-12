@@ -8,10 +8,10 @@
 import { Arr, Fun } from '@ephox/katamari';
 import { Compare, Insert, Replication, Element, Fragment, Node, SelectorFind, Traverse } from '@ephox/sugar';
 import * as ElementType from '../dom/ElementType';
-import Parents from '../dom/Parents';
+import * as Parents from '../dom/Parents';
 import * as SelectionUtils from './SelectionUtils';
-import SimpleTableModel from './SimpleTableModel';
-import TableCellSelection from './TableCellSelection';
+import * as SimpleTableModel from './SimpleTableModel';
+import * as TableCellSelection from './TableCellSelection';
 
 const findParentListContainer = function (parents) {
   return Arr.find(parents, function (elm) {
@@ -24,7 +24,7 @@ const getFullySelectedListWrappers = function (parents, rng) {
     return Node.name(elm) === 'li' && SelectionUtils.hasAllContentsSelected(elm, rng);
   }).fold(
     Fun.constant([]),
-    function (li) {
+    function (_li) {
       return findParentListContainer(parents).map(function (listCont) {
         return [
           Element.fromTag('li'),
@@ -40,7 +40,7 @@ const wrap = function (innerElm, elms) {
     Insert.append(elm, acc);
     return elm;
   }, innerElm);
-  return elms.length > 0 ? Fragment.fromElements([wrapped]) : wrapped;
+  return elms.length > 0 ? Fragment.fromElements([ wrapped ]) : wrapped;
 };
 
 const directListWrappers = function (commonAnchorContainer) {
@@ -86,7 +86,7 @@ const getTableFragment = function (rootNode, selectedTableCells) {
     const fullTableModel = SimpleTableModel.fromDom(tableElm);
 
     return SimpleTableModel.subsection(fullTableModel, firstCell, lastCell).map(function (sectionedTableModel) {
-      return Fragment.fromElements([SimpleTableModel.toDom(sectionedTableModel)]);
+      return Fragment.fromElements([ SimpleTableModel.toDom(sectionedTableModel) ]);
     });
   }).getOrThunk(emptyFragment);
 };
@@ -100,6 +100,6 @@ const read = function (rootNode, ranges) {
   return selectedCells.length > 0 ? getTableFragment(rootNode, selectedCells) : getSelectionFragment(rootNode, ranges);
 };
 
-export default {
+export {
   read
 };

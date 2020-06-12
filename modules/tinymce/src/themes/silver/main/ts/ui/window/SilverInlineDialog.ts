@@ -28,7 +28,7 @@ import { Attr, Node } from '@ephox/sugar';
 
 import { RepresentingConfigs } from '../alien/RepresentingConfigs';
 import { formCloseEvent } from '../general/FormEvents';
-import NavigableObject from '../general/NavigableObject';
+import * as NavigableObject from '../general/NavigableObject';
 import { dialogChannel } from './DialogChannels';
 import { renderInlineBody } from './SilverDialogBody';
 import { SilverDialogEvents } from './SilverDialogEvents';
@@ -42,9 +42,7 @@ const renderInlineDialog = <T>(dialogInit: DialogManager.DialogInit<T>, extra: S
   const dialogLabelId = Id.generate('dialog-label');
   const dialogContentId = Id.generate('dialog-content');
 
-  const updateState = (_comp, incoming: DialogManager.DialogInit<T>) => {
-    return Option.some(incoming);
-  };
+  const updateState = (_comp, incoming: DialogManager.DialogInit<T>) => Option.some(incoming);
 
   const memHeader = Memento.record(
     renderInlineHeader({
@@ -93,8 +91,8 @@ const renderInlineDialog = <T>(dialogInit: DialogManager.DialogInit<T>, extra: S
     },
     eventOrder: {
       [SystemEvents.receive()]: [ Reflecting.name(), Receiving.name() ],
-      [SystemEvents.execute()]: ['execute-on-form'],
-      [SystemEvents.attachedToDom()]: ['reflecting', 'execute-on-form']
+      [SystemEvents.execute()]: [ 'execute-on-form' ],
+      [SystemEvents.attachedToDom()]: [ 'reflecting', 'execute-on-form' ]
     },
 
     // Dupe with SilverDialog.
@@ -105,11 +103,9 @@ const renderInlineDialog = <T>(dialogInit: DialogManager.DialogInit<T>, extra: S
           AlloyTriggers.emit(c, formCloseEvent);
           return Option.some(true);
         },
-        useTabstopAt: (elem) => {
-          return !NavigableObject.isPseudoStop(elem) && (
-            Node.name(elem) !== 'button' || Attr.get(elem, 'disabled') !== 'disabled'
-          );
-        }
+        useTabstopAt: (elem) => !NavigableObject.isPseudoStop(elem) && (
+          Node.name(elem) !== 'button' || Attr.get(elem, 'disabled') !== 'disabled'
+        )
       }),
       Reflecting.config({
         channel: dialogChannel,
@@ -122,7 +118,7 @@ const renderInlineDialog = <T>(dialogInit: DialogManager.DialogInit<T>, extra: S
         dialogEvents.concat([
           // Note: `runOnSource` here will only listen to the event at the outer component level.
           // Using just `run` instead will cause an infinite loop as `focusIn` would fire a `focusin` which would then get responded to and so forth.
-          AlloyEvents.runOnSource(NativeEvents.focusin(), (comp, se) => {
+          AlloyEvents.runOnSource(NativeEvents.focusin(), (comp, _se) => {
             Keying.focusIn(comp);
           })
         ])

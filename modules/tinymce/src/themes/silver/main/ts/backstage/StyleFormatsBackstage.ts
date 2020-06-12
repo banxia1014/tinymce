@@ -11,17 +11,8 @@ import { getStyleFormats } from 'tinymce/themes/silver/ui/core/complex/StyleForm
 import { FormatItem } from '../ui/core/complex/BespokeSelect';
 import * as FormatRegister from '../ui/core/complex/utils/FormatRegister';
 
-const flatten = (fmt): string[] => {
-  const subs = fmt.items;
-  return subs !== undefined && subs.length > 0 ? Arr.bind(subs, flatten) : [ fmt.format ];
-};
-
 export const init = (editor: Editor) => {
-  const isSelectedFor = (format) => {
-    return () => {
-      return editor.formatter.match(format);
-    };
-  };
+  const isSelectedFor = (format) => () => editor.formatter.match(format);
 
   const getPreviewFor: FormatRegister.GetPreviewForType = (format) => () => {
     const fmt = editor.formatter.get(format);
@@ -44,7 +35,7 @@ export const init = (editor: Editor) => {
 
   const replaceSettings = Cell(false);
 
-  editor.on('PreInit', (e) => {
+  editor.on('PreInit', (_e) => {
     const formats = getStyleFormats(editor);
     const enriched = FormatRegister.register(editor, formats, isSelectedFor, getPreviewFor);
     settingsFormats.set(enriched);

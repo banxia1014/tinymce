@@ -8,12 +8,12 @@
 import { Range, document, Attr, Selection as DomSelection } from '@ephox/dom-globals';
 import Env from '../api/Env';
 import * as CaretContainer from '../caret/CaretContainer';
-import CaretRangeFromPoint from '../selection/CaretRangeFromPoint';
+import * as CaretRangeFromPoint from '../selection/CaretRangeFromPoint';
 import Delay from '../api/util/Delay';
 import Tools from '../api/util/Tools';
 import VK from '../api/util/VK';
 import Selection from '../api/dom/Selection';
-import Settings from '../api/Settings';
+import * as Settings from '../api/Settings';
 import Editor from '../api/Editor';
 
 /**
@@ -217,7 +217,7 @@ const Quirks = function (editor: Editor): Quirks {
       // Case 1 IME doesn't initialize if you focus the document
       // Disabled since it was interferring with the cE=false logic
       // Also coultn't reproduce the issue on Safari 9
-      /*dom.bind(editor.getDoc(), 'focusin', function() {
+      /* dom.bind(editor.getDoc(), 'focusin', function() {
         selection.setRng(selection.getRng());
       });*/
 

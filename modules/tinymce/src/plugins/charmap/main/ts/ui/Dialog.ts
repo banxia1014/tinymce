@@ -8,9 +8,9 @@
 import { Types } from '@ephox/bridge';
 import { Arr, Cell, Throttler } from '@ephox/katamari';
 import Editor from 'tinymce/core/api/Editor';
-import Actions from '../core/Actions';
+import * as Actions from '../core/Actions';
 import { CharMap, UserDefined } from '../core/CharMap';
-import Scan from '../core/Scan';
+import * as Scan from '../core/Scan';
 
 const patternName = 'pattern';
 
@@ -29,15 +29,11 @@ const open = function (editor: Editor, charMap: CharMap[]) {
     }
   ];
 
-  const makeTabs = () => {
-    return Arr.map(charMap, (charGroup) => {
-      return {
-        title: charGroup.name,
-        name: charGroup.name,
-        items: makeGroupItems()
-      };
-    });
-  };
+  const makeTabs = () => Arr.map(charMap, (charGroup) => ({
+    title: charGroup.name,
+    name: charGroup.name,
+    items: makeGroupItems()
+  }));
 
   const makePanel = (): Types.Dialog.PanelApi => ({ type: 'panel', items: makeGroupItems() });
 
@@ -103,6 +99,6 @@ const open = function (editor: Editor, charMap: CharMap[]) {
   dialogApi.focus(patternName);
 };
 
-export default {
+export {
   open
 };

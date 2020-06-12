@@ -6,7 +6,7 @@ import 'tinymce';
 import { Editor as EditorType } from '../alien/EditorTypes';
 import { setTinymceBaseUrl } from '../loader/Urls';
 
-const cFromElement = function <T extends EditorType = EditorType>(element: Element, settings: Record<string, any>): Chain<any, T> {
+const cFromElement = function <T extends EditorType = EditorType> (element: Element, settings: Record<string, any>): Chain<any, T> {
   return Chain.async<any, T>(function (_, next, die) {
     const nuSettings: Record<string, any> = {
       toolbar_mode: 'wrap',
@@ -25,13 +25,13 @@ const cFromElement = function <T extends EditorType = EditorType>(element: Eleme
     if (nuSettings.base_url) {
       setTinymceBaseUrl(tinymce, nuSettings.base_url);
     } else if (!Type.isString(tinymce.baseURL) || !Strings.contains(tinymce.baseURL, '/project/')) {
-      setTinymceBaseUrl(Global.tinymce, `/project/node_modules/tinymce`);
+      setTinymceBaseUrl(Global.tinymce, '/project/node_modules/tinymce');
     }
 
     tinymce.init({
       ...nuSettings,
       selector: '#' + randomId,
-      setup (editor: T) {
+      setup(editor: T) {
         if (Type.isFunction(nuSettings.setup)) {
           nuSettings.setup(editor);
         }

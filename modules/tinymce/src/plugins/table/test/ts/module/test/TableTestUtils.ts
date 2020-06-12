@@ -2,7 +2,7 @@ import { ApproxStructure, Assertions, Chain, Cursors, GeneralSteps, Guard, Logge
 import { document, HTMLElement } from '@ephox/dom-globals';
 import { Obj } from '@ephox/katamari';
 import { TinyDom, TinyUi } from '@ephox/mcagar';
-import { Body, Element, SelectorFind, Value, Attr, Html } from '@ephox/sugar';
+import { Attr, Body, Element, Html, SelectorFilter, SelectorFind, Value } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
 
 const sAssertTableStructure = (editor, structure) => Logger.t('Assert table structure ' + structure, Step.sync(() => {
@@ -29,31 +29,27 @@ const sOpenTableDialog = (ui: TinyUi) => Logger.t('Open table dialog', GeneralSt
   UiFinder.sWaitForVisible('wait for dialog', TinyDom.fromDom(document.body), '.tox-dialog[role="dialog"]'),
 ]));
 
-const sAssertElementStructure = (editor, selector, expected) => {
-  return Logger.t('Assert HTML structure of the element ' + expected, Step.sync(() => {
-    const body = editor.getBody();
-    body.normalize(); // consolidate text nodes
+const sAssertElementStructure = (editor, selector, expected) => Logger.t('Assert HTML structure of the element ' + expected, Step.sync(() => {
+  const body = editor.getBody();
+  body.normalize(); // consolidate text nodes
 
-    Assertions.assertStructure(
-      'Asserting HTML structure of the element: ' + selector,
-      ApproxStructure.fromHtml(expected),
-      SelectorFind.descendant(Element.fromDom(body), selector).getOrDie('Nothing in the Editor matches selector: ' + selector)
-    );
-  }));
-};
+  Assertions.assertStructure(
+    'Asserting HTML structure of the element: ' + selector,
+    ApproxStructure.fromHtml(expected),
+    SelectorFind.descendant(Element.fromDom(body), selector).getOrDie('Nothing in the Editor matches selector: ' + selector)
+  );
+}));
 
-const sAssertApproxElementStructure = (editor, selector, expected) => {
-  return Logger.t('Assert HTML structure of the element ' + expected, Step.sync(() => {
-    const body = editor.getBody();
-    body.normalize(); // consolidate text nodes
+const sAssertApproxElementStructure = (editor, selector, expected) => Logger.t('Assert HTML structure of the element ' + expected, Step.sync(() => {
+  const body = editor.getBody();
+  body.normalize(); // consolidate text nodes
 
-    Assertions.assertStructure(
-      'Asserting HTML structure of the element: ' + selector,
-      expected,
-      SelectorFind.descendant(Element.fromDom(body), selector).getOrDie('Nothing in the Editor matches selector: ' + selector)
-    );
-  }));
-};
+  Assertions.assertStructure(
+    'Asserting HTML structure of the element: ' + selector,
+    expected,
+    SelectorFind.descendant(Element.fromDom(body), selector).getOrDie('Nothing in the Editor matches selector: ' + selector)
+  );
+}));
 
 const sClickDialogButton = (label: string, isSave: boolean) => Logger.t('Close dialog and wait to confirm dialog goes away', GeneralSteps.sequence([
   Mouse.sClickOn(TinyDom.fromDom(document.body), '[role="dialog"].tox-dialog button:contains("' + (isSave ? 'Save' : 'Cancel') + '")'),
@@ -112,27 +108,21 @@ const cGetBody = Chain.control(
   Guard.addLogging('Get body')
 );
 
-const cInsertTable = (cols: number, rows: number) => {
-  return Chain.mapper((editor: Editor) => {
-    return TinyDom.fromDom(editor.plugins.table.insertTable(cols, rows));
-  });
-};
+const cInsertTable = (cols: number, rows: number) => Chain.mapper((editor: Editor) => TinyDom.fromDom(editor.plugins.table.insertTable(cols, rows)));
 
-const cInsertRaw = (html: string) => {
-  return Chain.mapper((editor: Editor) => {
-    const element = Element.fromHtml<HTMLElement>(html);
-    Attr.set(element, 'data-mce-id', '__mce');
-    editor.insertContent(Html.getOuter(element));
+const cInsertRaw = (html: string) => Chain.mapper((editor: Editor) => {
+  const element = Element.fromHtml<HTMLElement>(html);
+  Attr.set(element, 'data-mce-id', '__mce');
+  editor.insertContent(Html.getOuter(element));
 
-    return SelectorFind.descendant(Element.fromDom(editor.getBody()), '[data-mce-id="__mce"]').map((el) => {
-      Attr.remove(el, 'data-mce-id');
-      return el;
-    }).getOrDie();
-  });
-};
+  return SelectorFind.descendant(Element.fromDom(editor.getBody()), '[data-mce-id="__mce"]').map((el) => {
+    Attr.remove(el, 'data-mce-id');
+    return el;
+  }).getOrDie();
+});
 
 const cMergeCells = (keys) => Chain.control(
-  Chain.mapper((editor: any) => {
+  Chain.mapper((editor: Editor) => {
     keys(editor);
     editor.execCommand('mceTableMergeCells');
   }),
@@ -140,31 +130,52 @@ const cMergeCells = (keys) => Chain.control(
 );
 
 const cSplitCells = Chain.control(
-  Chain.mapper((editor: any) => {
+  Chain.mapper((editor: Editor) => {
     editor.execCommand('mceTableSplitCells');
   }),
   Guard.addLogging('Split cells')
 );
 
 const cInsertColumnBefore = Chain.control(
-  Chain.mapper((editor: any) => {
+  Chain.mapper((editor: Editor) => {
     editor.execCommand('mceTableInsertColBefore');
   }),
   Guard.addLogging('Insert column before selected column')
 );
 
 const cInsertColumnAfter = Chain.control(
-  Chain.mapper((editor: any) => {
+  Chain.mapper((editor: Editor) => {
     editor.execCommand('mceTableInsertColAfter');
   }),
   Guard.addLogging('Insert column after selected column')
 );
 
 const cDeleteColumn = Chain.control(
-  Chain.mapper((editor: any) => {
+  Chain.mapper((editor: Editor) => {
     editor.execCommand('mceTableDeleteCol');
   }),
   Guard.addLogging('Delete column')
+);
+
+const cInsertRowBefore = Chain.control(
+  Chain.mapper((editor: Editor) => {
+    editor.execCommand('mceTableInsertRowBefore');
+  }),
+  Guard.addLogging('Insert row before selected row')
+);
+
+const cInsertRowAfter = Chain.control(
+  Chain.mapper((editor: Editor) => {
+    editor.execCommand('mceTableInsertRowAfter');
+  }),
+  Guard.addLogging('Insert row after selected row')
+);
+
+const cDeleteRow = Chain.control(
+  Chain.mapper((editor: Editor) => {
+    editor.execCommand('mceTableDeleteRow');
+  }),
+  Guard.addLogging('Delete row')
 );
 
 const cDragHandle = function (id, deltaH, deltaV) {
@@ -195,13 +206,31 @@ const cGetWidth = Chain.control(
     const rawWidth = editor.dom.getStyle(elm, 'width');
     const pxWidth = editor.dom.getStyle(elm, 'width', true);
     return {
-      raw: parseFloat(rawWidth),
+      raw: rawWidth === '' ? null : parseFloat(rawWidth),
       px: parseInt(pxWidth, 10),
       isPercent: /%$/.test(rawWidth)
     };
   }),
-  Guard.addLogging('Get width')
+  Guard.addLogging('Get table width')
 );
+
+const cGetCellWidth = (rowNumber: number, columnNumber: number) => Chain.control(
+  Chain.mapper((input: any) => {
+    const editor = input.editor;
+    const elm = input.element;
+    const row = SelectorFilter.descendants(elm, 'tr')[rowNumber];
+    const cell = SelectorFilter.descendants(row, 'th,td')[columnNumber];
+    const rawWidth = editor.dom.getStyle(cell.dom(), 'width');
+    const pxWidth = editor.dom.getStyle(cell.dom(), 'width', true);
+    return {
+      raw: rawWidth === '' ? null : parseFloat(rawWidth),
+      px: parseInt(pxWidth, 10),
+      isPercent: /%$/.test(rawWidth)
+    };
+  }),
+  Guard.addLogging('Get cell width')
+);
+
 
 const cGetInput = (selector: string) => Chain.control(
   Chain.fromChains([
@@ -211,35 +240,31 @@ const cGetInput = (selector: string) => Chain.control(
   Guard.addLogging('Get input')
 );
 
-const sAssertInputValue = (label, selector, expected) => {
-  return Logger.t(label,
-    Chain.asStep({}, [
-      cGetInput(selector),
-      Chain.op((element) => {
-        if (element.dom().type === 'checkbox') {
-          Assertions.assertEq(`The input value for ${label} should be: `, expected, element.dom().checked);
-          return;
-        }
-        Assertions.assertEq(`The input value for ${label} should be: `, expected, Value.get(element));
-      })
-    ]),
-  );
-};
+const sAssertInputValue = (label, selector, expected) => Logger.t(label,
+  Chain.asStep({}, [
+    cGetInput(selector),
+    Chain.op((element) => {
+      if (element.dom().type === 'checkbox') {
+        Assertions.assertEq(`The input value for ${label} should be: `, expected, element.dom().checked);
+        return;
+      }
+      Assertions.assertEq(`The input value for ${label} should be: `, expected, Value.get(element));
+    })
+  ]),
+);
 
-const sSetInputValue = (label, selector, value) => {
-  return Logger.t(label,
-    Chain.asStep({}, [
-      cGetInput(selector),
-      Chain.op((element) => {
-        if (element.dom().type === 'checkbox') {
-          element.dom().checked = value;
-          return;
-        }
-        Value.set(element, value);
-      })
-    ]),
-  );
-};
+const sSetInputValue = (label, selector, value) => Logger.t(label,
+  Chain.asStep({}, [
+    cGetInput(selector),
+    Chain.op((element) => {
+      if (element.dom().type === 'checkbox') {
+        element.dom().checked = value;
+        return;
+      }
+      Value.set(element, value);
+    })
+  ]),
+);
 
 const sGotoGeneralTab = Chain.asStep({}, [
   Chain.inject(Body.body()),
@@ -303,7 +328,7 @@ const sAssertDialogValues = (data, hasAdvanced, generalSelectors) => {
   return sAssertTabContents(data, generalSelectors);
 };
 
-export default {
+export {
   sAssertDialogPresence,
   sAssertSelectValue,
   sChooseTab,
@@ -328,7 +353,11 @@ export default {
   cSplitCells,
   cDragHandle,
   cGetWidth,
+  cGetCellWidth,
   cInsertColumnBefore,
   cInsertColumnAfter,
-  cDeleteColumn
+  cDeleteColumn,
+  cInsertRowBefore,
+  cInsertRowAfter,
+  cDeleteRow
 };

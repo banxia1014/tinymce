@@ -14,12 +14,12 @@ import * as CaretUtils from '../caret/CaretUtils';
 import { HDirection, CaretWalker } from '../caret/CaretWalker';
 import * as LineUtils from '../caret/LineUtils';
 import * as LineWalker from '../caret/LineWalker';
-import NodeType from '../dom/NodeType';
+import * as NodeType from '../dom/NodeType';
 import * as CefUtils from './CefUtils';
 import * as RangeNodes from '../selection/RangeNodes';
-import ArrUtils from '../util/ArrUtils';
-import InlineUtils from '../keyboard/InlineUtils';
-import Settings from '../api/Settings';
+import * as ArrUtils from '../util/ArrUtils';
+import * as InlineUtils from '../keyboard/InlineUtils';
+import * as Settings from '../api/Settings';
 import { isBeforeContentEditableFalse, isAfterContentEditableFalse, isBeforeTable, isAfterTable } from '../caret/CaretPositionPredicates';
 import Editor from '../api/Editor';
 import { getPositionsUntilNextLine, getPositionsUntilPreviousLine } from '../caret/LineReader';
@@ -209,47 +209,41 @@ const getVerticalRange = (editor: Editor, down: boolean): Range => {
   return null;
 };
 
-const moveH = (editor: Editor, forward: boolean) => {
-  return () => {
-    const newRng = getHorizontalRange(editor, forward);
+const moveH = (editor: Editor, forward: boolean) => () => {
+  const newRng = getHorizontalRange(editor, forward);
 
-    if (newRng) {
-      editor.selection.setRng(newRng);
-      return true;
-    } else {
-      return false;
-    }
-  };
+  if (newRng) {
+    editor.selection.setRng(newRng);
+    return true;
+  } else {
+    return false;
+  }
 };
 
-const moveV = (editor: Editor, down: boolean) => {
-  return () => {
-    const newRng = getVerticalRange(editor, down);
+const moveV = (editor: Editor, down: boolean) => () => {
+  const newRng = getVerticalRange(editor, down);
 
-    if (newRng) {
-      editor.selection.setRng(newRng);
-      return true;
-    } else {
-      return false;
-    }
-  };
+  if (newRng) {
+    editor.selection.setRng(newRng);
+    return true;
+  } else {
+    return false;
+  }
 };
 
 const isCefPosition = (forward: boolean) => (pos: CaretPosition) => forward ? isAfterContentEditableFalse(pos) : isBeforeContentEditableFalse(pos);
 
-const moveToLineEndPoint = (editor: Editor, forward: boolean) => {
-  return () => {
-    const from = forward ? CaretPosition.fromRangeEnd(editor.selection.getRng()) : CaretPosition.fromRangeStart(editor.selection.getRng());
-    const result = forward ? getPositionsUntilNextLine(editor.getBody(), from) : getPositionsUntilPreviousLine(editor.getBody(), from);
-    const to = forward ? Arr.last(result.positions) : Arr.head(result.positions);
-    return to.filter(isCefPosition(forward)).fold(
-      Fun.constant(false),
-      (pos) => {
-        editor.selection.setRng(pos.toRange());
-        return true;
-      }
-    );
-  };
+const moveToLineEndPoint = (editor: Editor, forward: boolean) => () => {
+  const from = forward ? CaretPosition.fromRangeEnd(editor.selection.getRng()) : CaretPosition.fromRangeStart(editor.selection.getRng());
+  const result = forward ? getPositionsUntilNextLine(editor.getBody(), from) : getPositionsUntilPreviousLine(editor.getBody(), from);
+  const to = forward ? Arr.last(result.positions) : Arr.head(result.positions);
+  return to.filter(isCefPosition(forward)).fold(
+    Fun.constant(false),
+    (pos) => {
+      editor.selection.setRng(pos.toRange());
+      return true;
+    }
+  );
 };
 
 export {

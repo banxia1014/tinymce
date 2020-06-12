@@ -12,12 +12,14 @@ import DOMUtils from 'tinymce/core/api/dom/DOMUtils';
 import Editor from 'tinymce/core/api/Editor';
 import Env from 'tinymce/core/api/Env';
 import { StyleMap } from 'tinymce/core/api/html/Styles';
-import InsertTable from '../actions/InsertTable';
-import Styles from '../actions/Styles';
+import * as InsertTable from '../actions/InsertTable';
+import * as Styles from '../actions/Styles';
 import * as Util from '../alien/Util';
 import { getDefaultAttributes, getDefaultStyles, getTableClassList, hasAdvancedTableTab, shouldStyleWithCss } from '../api/Settings';
-import Helpers, { TableData } from './Helpers';
-import TableDialogGeneralTab from './TableDialogGeneralTab';
+import * as Helpers from './Helpers';
+import * as TableDialogGeneralTab from './TableDialogGeneralTab';
+
+type TableData = Helpers.TableData;
 
 // Explore the layers of the table till we find the first layer of tds or ths
 const styleTDTH = (dom: DOMUtils, elm: Element, name: string | StyleMap, value?: string | number) => {
@@ -180,26 +182,22 @@ const open = (editor: Editor, insertNewTable: boolean) => {
     items: TableDialogGeneralTab.getItems(editor, hasClasses, insertNewTable)
   };
 
-  const nonAdvancedForm = (): Types.Dialog.PanelApi => {
-    return {
-      type: 'panel',
-      items: [ generalPanel ]
-    };
-  };
+  const nonAdvancedForm = (): Types.Dialog.PanelApi => ({
+    type: 'panel',
+    items: [ generalPanel ]
+  });
 
-  const advancedForm = (): Types.Dialog.TabPanelApi => {
-    return {
-      type: 'tabpanel',
-      tabs: [
-        {
-          title: 'General',
-          name: 'general',
-          items: [ generalPanel ]
-        },
-        Helpers.getAdvancedTab('table')
-      ]
-    };
-  };
+  const advancedForm = (): Types.Dialog.TabPanelApi => ({
+    type: 'tabpanel',
+    tabs: [
+      {
+        title: 'General',
+        name: 'general',
+        items: [ generalPanel ]
+      },
+      Helpers.getAdvancedTab('table')
+    ]
+  });
 
   const dialogBody = hasAdvancedTableTab(editor) ? advancedForm() : nonAdvancedForm();
 
@@ -225,6 +223,6 @@ const open = (editor: Editor, insertNewTable: boolean) => {
   });
 };
 
-export default {
+export {
   open
 };

@@ -10,9 +10,9 @@ import { Fun } from '@ephox/katamari';
 import * as CaretBookmark from './CaretBookmark';
 import * as CaretContainer from '../caret/CaretContainer';
 import CaretPosition from '../caret/CaretPosition';
-import NodeType from '../dom/NodeType';
+import * as NodeType from '../dom/NodeType';
 import * as RangeNodes from '../selection/RangeNodes';
-import Zwsp from '../text/Zwsp';
+import * as Zwsp from '../text/Zwsp';
 import Tools from '../api/util/Tools';
 import Selection from '../api/dom/Selection';
 import DOMUtils from '../api/dom/DOMUtils';
@@ -178,7 +178,7 @@ const getRangeBookmark = function (selection: Selection): RangeBookmark {
 };
 
 const createBookmarkSpan = (dom: DOMUtils, id: string, filled: boolean) => {
-  const args = { 'data-mce-type': 'bookmark', 'id': id, 'style': 'overflow:hidden;line-height:0px' };
+  const args = { 'data-mce-type': 'bookmark', id, 'style': 'overflow:hidden;line-height:0px' };
   return filled ? dom.create('span', args, '&#xFEFF;') : dom.create('span', args);
 };
 
@@ -209,7 +209,7 @@ const getPersistentBookmark = function (selection: Selection, filled: boolean): 
   const startBookmarkNode = createBookmarkSpan(dom, id + '_start', filled);
   rangeInsertNode(dom, rng, startBookmarkNode);
 
-  selection.moveToBookmark({ id, keep: 1 });
+  selection.moveToBookmark({ id, keep: true });
 
   return { id };
 };
@@ -226,8 +226,10 @@ const getBookmark = function (selection: Selection, type: number, normalized: bo
   }
 };
 
-export default {
+const getUndoBookmark = Fun.curry(getOffsetBookmark, Fun.identity, true) as (selection: Selection) => IndexBookmark | PathBookmark;
+
+export {
   getBookmark,
-  getUndoBookmark: Fun.curry(getOffsetBookmark, Fun.identity, true) as (selection: Selection) => IndexBookmark | PathBookmark,
+  getUndoBookmark,
   getPersistentBookmark
 };

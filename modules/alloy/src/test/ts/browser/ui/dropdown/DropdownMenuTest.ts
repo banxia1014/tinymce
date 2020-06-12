@@ -32,19 +32,17 @@ UnitTest.asynctest('DropdownMenuTest', (success, failure) => {
     })
   );
 
-  GuiSetup.setup((store, doc, body) => {
-    const makeFlow = (v: string) => {
-      return Container.sketch({
-        dom: {
-          tag: 'span',
-          innerHtml: ' ' + v + ' ',
-          classes: [ v ]
-        },
-        containerBehaviours: Behaviour.derive([
-          Focusing.config({ })
-        ])
-      });
-    };
+  GuiSetup.setup((store, _doc, _body) => {
+    const makeFlow = (v: string) => Container.sketch({
+      dom: {
+        tag: 'span',
+        innerHtml: ' ' + v + ' ',
+        classes: [ v ]
+      },
+      containerBehaviours: Behaviour.derive([
+        Focusing.config({ })
+      ])
+    });
 
     const widget = Container.sketch({
       containerBehaviours: Behaviour.derive([
@@ -67,39 +65,39 @@ UnitTest.asynctest('DropdownMenuTest', (success, failure) => {
           value: 'tools-menu-value',
           text: 'Tools Menu',
           items: Arr.map([
-            { type: 'item', data: { value: 'packages', meta: { text: 'Packages' } }, hasSubmenu: true },
-            { type: 'item', data: { value: 'about', meta: { text: 'About' } } },
-            { type: 'widget', widget, data: { value: 'widget', meta: { } } }
+            { type: 'item', data: { value: 'packages', meta: { text: 'Packages' }}, hasSubmenu: true },
+            { type: 'item', data: { value: 'about', meta: { text: 'About' }}},
+            { type: 'widget', widget, data: { value: 'widget', meta: { }}}
           ], TestDropdownMenu.renderItem)
         },
         'packages': { // menu name should be triggering parent item so TieredMenuSpec path works
           value: 'packages-menu-value',
           text: 'Packages Menu',
           items: Arr.map([
-            { type: 'item', data: { value: 'sortby', meta: { text: 'SortBy' } }, hasSubmenu: true }
+            { type: 'item', data: { value: 'sortby', meta: { text: 'SortBy' }}, hasSubmenu: true }
           ], TestDropdownMenu.renderItem)
         },
         'sortby': {
           value: 'sortby-menu-value',
           text: 'Sortby Menu',
           items: Arr.map([
-            { type: 'item', data: { value: 'strings', meta: { text: 'Strings' } }, hasSubmenu: true },
-            { type: 'item', data: { value: 'numbers', meta: { text: 'Numbers' } }, hasSubmenu: true }
+            { type: 'item', data: { value: 'strings', meta: { text: 'Strings' }}, hasSubmenu: true },
+            { type: 'item', data: { value: 'numbers', meta: { text: 'Numbers' }}, hasSubmenu: true }
           ], TestDropdownMenu.renderItem)
         },
         'strings': {
           value: 'strings-menu-value',
           text: 'Strings Menu',
           items: Arr.map([
-            { type: 'item', data: { value: 'versions', meta: { text: 'Versions', html: '<b>V</b>ersions' } } },
-            { type: 'item', data: { value: 'alphabetic', meta: { text: 'Alphabetic' } } }
+            { type: 'item', data: { value: 'versions', meta: { text: 'Versions', html: '<b>V</b>ersions' }}},
+            { type: 'item', data: { value: 'alphabetic', meta: { text: 'Alphabetic' }}}
           ], TestDropdownMenu.renderItem)
         },
         'numbers': {
           value: 'numbers-menu-value',
           text: 'Numbers Menu',
           items: Arr.map([
-            { type: 'item', data: { value: 'doubled', meta: { text: 'Doubled digits' } }, hasSubmenu: false }
+            { type: 'item', data: { value: 'doubled', meta: { text: 'Doubled digits' }}, hasSubmenu: false }
           ], TestDropdownMenu.renderItem)
         }
       }, TestDropdownMenu.renderMenu),
@@ -124,7 +122,7 @@ UnitTest.asynctest('DropdownMenuTest', (success, failure) => {
 
         components: [ ],
 
-        lazySink (c) {
+        lazySink(c) {
           TestDropdownMenu.assertLazySinkArgs('div', 'dropdown-button', c);
           return Result.value(sink.get(c));
         },
@@ -133,17 +131,15 @@ UnitTest.asynctest('DropdownMenuTest', (success, failure) => {
           menu: TestDropdownMenu.part(store)
         },
 
-        fetch () {
-          return Future.pure(testData).map((d) => {
-            return Option.from(TieredMenu.tieredData(d.primary, d.menus, d.expansions));
-          });
+        fetch() {
+          return Future.pure(testData).map((d) => Option.from(TieredMenu.tieredData(d.primary, d.menus, d.expansions)));
         }
       })
     );
 
     return c;
 
-  }, (doc, body, gui, dropdown, store) => {
+  }, (doc, _body, gui, dropdown, store) => {
     gui.add(
       GuiFactory.build(sink.asSpec())
     );
@@ -173,24 +169,18 @@ UnitTest.asynctest('DropdownMenuTest', (success, failure) => {
 
     const sTestMenus = (label: string, stored: string[], focused: TestFocusable, active: TestFocusable[], background: TestFocusable[], others: TestFocusable[]) => {
       const sCheckBackground = GeneralSteps.sequence(
-        Arr.bind(background, (bg) => {
-          return [
-            UiFinder.sExists(gui.element(), bg.selector),
-            UiFinder.sNotExists(gui.element(), bg.selector + '.selected-menu')
-          ];
-        })
+        Arr.bind(background, (bg) => [
+          UiFinder.sExists(gui.element(), bg.selector),
+          UiFinder.sNotExists(gui.element(), bg.selector + '.selected-menu')
+        ])
       );
 
       const sCheckActive = GeneralSteps.sequence(
-        Arr.map(active, (o) => {
-          return UiFinder.sExists(gui.element(), o.selector + '.selected-menu');
-        })
+        Arr.map(active, (o) => UiFinder.sExists(gui.element(), o.selector + '.selected-menu'))
       );
 
       const sCheckOthers = GeneralSteps.sequence(
-        Arr.map(others, (o) => {
-          return UiFinder.sNotExists(gui.element(), o.selector);
-        })
+        Arr.map(others, (o) => UiFinder.sNotExists(gui.element(), o.selector))
       );
 
       return Logger.t(
