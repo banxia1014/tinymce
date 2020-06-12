@@ -350,10 +350,10 @@ RE.addNote = function (seletedNode) {
 RE.clickImage = function (e) {
   var innerHtml = e.innerText
   window.markNode = e
-  window.markNode.innerText = '124421'
-  $('#mytextarea').find('.qf_image').removeClass('borderline');
-  $('#mytextarea').find('.closeImg').remove();
-  $('#mytextarea').find('.qf_img_operate').remove();
+  // window.markNode.innerText = '124421'
+  // $('#mytextarea').find('.qf_image').removeClass('borderline');
+  // $('#mytextarea').find('.closeImg').remove();
+  // $('#mytextarea').find('.qf_img_operate').remove();
   RE.restorerange();
   QFH5.showImageRemarkLayer(innerHtml, function (state, data) {
     if (state === 1)
