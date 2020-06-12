@@ -388,45 +388,24 @@ RE.setBold = function () {
 
 // 无序列表
 RE.setBullets = function () {
-  var selection = tinymce.activeEditor.selection.getNode()
-  if (selection.parentNode.parentNode && selection.parentNode.parentNode.nodeName === 'LI') {
-    tinymce.activeEditor.execCommand('RemoveList');
-    return false
-  }
-  if (selection.parentNode && selection.parentNode.nodeName === 'LI') {
-    tinymce.activeEditor.execCommand('RemoveList');
-    return false
-  }
-  if (selection.nodeName === 'LI') {
-    tinymce.activeEditor.execCommand('RemoveList');
-    return false
-  }
   tinymce.activeEditor.execCommand('insertUnorderedList', false, {
-    'list-style-type': 'disc',
     'list-attributes': {class: 'mylistclass'},
     'list-item-attributes': {class: 'mylistitemclass'},
   });
-  tinymce.activeEditor.selection.moveToBookmark(bm);
+  window.bm && tinymce.activeEditor.selection.moveToBookmark(window.bm);
 }
 
+
+RE.queryListCommandState = function (editor, listName) {
+  return function () {
+    const parentList = editor.dom.getParent(editor.selection.getStart(), 'UL,OL,DL');
+    return parentList && parentList.nodeName === listName;
+  };
+};
 // 有序列表
 RE.setNumbers = function () {
-  var selection = tinymce.activeEditor.selection.getNode()
-  if (selection.parentNode.parentNode && selection.parentNode.parentNode.nodeName === 'LI') {
-    tinymce.activeEditor.execCommand('RemoveList');
-    return false
-  }
-  if (selection.parentNode && selection.parentNode.nodeName === 'LI') {
-    tinymce.activeEditor.execCommand('RemoveList');
-    return false
-  }
-  if (selection.nodeName === 'LI') {
-    tinymce.activeEditor.execCommand('RemoveList');
-    return false
-  }
 
   tinymce.activeEditor.execCommand('insertOrderedList', false, {
-    'list-style-type': 'decimal',
     'list-attributes': {class: 'mylistclass'},
     'list-item-attributes': {class: 'mylistitemclass'},
   });

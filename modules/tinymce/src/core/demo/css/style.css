@@ -708,6 +708,7 @@ code {
 .mylistclass {
   padding-left: 20px;
   margin: 10px;
+  list-style-type: decimal;
 }
 
 .qf_image {

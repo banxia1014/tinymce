@@ -118,7 +118,6 @@ export const FakeCaret = (editor: Editor, root: HTMLElement, isBlock: (node: Nod
 
     if (isBlock(element)) {
       caretContainerNode = CaretContainer.insertBlock(caretBlock, element, before);
-
       clientRect = getAbsoluteClientRect(root, element, before);
       DomQuery(caretContainerNode).css('top', clientRect.top);
 
