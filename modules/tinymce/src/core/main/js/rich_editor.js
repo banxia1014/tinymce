@@ -13,7 +13,6 @@ RE.callback = function () {
   // var e = {}
   // e.target = tinymce.activeEditor.selection.getNode()
   // RE.enabledEditingItems(e);
-  console.log('内容回调')
   window.location.href = "re-callback://" + encodeURI(RE.getEditHtml());
 }
 
@@ -58,7 +57,6 @@ RE.getEditHtml = function () {
   $('#mytextarea').find('.closeImg').remove()
   $('#mytextarea').find('.qf_img_operate').remove()
   $('#mytextarea').find('.closeImg').remove()
-  console.log(tinyMCE.activeEditor.getContent())
   return tinyMCE.activeEditor.getContent();
 }
 
@@ -276,8 +274,6 @@ RE.imageHandleClick = function (selectedNode) {
 
 
 RE.videoHandleClick = function(selectedNode){
-  console.log(selectedNode)
-  console.log('视频处理')
   if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_insert_video')) {
     RE.blur();
     $('#mytextarea').find('.qf_insert_video').removeClass('borderline');
@@ -386,6 +382,7 @@ RE.setPadding = function (left, top, right, bottom) {
 }
 // 加粗
 RE.setBold = function () {
+  // document.execCommand('bold', false, null);
   tinymce.activeEditor.execCommand('Bold')
 }
 
@@ -404,12 +401,12 @@ RE.setBullets = function () {
     tinymce.activeEditor.execCommand('RemoveList');
     return false
   }
-
   tinymce.activeEditor.execCommand('insertUnorderedList', false, {
     'list-style-type': 'disc',
     'list-attributes': {class: 'mylistclass'},
     'list-item-attributes': {class: 'mylistitemclass'},
   });
+  tinymce.activeEditor.selection.moveToBookmark(bm);
 }
 
 // 有序列表
@@ -442,6 +439,9 @@ RE.setItalic = function () {
 
 // 引用
 RE.setQuota = function () {
+  if(!window.bm){
+    window.bm = tinymce.activeEditor.selection.getBookmark();
+  }
   tinymce.activeEditor.execCommand('mceBlockQuote')
 }
 // 左对齐
@@ -643,8 +643,6 @@ RE.enabledEditingItems = function (e) {
     items.push(formatBlock);
   }
 
-  console.log('状态回调')
-  console.log(items)
   window.location.href = "re-state://" + encodeURI(items.join(','));
 }
 
