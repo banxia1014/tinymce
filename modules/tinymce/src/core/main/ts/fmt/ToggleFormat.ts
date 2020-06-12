@@ -14,12 +14,7 @@ import * as MatchFormat from './MatchFormat';
 import * as RemoveFormat from './RemoveFormat';
 
 const toggle = function (editor: Editor, formats: FormatRegistry, name: string, vars: FormatVars, node: Node) {
-  console.log(name)
-  console.log('125151251')
   const fmt = formats.get(name);
-  console.log(fmt)
-  console.log(vars)
-  console.log(node)
 
   if (MatchFormat.match(editor, name, vars, node) && (!('toggle' in fmt[0]) || fmt[0].toggle)) {
     RemoveFormat.remove(editor, name, vars, node);
