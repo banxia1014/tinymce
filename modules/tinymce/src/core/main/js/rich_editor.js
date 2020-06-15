@@ -669,7 +669,7 @@ RE.whiteBlockHandle = function (currentNode) {
     currentNode.children[0].classList.add('borderline')
 
     // 加关闭按钮
-    RE.videoSelected(currentNode)
+    RE.videoSelected(currentNode.children[0])
 
     // 编辑器blur掉光标
     RE.blur()
