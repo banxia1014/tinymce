@@ -181,6 +181,10 @@ const placeHolderConverter = function (editor: Editor) {
         if (!isWithinEmbedWrapper(node)) {
           node.replace(createPreviewIframeNode(editor, node));
         }
+      } else if (node.name === 'video') {
+        if (!isWithinEmbedWrapper(node)) {
+          node.replace(createPreviewIframeNode(editor, node));
+        }
       } else {
         if (!isWithinEmbedWrapper(node)) {
           node.replace(createPlaceholderNode(editor, node));

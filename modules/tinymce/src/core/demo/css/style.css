@@ -60,6 +60,7 @@ body {
 #mytextarea{
   min-height: 100%;
   border: none;
+  padding-bottom: 100px;
 }
 .mce-edit-focus{
   outline: none !important;
@@ -163,7 +164,7 @@ img {
   line-height: 18px;
   width: 18px;
   font-size: 12px;
-  top: 8px;
+  top: 15px;
   right: 10px;
   position: absolute;
   z-index: 9;
@@ -199,9 +200,9 @@ img {
   border: none !important;
 }
 
-.qf_image.borderline > img {
+.qf_image.borderline > img,.qf_image.big.borderline > img {
   border: 2px solid #4B8DFF !important;
-  width: calc(100% - 4px) !important;
+  width: calc(100% - 4px);
 }
 
 .mce-content-body [data-mce-selected=inline-boundary] {
@@ -210,7 +211,7 @@ img {
 
 .borderline {
   border: 2px solid #4B8DFF !important;
-  width: calc(100% - 2px) !important;
+  width: calc(100% - 2px);
   /*margin-left: 8px;*/
 }
 
@@ -318,13 +319,14 @@ img {
 
 .qf_w50 .closeImg {
   right: calc(25% + 8px);
+  top:10px;
 }
 .qf_w50{
   min-height: 0 !important;
 }
 
 .qf_w100 .closeImg {
-  right: 8px;
+  right: 10px;
 }
 
 .qf_img_operate span:first-child {
@@ -523,9 +525,10 @@ img {
 .qf_insert_video {
   background-color: black;
   opacity: 0.8;
+  margin: 12px auto;
   margin-left: 0px;
   margin-right: 0px;
-  width: calc(100% - 4px) !important;
+  /*width: calc(100% - 4px) !important;*/
 }
 
 .qf_insert_video video {
@@ -635,6 +638,15 @@ code {
 }
 
 
+#mytextarea hr {
+  width: 80%;
+  margin: 15px auto;
+}
+
+#mytextarea hr {
+  width: 80%;
+  margin: 15px auto;
+}
 
 @keyframes bulge {
   50% {
@@ -705,14 +717,25 @@ code {
 .qf_insert_video {
 }
 
-.mylistclass {
+.myorderlistclass {
   padding-left: 20px;
   margin: 10px;
-  list-style-type: decimal;
+  list-style: decimal;
 }
-
+.myorderlistitemclass{
+  list-style: decimal;
+}
+.myunlistclass {
+  padding-left: 20px;
+  margin: 10px;
+  list-style: initial;
+}
+.myunlistitemclass{
+  list-style: initial;
+}
 .qf_image {
   text-align: center;
+  margin: 12px auto !important;
 }
 .qf_image img{
   display: block;
@@ -721,11 +744,11 @@ code {
 }
 
 .qf_image.small img{
-  width: calc(50% - 2px) !important;
+  width: calc(50% - 2px);
 }
 
 .qf_image.big img{
-  width: calc(100% - 2px) !important;
+  width: calc(100% - 2px);
 }
 
 .qf_image {

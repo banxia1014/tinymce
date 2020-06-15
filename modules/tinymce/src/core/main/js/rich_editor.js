@@ -68,13 +68,15 @@ RE.setHtml = function (html) {
 }
 
 RE.setContent = function (html) {
+  // var html = '<p><video class="qf_video" poster="https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747" controls="controls" width="375" height="281.9548872180451" data-qf-origin="20200428_1354_1588064712337.jpg" data-qf-poster-origin="20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747" data-mce-fragment="1"><source src="https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg" type="video/mp4" /></video></p>\n' +
+  // 	'<p>&nbsp;</p>'
   tinymce.activeEditor.setContent(html);
 }
 
 RE.deleteContent = function () {
   tinymce.activeEditor.execCommand('Delete')
 
-  RE.enabledEditingItems(target_obj)
+  RE.enabledEditingItems()
 }
 
 
@@ -84,13 +86,30 @@ RE.blur = function () {
 }
 
 RE.getText = function () {
-  var activeEditor = tinymce.activeEditor;
-  // var editBody = activeEditor.getBody();
-  // activeEditor.selection.select(editBody);
-  var text = activeEditor.getContent({'format': 'text'});
-  return text;
+  $('#mytextarea').find('.qf_image').removeClass('borderline')
+  $('#mytextarea').find('.closeImg').remove()
+  $('#mytextarea').find('.qf_img_operate').remove()
+  $('#mytextarea').find('.closeImg').remove()
+  // var activeEditor = tinymce.activeEditor;
+  // var text = activeEditor.getContent({'format': 'text'});
+  var html = tinyMCE.activeEditor.getContent()
+  console.log(removeHTMLTag(html))
+  return removeHTMLTag(html);
 }
 
+function removeHTMLTag(str) {
+  var img_re = /<img[^>]+>/g;
+  str = str.replace(img_re, '[图片]');
+  var video_re = /<video[^>]+>/g;
+  str = str.replace(video_re, '[视频]');
+  str = str.replace(/<\/?[^>]*>/g,''); //去除HTML tag
+  str = str.replace(/<\/?[^>]*>/g,''); //去除HTML tag
+  str = str.replace(/[ | ]*\n/g,'\n'); //去除行尾空白
+  //str = str.replace(/\n[\s| | ]*\r/g,'\n'); //去除多余空行
+  str=str.replace(/&nbsp;/ig,'');//去掉&nbsp;
+  str=str.replace(/\s/g,''); //将空格去掉
+  return str;
+}
 
 RE.getWordCount = function () {
   var wordcount = tinymce.activeEditor.plugins.wordcount;
@@ -150,22 +169,10 @@ RE.insertImage = function (attach) {
   // tinymce.activeEditor.selection.setNode(tinymce.activeEditor.dom.create('img', {src: 'https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg', title: 'some title'}));
 }
 
-
-// 插入图片2
-RE.insertImage2 = function (attach) {
-  var url = attach.host + attach.name
-  var origin_url = attach.name
-  var html = `<p class="h20">&nbsp;</p>
-              <figure class="qf_image big" contenteditable="false"><img src="${url}" data-qf-origin="${origin_url}" alt="" width="${attach.w}" height="${attach.h}" data-mce-src="${url}"><figcaption class="qf_image_mark" href="javascirpt:void(0);" contenteditable="false"></figcaption></figure>
-              <p class="h20">&nbsp;</p>`
-  tinymce.activeEditor.execCommand('mceInsertContent', false, html)
-  // tinymce.activeEditor.selection.setNode(tinymce.activeEditor.dom.create('img', {src: 'https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg', title: 'some title'}));
-}
 // 插入视频
 RE.insertVideo = function (video) {
   video = JSON.parse(video)
   var poster = video.host + video.poster
-  console.log(poster)
   var origin_poster = video.poster
   var url = video.host + video.name
   var origin_url = video.name
@@ -174,11 +181,9 @@ RE.insertVideo = function (video) {
   var h = w / 1.33;//设置宽高比例为1.33
   var source = `<source src="${url}" type="video/mp4" />`
   source = encodeURIComponent(source)
-  var html = `<span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
-	<p style="height: 20px;"></p>
-	<video data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${w}" height="${h}" frameborder="0"></video>
-	<span class="mce-shim"></span><p style="height: 20px;"></p>
-</span>`
+  var html = `<p>&nbsp;</p><p><span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
+	<video class="qf_video" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${w}" height="${h}" frameborder="0"></video>
+	</span></p><p>&nbsp;</p>`
 // 	var html = `<span class="qf_insert_video mce-preview-object mce-object-video" contenteditable="false" data-mce-object="video" data-mce-p-allowfullscreen="allowfullscreen" data-mce-p-frameborder="no" data-mce-p-scrolling="no" data-mce-p-src=${url} data-mce-html="%20"
 // ><video class="qf_video" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" controls="controls" poster="${poster}" width="${video.w}" height="${video.h}"></video></span>`
 
@@ -224,6 +229,7 @@ RE.videoSelected = function (currentNode) {
 
 
 RE.imageHandleClick = function (selectedNode) {
+  console.log('图片点击')
   let parentNode = selectedNode.parentNode
   // 图片点击事件
   if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_image')) {
@@ -235,7 +241,6 @@ RE.imageHandleClick = function (selectedNode) {
     if (!parentNode.classList.contains('borderline')) {
       parentNode.classList.add('borderline');
       /// <reference path="./re.ts">
-      RE.videoSelected(parentNode);
       RE.showOperate(parentNode);
     }
   }
@@ -273,7 +278,7 @@ RE.imageHandleClick = function (selectedNode) {
 }
 
 
-RE.videoHandleClick = function(selectedNode){
+RE.videoHandleClick = function (selectedNode) {
   if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_insert_video')) {
     RE.blur();
     $('#mytextarea').find('.qf_insert_video').removeClass('borderline');
@@ -298,9 +303,15 @@ RE.showOperate = function (currentNode) {
 
   var html = document.createElement("div");
   html.classList.add("qf_img_operate")
-  // html.setAttribute('contenteditable', false)
+  html.setAttribute('contenteditable', false)
   html.innerHTML = operateTtml
   currentNode.appendChild(html);
+
+
+  // 加关闭按钮
+  setTimeout(() => {
+    RE.videoSelected(currentNode)
+  },100)
 }
 
 // 图片变大变小
@@ -382,15 +393,21 @@ RE.setPadding = function (left, top, right, bottom) {
 }
 // 加粗
 RE.setBold = function () {
-  // document.execCommand('bold', false, null);
+  // 为了解决取消加粗的时候，一起取消了斜体做了兼容
+  if (tinymce.activeEditor.queryCommandState('bold') && tinymce.activeEditor.queryCommandState('italic')) {
+    window.italic = true
+  } else {
+    window.italic = false
+  }
   tinymce.activeEditor.execCommand('Bold')
+  window.italic && RE.setItalic()
 }
 
 // 无序列表
 RE.setBullets = function () {
   tinymce.activeEditor.execCommand('insertUnorderedList', false, {
-    'list-attributes': {class: 'mylistclass'},
-    'list-item-attributes': {class: 'mylistitemclass'},
+    'list-attributes': {class: 'myunlistclass'},
+    'list-item-attributes': {class: 'myunlistitemclass'},
   });
   window.bm && tinymce.activeEditor.selection.moveToBookmark(window.bm);
 }
@@ -406,9 +423,10 @@ RE.queryListCommandState = function (editor, listName) {
 RE.setNumbers = function () {
 
   tinymce.activeEditor.execCommand('insertOrderedList', false, {
-    'list-attributes': {class: 'mylistclass'},
-    'list-item-attributes': {class: 'mylistitemclass'},
+    'list-attributes': {class: 'myorderlistclass'},
+    'list-item-attributes': {class: 'myorderlistitemclass'},
   });
+  window.bm && tinymce.activeEditor.selection.moveToBookmark(window.bm);
 }
 
 // 斜体
@@ -418,10 +436,13 @@ RE.setItalic = function () {
 
 // 引用
 RE.setQuota = function () {
-  if(!window.bm){
-    window.bm = tinymce.activeEditor.selection.getBookmark();
-  }
+  window.is_in_quote = 0;
+  window.bm = tinymce.activeEditor.selection.getBookmark();
   tinymce.activeEditor.execCommand('mceBlockQuote')
+}
+// 插入图片链接视频下取消引用
+RE.resetQuota = function(){
+  if(RE.hasQuoteStyle())RE.setQuota()
 }
 // 左对齐
 RE.setJustifyLeft = function () {
@@ -563,18 +584,30 @@ RE.jumpEditImageMark = function (self) {
   var href = self.getAttribute('href')
   window.linkNode = self
 }
+
+// 是否有引用的样式
+RE.hasQuoteStyle = function () {
+  var currentNode = tinymce.activeEditor.selection.getNode();
+  if (tinymce.activeEditor.queryCommandValue('formatBlock')) {
+    let parents_re = tinymce.activeEditor.dom.getParents(currentNode)
+    if (parents_re.length > 0 && parents_re.find(res => {
+      return res.nodeName === 'BLOCKQUOTE'
+    })) {
+      return true
+    }
+  }
+  return false
+}
+
 RE.enabledEditingItems = function (e) {
   var currentNode = tinymce.activeEditor.selection.getNode();
 
   var items = [];
   if (tinymce.activeEditor.queryCommandValue('formatBlock')) {
-    if (currentNode.parentNode && currentNode.parentNode.nodeName === 'BLOCKQUOTE') {
-      items.push('formatQuota');
-    }
-    if (currentNode.parentNode.parentNode && currentNode.parentNode.parentNode.nodeName === 'BLOCKQUOTE') {
-      items.push('formatQuota');
-    }
-    if (currentNode.parentNode.parentNode.parentNode && currentNode.parentNode.parentNode.parentNode.nodeName === 'BLOCKQUOTE') {
+    let parents_re = tinymce.activeEditor.dom.getParents(currentNode)
+    if (parents_re.length > 0 && parents_re.find(res => {
+      return res.nodeName === 'BLOCKQUOTE'
+    })) {
       items.push('formatQuota');
     }
   }
@@ -622,11 +655,14 @@ RE.enabledEditingItems = function (e) {
     items.push(formatBlock);
   }
 
+  console.log(items)
   window.location.href = "re-state://" + encodeURI(items.join(','));
 }
 
 // 删除的时候图片和视频之间的固定结构保留，无法删除
 RE.whiteBlockHandle = function (currentNode) {
+  console.log(currentNode)
+  console.log('删除')
   // 删除的时候，如果是删到视频，就blur掉，然后选中视频
   if(currentNode.children[0] && currentNode.children[0].classList.contains('qf_insert_video')){
     // 加边框
@@ -639,21 +675,21 @@ RE.whiteBlockHandle = function (currentNode) {
     RE.blur()
 
     // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
-    if(currentNode.nextElementSibling === null){
+    if (currentNode.nextElementSibling === null) {
       var pEle = document.createElement('p')
-      pEle.style.height = '15px'
+      pEle.style.height = '25px'
       currentNode.parentNode.appendChild(pEle)
     }
 
     // 两个视频之间不允许删除空白间距
-    if(currentNode.nextElementSibling && currentNode.nextElementSibling.children[0] && currentNode.nextElementSibling.children[0].classList.contains('qf_insert_video')){
+    if (currentNode.nextElementSibling && currentNode.nextElementSibling.children[0] && currentNode.nextElementSibling.children[0].classList.contains('qf_insert_video')) {
       let pEle = document.createElement('p')
       pEle.innerHTML = '&nbsp'
       currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
     }
 
     // 视频后面是图片，中间不允许删除空白间距
-    if(currentNode.nextElementSibling && currentNode.nextElementSibling.classList.contains('qf_image')){
+    if (currentNode.nextElementSibling && currentNode.nextElementSibling.classList.contains('qf_image')) {
       let pEle = document.createElement('p')
       pEle.innerHTML = '&nbsp'
       currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
@@ -661,22 +697,20 @@ RE.whiteBlockHandle = function (currentNode) {
   }
 
   // 删除的时候，如果是删到图片，就blur掉，然后选中图片
-  if(currentNode && currentNode.classList.contains('qf_image')){
+  if (currentNode && currentNode.classList.contains('qf_image')) {
     // 加边框
     currentNode.classList.add('borderline')
-
-    // 加关闭按钮
-    RE.videoSelected(currentNode)
-
-    // 编辑器blur掉光标
-    RE.blur()
 
     // 添加操作弹窗
     RE.showOperate(currentNode)
 
+    // 编辑器blur掉光标
+    RE.blur()
+
+
 
     // 如果删除到视频这个元素，发现后面没有元素，就直接append一个空p标签上去
-    if(currentNode.nextElementSibling === null){
+    if (currentNode.nextElementSibling === null) {
       let pEle = document.createElement('p')
       pEle.innerHTML = '&nbsp'
       pEle.style.height = '25px'
@@ -686,7 +720,7 @@ RE.whiteBlockHandle = function (currentNode) {
 
 
     // 两个图片中间不允许删除空白间距
-    if(currentNode.nextElementSibling && currentNode.nextElementSibling.classList.contains('qf_image')){
+    if (currentNode.nextElementSibling && currentNode.nextElementSibling.classList.contains('qf_image')) {
       let pEle = document.createElement('p')
       pEle.innerHTML = '&nbsp'
       currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
@@ -694,7 +728,7 @@ RE.whiteBlockHandle = function (currentNode) {
 
 
     // 图片后面是视频，那么中间不允许删除空白间距
-    if(currentNode.nextElementSibling && currentNode.nextElementSibling.children[0] && currentNode.nextElementSibling.children[0].classList.contains('qf_insert_video')){
+    if (currentNode.nextElementSibling && currentNode.nextElementSibling.children[0] && currentNode.nextElementSibling.children[0].classList.contains('qf_insert_video')) {
       let pEle = document.createElement('p')
       pEle.innerHTML = '&nbsp'
       currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)

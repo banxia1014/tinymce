@@ -15,7 +15,7 @@
 <body>
 <!--<button onclick="RE.setBold()">点我加粗</button>-->
 <button onclick="RE.getEditHtml()">点我获取html</button>
-<button onclick="RE.setQuota()">引用</button>
+<button onclick="RE.setContent()">引用</button>
 <button onclick="RE.setBullets()">无序</button>
 <button onclick="RE.setNumbers()">有序</button>
 <button onclick="RE.setBold()">加粗</button>
@@ -32,6 +32,7 @@
 <script type="text/javascript" src="../../main/js/rich_editor.js"></script>
 <script src="../../../../../../js/tinymce/tinymce.js"></script>
 <script type="text/javascript">
+  window.is_in_quote = 0
   tinymce.init({
     selector: '#mytextarea',
     mobile: {
@@ -77,15 +78,23 @@
       editor.on('mousedown', function (e) {
       })
       editor.on('input', function (e) {
+        if(window.is_in_quote > 0){window.is_in_quote -= 1}
         RE.callback()
       })
       editor.on('keyup', function (e) {
 
         var currentNode = tinymce.activeEditor.selection.getNode();
         var KEY_DELETE = 8; // 删除键
-        var KEY_BACK = 13; // 回车键
-
+        var KEY_BACK = 13; // 换行
         if (e.which === KEY_BACK) {
+          // 回车的时候有引用样式记录下
+          if(RE.hasQuoteStyle()){
+            window.is_in_quote += 1
+            if(window.is_in_quote >= 2){
+              console.log('引用状态下回车了两次')
+              RE.setQuota()
+            }
+          }
           // 回车的时候给到状态处理
           RE.enabledEditingItems()
         }
@@ -98,6 +107,7 @@
           RE.enabledEditingItems()
 
         }
+
 
         // 光标不在视频上，就取消选中的状态
         if (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video')) {
