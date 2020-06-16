@@ -507,19 +507,11 @@ RE.getSelectedRangeText = function () {
 RE.insertLink = function (url, title) {
   // tinymce.activeEditor.execCommand('mceLink', false, title);
 
-  var html = `<a class="qf_insert_link" data-mce-href="${url}" href="${url}">${title}</a>&nbsp;`
+  var html = `<a class="qf_insert_link mceNonEditable" data-mce-href="${url}" href="${url}">${title}</a>&nbsp;`
   tinymce.activeEditor.execCommand('mceInsertContent', false, html)
-  RE.clickLink();
   RE.callback();
 }
 
-
-// 链接点击事件
-RE.clickLink = function () {
-  $('#mytextarea').find('.qf_insert_link').on('click', function (e) {
-    RE.jumpEditLink(e.target)
-  });
-}
 
 
 // @人
@@ -544,22 +536,14 @@ RE.insertExpression = function (url, smile, smileid, width, height) {
 }
 // 编辑链接
 RE.jumpEditLink = function (self) {
-  // Stores a bookmark of the current selection
-  window.bm = tinymce.activeEditor.selection.getBookmark();
-  // Restore the selection bookmark
+  if(!self.classList.contains('qf_insert_link')){
+    return false
+  }
+  // window.bm = tinymce.activeEditor.selection.getBookmark();
   var text = self.innerText
   var href = self.getAttribute('href')
   window.linkNode = self
-  // var id = bm.id+'_start'
-  // var b = window.linkNode.childNodes;
-  // bbq:
-  // for(i=0;i<b.length;i++){
-  // 	if(b[i].nodeType === 1 && b[i].id === id){
-  // 		window.bm_id = id
-  // 		break bbq;
-  // 	}
-  // }
-  $('#mytextarea').find('#tinymce').blur()
+  RE.blur()
   QFH5.jumpEditLink(text, href, function (state, data) {
     if (state == 1) {
       window.linkNode.innerHTML = data.text
