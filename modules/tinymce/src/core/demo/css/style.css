@@ -741,6 +741,7 @@ code {
   display: block;
   width: 100%;
   margin: 0 auto;
+  height: auto;
 }
 
 .qf_image.small img{

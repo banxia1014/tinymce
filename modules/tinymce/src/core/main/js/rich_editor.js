@@ -57,6 +57,7 @@ RE.getEditHtml = function () {
   $('#mytextarea').find('.closeImg').remove()
   $('#mytextarea').find('.qf_img_operate').remove()
   $('#mytextarea').find('.closeImg').remove()
+  console.log(tinyMCE.activeEditor.getContent())
   return tinyMCE.activeEditor.getContent();
 }
 
@@ -159,18 +160,21 @@ RE.getAllImageList = function () {
 
 // 插入图片
 RE.insertImage = function (attach) {
+  let content = RE.getEditHtml()
   var url = attach.host + attach.name
   var origin_url = attach.name
   var html = `<p>&nbsp;</p>
-              <p class="qf_image big noneditable" contenteditable="false"><img src="${url}" data-qf-origin="${origin_url}" alt="" width="${attach.w}" height="${attach.h}" data-mce-src="${url}"><span class="qf_image_mark" href="javascirpt:void(0);" contenteditable="false"></span></p>
+              <p class="qf_image big noneditable" contenteditable="false"><img src="${url}" data-qf-origin="${origin_url}" alt="" width="${attach.w}" height="${attach.h}" data-mce-src="${url}"><span class="qf_image_mark"  contenteditable="false"></span></p>
               <p>&nbsp;</p>`
-  tinymce.activeEditor.execCommand('mceInsertContent', false, html)
+  // tinymce.activeEditor.execCommand('mceInsertContent', false, html)
+  tinymce.activeEditor.setContent(content+html);
   RE.callback()
   // tinymce.activeEditor.selection.setNode(tinymce.activeEditor.dom.create('img', {src: 'https://qiance.qianfanyun.com/20200428_1354_1588064712337.jpg', title: 'some title'}));
 }
 
 // 插入视频
 RE.insertVideo = function (video) {
+  let content = RE.getEditHtml()
   video = JSON.parse(video)
   var poster = video.host + video.poster
   var origin_poster = video.poster
@@ -184,11 +188,8 @@ RE.insertVideo = function (video) {
   var html = `<p>&nbsp;</p><p><span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
 	<video class="qf_video" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${w}" height="${h}" frameborder="0"></video>
 	</span></p><p>&nbsp;</p>`
-// 	var html = `<span class="qf_insert_video mce-preview-object mce-object-video" contenteditable="false" data-mce-object="video" data-mce-p-allowfullscreen="allowfullscreen" data-mce-p-frameborder="no" data-mce-p-scrolling="no" data-mce-p-src=${url} data-mce-html="%20"
-// ><video class="qf_video" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" controls="controls" poster="${poster}" width="${video.w}" height="${video.h}"></video></span>`
-
-  // var html = `<img data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}" width="${w}" height="${h}" src="${poster}" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}"  data-mce-object="video" class="mce-object mce-object-video qf_insert_video">`
-  tinymce.activeEditor.execCommand('mceInsertContent', false, html)
+  // tinymce.activeEditor.execCommand('mceInsertContent', false, html)
+  tinymce.activeEditor.setContent(content+html);
   RE.callback()
 }
 
@@ -405,6 +406,7 @@ RE.setBold = function () {
 
 // 无序列表
 RE.setBullets = function () {
+  RE.resetQuota()
   tinymce.activeEditor.execCommand('insertUnorderedList', false, {
     'list-attributes': {class: 'myunlistclass'},
     'list-item-attributes': {class: 'myunlistitemclass'},
@@ -421,7 +423,7 @@ RE.queryListCommandState = function (editor, listName) {
 };
 // 有序列表
 RE.setNumbers = function () {
-
+  RE.resetQuota()
   tinymce.activeEditor.execCommand('insertOrderedList', false, {
     'list-attributes': {class: 'myorderlistclass'},
     'list-item-attributes': {class: 'myorderlistitemclass'},
@@ -436,13 +438,12 @@ RE.setItalic = function () {
 
 // 引用
 RE.setQuota = function () {
-  window.is_in_quote = 0;
   window.bm = tinymce.activeEditor.selection.getBookmark();
   tinymce.activeEditor.execCommand('mceBlockQuote')
 }
 // 插入图片链接视频下取消引用
 RE.resetQuota = function(){
-  if(RE.hasQuoteStyle())RE.setQuota()
+  if(RE.hasQuoteStyle())RE.setQuota();window.bm = null;
 }
 // 左对齐
 RE.setJustifyLeft = function () {
@@ -505,9 +506,13 @@ RE.getSelectedRangeText = function () {
 
 // 插入链接
 RE.insertLink = function (url, title) {
+  var html=''
+  if(url.indexOf('http') > -1){
+    html = `<a class="qf_insert_link mceNonEditable" data-mce-href="${url}" href="${url}">${title}</a>&nbsp;`
+  }else{
+    html = `<a class="qf_insert_link qf_scheme_link mceNonEditable" href="javascript:void(0);" data-mce-href="${url}" data-href="${url}">${title}</a>&nbsp;`
+  }
   // tinymce.activeEditor.execCommand('mceLink', false, title);
-
-  var html = `<a class="qf_insert_link mceNonEditable" data-mce-href="${url}" href="${url}">${title}</a>&nbsp;`
   tinymce.activeEditor.execCommand('mceInsertContent', false, html)
   RE.callback();
 }
