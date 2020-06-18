@@ -688,23 +688,25 @@ code {
 }
 
 
-.user_article hr {
+.preview_article hr {
   width: 80%;
   margin: 15px auto;
 }
 
-.user_article hr {
+.preview_article hr {
   width: 80%;
   margin: 15px auto;
 }
 
-.user_article:not([dir=rtl]) blockquote {
+.preview_article:not([dir=rtl]) blockquote {
+  margin: 0;
   border-left: 2px solid #ccc;
   margin-left: 14px;
   padding-left: 8px;
 }
 
-.user_article[dir=rtl] blockquote {
+.preview_article[dir=rtl] blockquote {
+  margin: 0;
   border-right: 2px solid #ccc;
   margin-right: 14px;
   padding-right: 8px;
@@ -735,7 +737,7 @@ code {
 }
 .qf_image {
   text-align: center;
-  margin: 12px auto !important;
+  margin: 20px auto !important;
 }
 .qf_image img{
   display: block;

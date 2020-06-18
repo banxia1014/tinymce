@@ -373,7 +373,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
         if (forward === false) {
           caretPosition = CaretUtils.getNormalizedRangeEndPoint(-1, rootNode, range);
 
-          if (caretPosition.getNode(true) && caretPosition.getNode(true).classList.contains('qf_image')) {
+          if (caretPosition.getNode(true) && caretPosition.getNode(true).nodeType === 1 && caretPosition.getNode(true).classList.contains('qf_image')) {
             const element = caretPosition.getNode(true);
             const rng = element.ownerDocument.createRange();
             rng.setStart(element, 0);
