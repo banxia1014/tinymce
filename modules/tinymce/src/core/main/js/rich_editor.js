@@ -167,14 +167,26 @@ RE.getAllImageList = function () {
 
 // 插入图片
 RE.insertImage = function (attach) {
-
   let currentNode = RE.getInsertNode();
+  let innerText = $.trim(currentNode.innerText)
+  let html = ''
+
+  if (RE.hasQuoteStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<p><br data-mce-bogus="1"></p>')
+    RE.setQuota()
+  } else if (RE.hasUnOrderListStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<li><br data-mce-bogus="1"></li>')
+    RE.setBullets()
+  } else if (RE.hasOrderListStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<li><br data-mce-bogus="1"></li>')
+    RE.setNumbers()
+  } else if (innerText === '') {
+    html += '<p><br data-mce-bogus="1"></p>'
+  }
 
   var url = attach.host + attach.name
   var origin_url = attach.name
-  let html = ''
-  // if(currentNode.innerHTML === '')html += '<p><br data-mce-bogus="1"></p>'
-  html = `<p><br data-mce-bogus="1"></p><p class="qf_image big noneditable" contenteditable="false">
+  html += `<p class="qf_image big noneditable" contenteditable="false">
                 <img src="${url}" data-qf-origin="${origin_url}" alt="" width="${attach.w}" height="${attach.h}" data-mce-src="${url}">
               </p><p><br data-mce-bogus="1"></p>`
   // if(currentNode.nextElementSibling && currentNode.nextElementSibling.innerHTML === '')html += '<p>&nbsp;</p>'
@@ -182,20 +194,31 @@ RE.insertImage = function (attach) {
   // if(!currentNode.nextElementSibling)html += '<p><br data-mce-bogus="1"></p>'
 
   // $(html).insertAfter(currentNode)
-  // let content = RE.getEditHtml()
 
   tinymce.activeEditor.execCommand('mceInsertContent', false, html)
-  // tinymce.activeEditor.setContent(content);
   RE.callback()
 }
-
-
 
 
 // 插入视频
 RE.insertVideo = function (video) {
 
   let currentNode = RE.getInsertNode();
+  let innerText = $.trim(currentNode.innerText)
+  let html = ''
+
+  if (RE.hasQuoteStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<p><br data-mce-bogus="1"></p>')
+    RE.setQuota()
+  } else if (RE.hasUnOrderListStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<li><br data-mce-bogus="1"></li>')
+    RE.setBullets()
+  } else if (RE.hasOrderListStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<li><br data-mce-bogus="1"></li>')
+    RE.setNumbers()
+  } else if (innerText === '') {
+    html += '<p><br data-mce-bogus="1"></p>'
+  }
 
   video = JSON.parse(video)
   var poster = video.host + video.poster
@@ -208,24 +231,18 @@ RE.insertVideo = function (video) {
   var source = `<source src="${url}" type="video/mp4" />`
   source = encodeURIComponent(source)
 
-  let html = ''
-  // if(currentNode.innerHTML === '')html += '<p>&nbsp;</p>'
 
-  html = `<p>&nbsp;</p><p><span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
+  html = `<p><span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
 	<video class="qf_video" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${w}" height="${h}" frameborder="0"></video><span class="mce-shim"></span>
-	</span></p><p>&nbsp;</p>`
+	</span></p><p><br data-mce-bogus="1"></p>`
 
-  // if(currentNode.nextElementSibling && currentNode.nextElementSibling.innerHTML === '')html += '<p>&nbsp;</p>'
-
-  // if(!currentNode.nextElementSibling)html += '<p>&nbsp;</p>'
   tinymce.activeEditor.execCommand('mceInsertContent', false, html)
-  // $(html).insertAfter(currentNode)
   RE.callback()
 }
 
 
 // 引用 无序 有序列表状态下不能插入图片
-RE.getInsertNode = function(){
+RE.getInsertNode = function () {
   var currentNode = tinymce.activeEditor.selection.getNode();
   // 引用
   if (tinymce.activeEditor.queryCommandValue('formatBlock')) {
@@ -511,11 +528,6 @@ RE.setQuota = function () {
   window.bm = tinymce.activeEditor.selection.getBookmark();
   tinymce.activeEditor.execCommand('mceBlockQuote')
 }
-// 插入图片链接视频下取消引用
-RE.resetQuota = function () {
-  if (RE.hasQuoteStyle()) RE.setQuota();
-  window.bm = null;
-}
 // 左对齐
 RE.setJustifyLeft = function () {
   tinymce.activeEditor.execCommand('JustifyLeft')
@@ -659,6 +671,36 @@ RE.hasQuoteStyle = function () {
   return false
 }
 
+
+// 是否有有序的样式
+RE.hasOrderListStyle = function () {
+  if (tinymce.activeEditor.queryCommandState('insertOrderedList')) {
+    return true
+  }
+
+  return false
+}
+
+// 是否有无序的样式
+RE.hasUnOrderListStyle = function () {
+  if (tinymce.activeEditor.queryCommandState('insertUnorderedList')) {
+    return true
+  }
+  return false
+}
+
+
+// 插入图片链接视频下取消引用
+RE.resetQuota = function () {
+  if (RE.hasQuoteStyle()) RE.setQuota();
+  window.bm = null;
+}
+
+// reset 有序无序列表
+RE.resetList = function () {
+  if (RE.hasOrderListStyle()) RE.setNumbers()
+  if (RE.hasUnOrderListStyle()) RE.setBullets()
+}
 RE.enabledEditingItems = function (e) {
   var currentNode = tinymce.activeEditor.selection.getNode();
 
