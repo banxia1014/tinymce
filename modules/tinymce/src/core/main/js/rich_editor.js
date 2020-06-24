@@ -54,12 +54,13 @@ RE.setThreadBlocks = function (blocks) {
 
 
 RE.getEditHtml = function () {
-  $('#mytextarea').find('.qf_image').removeClass('borderline')
-  $('#mytextarea').find('.closeImg').remove()
-  $('#mytextarea').find('.qf_img_operate').remove()
-  $('#mytextarea').find('.closeImg').remove()
   console.log(tinyMCE.activeEditor.getContent())
-  return tinyMCE.activeEditor.getContent();
+  let str = tinyMCE.activeEditor.getContent();
+  str = str.replace(/<span class="qf_image_mark" contenteditable="false">(.*?)<\/span>/g, '') // 把图片备注不计入草稿箱内容
+  str = str.replace(/<span class="closeImg" contenteditable="false">(.*?)<\/span>/g, '') // 把图片删除按钮不计入草稿箱内容
+  str = str.replace(/<div class="qf_img_operate" contenteditable="false">(.*?)<\/div>/g, '') // 把图片操作不计入草稿箱内容
+  str = str.replace(/<p class="qf_image(.*)borderline(.*)"/g, '<p class="qf_image$1$2"') // 把图片操作不计入草稿箱内容
+  return str;
 }
 
 RE.setHtml = function (html) {
@@ -77,8 +78,6 @@ RE.setContent = function (html) {
 
 RE.deleteContent = function () {
   tinymce.activeEditor.execCommand('Delete')
-
-  RE.enabledEditingItems()
 }
 
 
@@ -88,18 +87,36 @@ RE.blur = function () {
 }
 
 RE.getText = function () {
-  $('#mytextarea').find('.qf_image').removeClass('borderline')
-  $('#mytextarea').find('.closeImg').remove()
-  $('#mytextarea').find('.qf_img_operate').remove()
-  $('#mytextarea').find('.closeImg').remove()
-  // var activeEditor = tinymce.activeEditor;
-  // var text = activeEditor.getContent({'format': 'text'});
+  $('#mytextarea').find('.closeImg').hide()
+  $('#mytextarea').find('.qf_img_operate').hide()
+  $('#mytextarea').find('.qf_image_mark').hide()
+  var text = tinyMCE.activeEditor.getContent({'format': 'text'});
+  text = rtrim(text)
+  $('#mytextarea').find('.qf_image_mark').show()
+  $('#mytextarea').find('.closeImg').show()
+  $('#mytextarea').find('.qf_img_operate').show()
+  return text;
+}
+
+function rtrim(str){  //删除右边的换行
+  str = str.replace(/(\s*$)/g,"")
+  return str.replace(/(\n*$)/g,"");
+}
+
+// 获取草稿箱内容
+RE.getRoughText = function () {
   var html = tinyMCE.activeEditor.getContent()
-  console.log(removeHTMLTag(html))
-  return removeHTMLTag(html);
+  html = removeHTMLTag(html)
+  return html;
 }
 
 function removeHTMLTag(str) {
+  str = str.replace(/<span class="qf_image_mark"(.*)>(.*?)<\/span>/g, '') // 把图片备注不计入草稿箱内容
+  str = str.replace(/<span class="closeImg" contenteditable="false">(.*?)<\/span>/g, '') // 把图片删除按钮不计入草稿箱内容
+  str = str.replace(/<div class="qf_img_operate" contenteditable="false">(.*?)<\/div>/g, '') // 把图片操作不计入草稿箱内容
+  str = str.replace(/<p class="qf_image(.*)borderline(.*)"/g, '<p class="qf_image($1)($2)"') // 把图片操作不计入草稿箱内容
+  var smile_reg = /<img.*?data-smile="(.*?)".*?\/?>/g;
+  str = str.replace(smile_reg, '[表情]');
   var img_re = /<img[^>]+>/g;
   str = str.replace(img_re, '[图片]');
   var video_re = /<video[^>]+>/g;
@@ -116,6 +133,7 @@ function removeHTMLTag(str) {
   str = str.replace(/&middot;/ig, '·');//横线;
   str = str.replace(/&amp;/ig, '&');//横线;
   str = str.replace(/\s/g, ''); //将空格去掉
+  console.log(str)
   return str;
 }
 
@@ -226,7 +244,6 @@ RE.insertVideo = function (video) {
   var url = video.host + video.name
   var origin_url = video.name
   var w = ($('body').width());
-  console.log(w)
   var h = w / 1.33;//设置宽高比例为1.33
   var source = `<source src="${url}" type="video/mp4" />`
   source = encodeURIComponent(source)
@@ -310,6 +327,7 @@ RE.videoSelected = function (currentNode) {
         }
       }
       currentNode.remove()
+      RE.callback()
     })
   }
 
@@ -360,6 +378,7 @@ RE.imageHandleClick = function (selectedNode) {
           return false
         }
       }
+      RE.callback()
       parentNode.remove()
     })
   }
@@ -488,7 +507,9 @@ RE.setBold = function () {
     window.italic = false
   }
   tinymce.activeEditor.execCommand('Bold')
-  window.italic && RE.setItalic()
+  if (!tinymce.activeEditor.queryCommandState('italic') && window.italic) {
+    RE.setItalic()
+  }
 }
 
 // 无序列表
@@ -548,7 +569,18 @@ RE.setFontSize = function (fontSize) {
 
 //插入分割线
 RE.insertSplitLine = function () {
+  if (RE.hasQuoteStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<p><br data-mce-bogus="1"></p>')
+    RE.setQuota()
+  }else if (RE.hasUnOrderListStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<li><br data-mce-bogus="1"></li>')
+    RE.setBullets()
+  } else if (RE.hasOrderListStyle()) {
+    tinymce.activeEditor.execCommand('mceInsertContent', false, '<li><br data-mce-bogus="1"></li>')
+    RE.setNumbers()
+  }
   tinymce.activeEditor.execCommand('InsertHorizontalRule')
+  tinymce.activeEditor.execCommand('mceInsertContent', false, '<p><br data-mce-bogus="1"></p>')
 }
 // 删除线
 RE.setStrikeThrough = function () {
@@ -618,7 +650,7 @@ RE.insertTopic = function (topic_id, name) {
 
 // 插入表情
 RE.insertExpression = function (url, smile, smileid, width, height) {
-  var html = '<img src="' + url + '" data-smile="' + smile + '" smilieid="' + smileid + '" width="' + width + '" height="' + height + '">';
+  var html = '<img src="' + url + '" data-smile="' + smile + '"  data-smilieid="' + smileid + '" width="' + width + '" height="' + height + '">';
   tinymce.activeEditor.execCommand('mceInsertContent', false, html);
   RE.callback()
 }
@@ -763,7 +795,6 @@ RE.enabledEditingItems = function (e) {
 
 // 删除的时候图片和视频之间的固定结构保留，无法删除
 RE.whiteBlockHandle = function (currentNode) {
-  RE.callback()
   console.log(currentNode)
   console.log('删除')
   // 删除的时候，如果是删到视频，就blur掉，然后选中视频
@@ -802,6 +833,7 @@ RE.whiteBlockHandle = function (currentNode) {
   // 删除的时候，如果是删到图片，就blur掉，然后选中图片
   if (currentNode && currentNode.classList.contains('qf_image')) {
     // 加边框
+    // $(currentNode).addClass('borderline')
     currentNode.classList.add('borderline')
 
     // 添加操作弹窗
@@ -836,4 +868,6 @@ RE.whiteBlockHandle = function (currentNode) {
       currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
     }
   }
+
+  RE.callback()
 }
