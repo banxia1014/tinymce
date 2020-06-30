@@ -54,7 +54,6 @@ RE.setThreadBlocks = function (blocks) {
 
 
 RE.getEditHtml = function () {
-  console.log(tinyMCE.activeEditor.getContent())
   let str = tinyMCE.activeEditor.getContent();
   str = str.replace(/<span class="qf_image_mark" contenteditable="false">(.*?)<\/span>/g, '') // 把图片备注不计入草稿箱内容
   str = str.replace(/<span class="closeImg" contenteditable="false">(.*?)<\/span>/g, '') // 把图片删除按钮不计入草稿箱内容
@@ -581,6 +580,7 @@ RE.insertSplitLine = function () {
   }
   tinymce.activeEditor.execCommand('InsertHorizontalRule')
   tinymce.activeEditor.execCommand('mceInsertContent', false, '<p><br data-mce-bogus="1"></p>')
+  RE.callback()
 }
 // 删除线
 RE.setStrikeThrough = function () {
@@ -609,6 +609,7 @@ RE.setHeading = function (heading) {
   window.bm = tinymce.activeEditor.selection.getBookmark();
   let name = 'h' + heading
   tinymce.activeEditor.execCommand('FormatBlock', false, name)
+  RE.callback()
 }
 
 // 获取选取内容
