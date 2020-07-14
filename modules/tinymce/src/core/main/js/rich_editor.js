@@ -9,11 +9,11 @@ RE.currentSelection = {
 };
 // Initializations
 RE.callback = function () {
-  console.log('callback')
   // $('.tox-tinymce').css({height: height})
   // var e = {}
   // e.target = tinymce.activeEditor.selection.getNode()
   // RE.enabledEditingItems(e);
+  // window.location.href = 'http://www.baidu.com'
   window.location.href = "re-callback://" + encodeURI(RE.getEditHtml());
 }
 
@@ -55,10 +55,10 @@ RE.setThreadBlocks = function (blocks) {
 
 RE.getEditHtml = function () {
   let str = tinyMCE.activeEditor.getContent();
-  str = str.replace(/<span class="qf_image_mark" contenteditable="false">(.*?)<\/span>/g, '') // 把图片备注不计入草稿箱内容
   str = str.replace(/<span class="closeImg" contenteditable="false">(.*?)<\/span>/g, '') // 把图片删除按钮不计入草稿箱内容
   str = str.replace(/<div class="qf_img_operate" contenteditable="false">(.*?)<\/div>/g, '') // 把图片操作不计入草稿箱内容
   str = str.replace(/<p class="qf_image(.*)borderline(.*)"/g, '<p class="qf_image$1$2"') // 把图片操作不计入草稿箱内容
+  console.log(str)
   return str;
 }
 
@@ -184,6 +184,8 @@ RE.getAllImageList = function () {
 
 // 插入图片
 RE.insertImage = function (attach) {
+  $('span[data-mce-type=bookmark]').remove();
+
   let currentNode = RE.getInsertNode();
   let innerText = $.trim(currentNode.innerText)
   let html = ''
@@ -219,6 +221,7 @@ RE.insertImage = function (attach) {
 
 // 插入视频
 RE.insertVideo = function (video) {
+  $('span[data-mce-type=bookmark]').remove();
 
   let currentNode = RE.getInsertNode();
   let innerText = $.trim(currentNode.innerText)
@@ -236,7 +239,6 @@ RE.insertVideo = function (video) {
   } else if (innerText === '') {
     html += '<p><br data-mce-bogus="1"></p>'
   }
-
   video = JSON.parse(video)
   var poster = video.host + video.poster
   var origin_poster = video.poster
@@ -248,8 +250,8 @@ RE.insertVideo = function (video) {
   source = encodeURIComponent(source)
 
 
-  html = `<p><span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
-	<video class="qf_video" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${w}" height="${h}" frameborder="0"></video><span class="mce-shim"></span>
+  html += `<p><span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
+	<video class="qf_video" style="background-color: black;height:${h}px;width:${w}px;" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${video.w}" height="${video.h}" frameborder="0"></video><span class="mce-shim"></span>
 	</span></p><p><br data-mce-bogus="1"></p>`
 
   tinymce.activeEditor.execCommand('mceInsertContent', false, html)
@@ -585,11 +587,13 @@ RE.insertSplitLine = function () {
 // 删除线
 RE.setStrikeThrough = function () {
   tinymce.activeEditor.execCommand('Strikethrough')
+  RE.callback()
 }
 
 // 下划线
 RE.setUnderline = function () {
   tinymce.activeEditor.execCommand('Underline')
+  RE.callback()
 }
 
 // 撤销
@@ -725,7 +729,8 @@ RE.hasUnOrderListStyle = function () {
 
 // 插入图片链接视频下取消引用
 RE.resetQuota = function () {
-  if (RE.hasQuoteStyle()) RE.setQuota();
+  if (RE.hasQuoteStyle())
+    RE.setQuota();
   window.bm = null;
 }
 

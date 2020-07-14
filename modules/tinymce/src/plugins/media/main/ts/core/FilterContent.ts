@@ -67,9 +67,14 @@ const setup = function (editor: Editor) {
               selected = node.firstChild.next;
             }
             realElm.attr({
+              src: selected.attr('src'),
+              poster: selected.attr('poster'),
+              allowfullscreen: selected.attr('allowfullscreen'),
+              style: selected.attr('style'),
               class: selected.attr('class'),
               width: selected.attr('width'),
-              height: selected.attr('height')
+              height: selected.attr('height'),
+              frameborder: '0'
             });
             // 提交的时候加上自定义属性
             if (selected.attr('data-qf-origin') && selected.attr('data-qf-poster-origin')) {
