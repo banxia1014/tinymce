@@ -15,9 +15,7 @@
 <body>
 <!--<button onclick="RE.setBold()">点我加粗</button>-->
 <button onclick="RE.getEditHtml()">点我获取html</button>
-<button onclick="RE.setContent('<p>1242141</p>\n'+
-'<hr />\n'+
-'<p>&nbsp;</p>')">设置html</button>
+<button onclick="setContent()">设置html</button>
 <button onclick="RE.setHeading(1)">h1</button>
 <button onclick="RE.setBullets()">无序</button>
 <button onclick="RE.setNumbers()">有序</button>
@@ -169,6 +167,14 @@
 
     document.body.appendChild(script);
   };
+
+
+  function setContent() {
+    var html = '<img src="https://qiance.qianfanyun.com/front2_Flf73wUjPgA3vORHna-Cf1AuEvQs.jpg?watermark/3/text/QOWNiuWkjzIyIElEOjE1MzQ=/fontsize/400/dissolve/1/gravity/South/fill/I2M5ZjJiMA==/font/5b6u6L2v6ZuF6buR/dx/101/dy/38/image/aHR0cHM6Ly9xaWFuY2UucWlhbmZhbnl1bi5jb20vd2F0ZXJfaW1nXzIwMTkxMjE5XzI5MS5qcGc=/dissolve/1/gravity/South/dx/-34/dy/10"\n' +
+      '     alt="" width="591" height="1280"\n' +
+      '     data-qf-origin="front2_Flf73wUjPgA3vORHna-Cf1AuEvQs.jpg?watermark/3/text/QOWNiuWkjzIyIElEOjE1MzQ=/fontsize/400/dissolve/1/gravity/South/fill/I2M5ZjJiMA==/font/5b6u6L2v6ZuF6buR/dx/101/dy/38/image/aHR0cHM6Ly9xaWFuY2UucWlhbmZhbnl1bi5jb20vd2F0ZXJfaW1nXzIwMTkxMjE5XzI5MS5qcGc=/dissolve/1/gravity/South/dx/-34/dy/10">'
+    RE.setContent(html)
+  }
 
 </script>
 </body>

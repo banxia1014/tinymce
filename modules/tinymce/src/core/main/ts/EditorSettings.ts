@@ -96,7 +96,7 @@ const getDefaultSettings = function (settings: RawEditorSettings, id: string, do
     submit_patch: true,
     add_unload_trigger: true,
     convert_urls: true,
-    relative_urls: true,
+    relative_urls: false,
     remove_script_host: true,
     object_resizing: true,
     doctype: '<!DOCTYPE html>',
