@@ -97,7 +97,7 @@ const getDefaultSettings = function (settings: RawEditorSettings, id: string, do
     add_unload_trigger: true,
     convert_urls: true,
     relative_urls: false,
-    remove_script_host: true,
+    remove_script_host: false,
     object_resizing: true,
     doctype: '<!DOCTYPE html>',
     visual: true,
