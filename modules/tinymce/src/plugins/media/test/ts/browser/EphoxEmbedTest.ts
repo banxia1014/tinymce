@@ -7,13 +7,13 @@ import Editor from 'tinymce/core/api/Editor';
 import Plugin from 'tinymce/plugins/media/Plugin';
 import Theme from 'tinymce/themes/silver/Theme';
 
-import Utils from '../module/test/Utils';
+import * as Utils from '../module/test/Utils';
 
 UnitTest.asynctest('browser.core.EphoxEmbedTest', function (success, failure) {
   Plugin();
   Theme();
 
-  const ephoxEmbedStructure = ApproxStructure.build(function (s, str/*, arr*/) {
+  const ephoxEmbedStructure = ApproxStructure.build(function (s, str/* , arr*/) {
     return s.element('p', {
       children: [
         s.element('div', {
@@ -59,12 +59,12 @@ UnitTest.asynctest('browser.core.EphoxEmbedTest', function (success, failure) {
         Utils.sSubmitDialog(ui),
         Waiter.sTryUntil('wait for div struture', sAssertDivStructure(editor, ephoxEmbedStructure))
       ])
-    , onSuccess, onFailure);
+      , onSuccess, onFailure);
   }, {
     plugins: 'media',
     toolbar: 'media',
     theme: 'silver',
-    media_url_resolver (data, resolve) {
+    media_url_resolver(data, resolve) {
       resolve({
         html: '<video width="300" height="150" ' +
           'controls="controls">\n<source src="' + data.url + '" />\n</video>'

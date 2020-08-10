@@ -5,7 +5,7 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import Dialog from '../ui/Dialog';
+import * as Dialog from '../ui/Dialog';
 
 const register = (editor) => {
   editor.addCommand('mceAnchor', () => {
@@ -13,6 +13,6 @@ const register = (editor) => {
   });
 };
 
-export default {
+export {
   register
 };

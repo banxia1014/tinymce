@@ -42,17 +42,12 @@ const detectFromTag = (component: AlloyComponent): Option<string[]> => {
 
 const detectFromRole = (component: AlloyComponent): Option<string[]> => {
   const elem = component.element();
-  if (! Attr.has(elem, 'role')) { return Option.none(); } else {
-    const role = Attr.get(elem, 'role');
-    return Obj.get(roleAttributes, role);
-  }
+  return Attr.getOpt(elem, 'role').bind((role) => Obj.get(roleAttributes, role));
 };
 
 const updateAuto = (component: AlloyComponent, _ariaInfo: void, status: boolean): void => {
   // Role has priority
-  const attributes = detectFromRole(component).orThunk(() => {
-    return detectFromTag(component);
-  }).getOr([ ]);
+  const attributes = detectFromRole(component).orThunk(() => detectFromTag(component)).getOr([ ]);
   Arr.each(attributes, (attr) => {
     Attr.set(component.element(), attr, status);
   });

@@ -19,10 +19,13 @@ import * as Body from './node/Body';
 import * as Comment from './node/Comment';
 import * as Comments from './node/Comments';
 import Element from './node/Element';
+import * as Document from './node/Document';
+import * as Head from './node/Head';
 import * as Elements from './node/Elements';
 import * as Fragment from './node/Fragment';
 import * as Node from './node/Node';
 import * as NodeTypes from './node/NodeTypes';
+import * as ShadowDom from './node/ShadowDom';
 import * as Text from './node/Text';
 import * as Alignment from './properties/Alignment';
 import * as Attr from './properties/Attr';
@@ -58,8 +61,8 @@ import { Selection } from './selection/Selection';
 import { SimRange } from './selection/SimRange';
 import { Situ } from './selection/Situ';
 import * as WindowSelection from './selection/WindowSelection';
-import OptionTag from './tag/OptionTag';
-import SelectTag from './tag/SelectTag';
+import * as OptionTag from './tag/OptionTag';
+import * as SelectTag from './tag/SelectTag';
 import * as Height from './view/Height';
 import * as Location from './view/Location';
 import * as Platform from './view/Platform';
@@ -96,11 +99,14 @@ export {
   Body,
   Comment,
   Comments,
+  Document,
   Element,
   Elements,
   Fragment,
+  Head,
   Node,
   NodeTypes,
+  ShadowDom,
   Text,
   Alignment,
   Attr,

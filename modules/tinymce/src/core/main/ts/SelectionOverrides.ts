@@ -18,12 +18,12 @@ import * as CaretUtils from './caret/CaretUtils';
 import {CaretWalker} from './caret/CaretWalker';
 import {FakeCaret, isFakeCaretTarget} from './caret/FakeCaret';
 import * as LineUtils from './caret/LineUtils';
-import NodeType from './dom/NodeType';
-import RangePoint from './dom/RangePoint';
-import DragDropOverrides from './DragDropOverrides';
-import EditorView from './EditorView';
-import CefFocus from './focus/CefFocus';
-import EditorFocus from './focus/EditorFocus';
+import * as NodeType from './dom/NodeType';
+import * as RangePoint from './dom/RangePoint';
+import * as DragDropOverrides from './DragDropOverrides';
+import * as EditorView from './EditorView';
+import * as CefFocus from './focus/CefFocus';
+import * as EditorFocus from './focus/EditorFocus';
 import * as CefUtils from './keyboard/CefUtils';
 
 const isContentEditableTrue = NodeType.isContentEditableTrue;
@@ -80,9 +80,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
   };
 
   const showCaret = (direction: number, node: Element, before: boolean, scrollIntoView: boolean = true): Range => {
-    let e;
-
-    e = editor.fire('ShowCaret', {
+    const e = editor.fire('ShowCaret', {
       target: node,
       direction,
       before
@@ -119,9 +117,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
     });
 
     editor.on('click', function (e) {
-      let contentEditableRoot;
-
-      contentEditableRoot = getContentEditableRoot(editor, e.target);
+      const contentEditableRoot = getContentEditableRoot(editor, e.target);
       if (contentEditableRoot) {
         // Prevent clicks on links in a cE=false element
         if (isContentEditableFalse(contentEditableRoot)) {
@@ -195,7 +191,6 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
     handleTouchSelect(editor);
 
     editor.on('mousedown', (e: MouseEvent) => {
-      let contentEditableRoot;
       const targetElm = e.target as Element;
 
       if (targetElm !== rootNode && targetElm.nodeName !== 'HTML' && !editor.dom.isChildOf(targetElm, rootNode)) {
@@ -206,7 +201,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
         return;
       }
 
-      contentEditableRoot = getContentEditableRoot(editor, targetElm);
+      const contentEditableRoot = getContentEditableRoot(editor, targetElm);
       if (contentEditableRoot) {
         if (isContentEditableFalse(contentEditableRoot)) {
           e.preventDefault();
@@ -226,11 +221,11 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
         removeContentEditableSelection();
         hideFakeCaret();
 
-        const caretInfo = LineUtils.closestCaret(rootNode, e.clientX, e.clientY);
-        if (caretInfo) {
-          if (!hasBetterMouseTarget(e.target, caretInfo.node)) {
+        const fakeCaretInfo = LineUtils.closestFakeCaret(rootNode, e.clientX, e.clientY);
+        if (fakeCaretInfo) {
+          if (!hasBetterMouseTarget(e.target, fakeCaretInfo.node)) {
             e.preventDefault();
-            const range = showCaret(1, caretInfo.node as HTMLElement, caretInfo.before, false);
+            const range = showCaret(1, fakeCaretInfo.node as HTMLElement, fakeCaretInfo.before, false);
             editor.getBody().focus();
             setRange(range);
           }
@@ -278,9 +273,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
       }
     });
 
-    const isPasteBin = (node: Element): boolean => {
-      return node.id === 'mcepastebin';
-    };
+    const isPasteBin = (node: Element): boolean => node.id === 'mcepastebin';
 
     editor.on('AfterSetSelectionRange', function (e) {
       const rng = e.range;
@@ -361,8 +354,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
     let node;
     const $ = editor.$;
     const dom = editor.dom;
-    let $realSelectionContainer, sel,
-      startContainer, startOffset, endOffset, e, caretPosition, targetClone, origTargetClone;
+    let $realSelectionContainer, startContainer, startOffset, caretPosition, targetClone, origTargetClone;
 
     if (!range) {
       return null;
@@ -410,7 +402,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
 
     startContainer = range.startContainer;
     startOffset = range.startOffset;
-    endOffset = range.endOffset;
+    const endOffset = range.endOffset;
 
     // Normalizes <span cE=false>[</span>] to [<span cE=false></span>]
     if (startContainer.nodeType === 3 && startOffset === 0 && isContentEditableFalse(startContainer.parentNode)) {
@@ -432,7 +424,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
     }
 
     targetClone = origTargetClone = node.cloneNode(true);
-    e = editor.fire('ObjectSelected', {target: node, targetClone});
+    const e = editor.fire('ObjectSelected', {target: node, targetClone});
     if (e.isDefaultPrevented()) {
       return null;
     }
@@ -442,7 +434,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
         return $([]);
       },
       function (elm) {
-        return $([elm.dom()]);
+        return $([ elm.dom() ]);
       }
     );
 
@@ -475,7 +467,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
     });
 
     $realSelectionContainer[0].focus();
-    sel = editor.selection.getSel();
+    const sel = editor.selection.getSel();
     sel.removeAllRanges();
     sel.addRange(range);
 

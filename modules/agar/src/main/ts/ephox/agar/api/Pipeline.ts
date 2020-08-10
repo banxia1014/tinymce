@@ -1,4 +1,4 @@
-import { console, setTimeout } from '@ephox/dom-globals';
+import { console } from '@ephox/dom-globals';
 import { Arr, Type } from '@ephox/katamari';
 
 import { DieFn, NextFn } from '../pipe/Pipe';
@@ -31,10 +31,6 @@ const runStep = <T, U> (initial: T, step: Step<T, U>, onSuccess: NextFn<U>, onFa
   step.runStep(initial, onSuccess, onFailure, TestLogs.getOrInit(initLogs));
 };
 
-/**
- * @deprecated Use runStep instead
- * TODO: Remove
- */
 const async = (initial: any, steps: Step<any, any>[], onSuccess: NextFn<any>, onFailure: DieFn, initLogs?: TestLogs): void => {
   assertSteps(steps);
 

@@ -29,7 +29,7 @@ import { interpretInForm } from 'tinymce/themes/silver/ui/general/UiFactory';
 import { UiFactoryBackstage } from '../../backstage/Backstage';
 import { setMode } from '../alien/DialogTabHeight';
 import { formTabChangeEvent } from '../general/FormEvents';
-import NavigableObject from '../general/NavigableObject';
+import * as NavigableObject from '../general/NavigableObject';
 import { Types } from '@ephox/bridge';
 import { Omit } from '../Omit';
 
@@ -66,45 +66,43 @@ export const renderTabPanel = (spec: TabPanelSpec, backstage: UiFactoryBackstage
         classes: [ 'tox-dialog__body-nav-item' ],
         innerHtml: backstage.shared.providers.translate(tab.title)
       },
-      view () {
+      view() {
         return [
           // Dupe with SilverDialog
-          AlloyForm.sketch((parts) => {
-            return {
-              dom: {
-                tag: 'div',
-                classes: [ 'tox-form' ]
-              },
-              components: Arr.map(tab.items, (item) => interpretInForm(parts, item, backstage)),
-              formBehaviours: Behaviour.derive([
-                Keying.config({
-                  mode: 'acyclic',
-                  useTabstopAt: Fun.not(NavigableObject.isPseudoStop)
-                }),
+          AlloyForm.sketch((parts) => ({
+            dom: {
+              tag: 'div',
+              classes: [ 'tox-form' ]
+            },
+            components: Arr.map(tab.items, (item) => interpretInForm(parts, item, backstage)),
+            formBehaviours: Behaviour.derive([
+              Keying.config({
+                mode: 'acyclic',
+                useTabstopAt: Fun.not(NavigableObject.isPseudoStop)
+              }),
 
-                AddEventsBehaviour.config('TabView.form.events', [
-                  AlloyEvents.runOnAttached(setDataOnForm),
-                  AlloyEvents.runOnDetached(updateDataWithForm)
-                ]),
-                Receiving.config({
-                  channels: Objects.wrapAll([
-                    {
-                      key: SendDataToSectionChannel,
-                      value:  {
-                        onReceive: updateDataWithForm
-                      }
-                    },
-                    {
-                      key: SendDataToViewChannel,
-                      value: {
-                        onReceive: setDataOnForm
-                      }
+              AddEventsBehaviour.config('TabView.form.events', [
+                AlloyEvents.runOnAttached(setDataOnForm),
+                AlloyEvents.runOnDetached(updateDataWithForm)
+              ]),
+              Receiving.config({
+                channels: Objects.wrapAll([
+                  {
+                    key: SendDataToSectionChannel,
+                    value:  {
+                      onReceive: updateDataWithForm
                     }
-                  ])
-                })
-              ])
-            };
-          })
+                  },
+                  {
+                    key: SendDataToViewChannel,
+                    value: {
+                      onReceive: setDataOnForm
+                    }
+                  }
+                ])
+              })
+            ])
+          }))
         ];
       }
     };

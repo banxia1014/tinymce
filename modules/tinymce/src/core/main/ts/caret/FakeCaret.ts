@@ -8,14 +8,15 @@
 import { Element, HTMLElement, Node, Range } from '@ephox/dom-globals';
 import { Cell, Option } from '@ephox/katamari';
 import { PlatformDetection } from '@ephox/sand';
+import { Element as SugarElement, SelectorFilter } from '@ephox/sugar';
 import DomQuery from '../api/dom/DomQuery';
 import Editor from '../api/Editor';
+import * as Settings from '../api/Settings';
 import Delay from '../api/util/Delay';
-import NodeType from '../dom/NodeType';
+import * as NodeType from '../dom/NodeType';
 import * as GeomClientRect from '../geom/ClientRect';
 import * as CaretContainer from './CaretContainer';
-import CaretContainerRemove from './CaretContainerRemove';
-import Settings from '../api/Settings';
+import * as CaretContainerRemove from './CaretContainerRemove';
 
 export interface FakeCaret {
   show: (before: boolean, element: Element) => Range;
@@ -70,12 +71,12 @@ const getAbsoluteClientRect = (root: HTMLElement, element: HTMLElement, before: 
   return clientRect;
 };
 
-const trimInlineCaretContainers = (root: Node): void => {
-  let contentEditableFalseNodes, node, sibling, i, data;
+const trimInlineCaretContainers = (root: HTMLElement): void => {
+  let node, sibling, i, data;
 
-  contentEditableFalseNodes = DomQuery('*[contentEditable=false]', root);
+  const contentEditableFalseNodes = SelectorFilter.descendants(SugarElement.fromDom(root), '*[contentEditable=false]');
   for (i = 0; i < contentEditableFalseNodes.length; i++) {
-    node = contentEditableFalseNodes[i];
+    node = contentEditableFalseNodes[i].dom();
 
     sibling = node.previousSibling;
     if (CaretContainer.endsWithCaretContainer(sibling)) {
@@ -166,7 +167,10 @@ export const FakeCaret = (editor: Editor, root: HTMLElement, isBlock: (node: Nod
       lastVisualCaret.set(Option.none());
     });
 
-    Delay.clearInterval(cursorInterval);
+    if (cursorInterval) {
+      Delay.clearInterval(cursorInterval);
+      cursorInterval = null;
+    }
   };
 
   const startBlink = () => {
@@ -188,9 +192,8 @@ export const FakeCaret = (editor: Editor, root: HTMLElement, isBlock: (node: Nod
 
   const destroy = () => Delay.clearInterval(cursorInterval);
 
-  const getCss = () => {
-    return (
-      '.mce-visual-caret {' +
+  const getCss = () => (
+    '.mce-visual-caret {' +
       'position: absolute;' +
       'background-color: black;' +
       'background-color: currentcolor;' +
@@ -207,8 +210,7 @@ export const FakeCaret = (editor: Editor, root: HTMLElement, isBlock: (node: Nod
       'margin: 0;' +
       'padding: 0;' +
       '}'
-    );
-  };
+  );
 
   return {
     show,

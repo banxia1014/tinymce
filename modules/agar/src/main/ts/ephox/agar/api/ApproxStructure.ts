@@ -25,7 +25,7 @@ const structApi = {
   zeroOrOne: ApproxStructures.zeroOrOne,
   zeroOrMore: ApproxStructures.zeroOrMore,
   oneOrMore: ApproxStructures.oneOrMore,
-  theRest: ApproxStructures.theRest,
+  theRest: ApproxStructures.theRest
 };
 
 const strApi = {
@@ -57,7 +57,7 @@ const fromElement = (node: Element<any>): StructAssert => {
   if (Node.isElement(node)) {
     return ApproxStructures.element(Node.name(node), {
       children: Arr.map(Traverse.children(node), fromElement),
-      attrs: toAssertableObj(getAttrsExcept(node, ['style', 'class'])),
+      attrs: toAssertableObj(getAttrsExcept(node, [ 'style', 'class' ])),
       styles: toAssertableObj(Css.getAllRaw(node)),
       classes: toAssertableArr(Classes.get(node))
     });

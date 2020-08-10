@@ -1,9 +1,9 @@
-import { Pipeline, Step, Waiter, Log } from '@ephox/agar';
+import { Log, Pipeline, Step, Waiter } from '@ephox/agar';
+import { UnitTest } from '@ephox/bedrock-client';
+import { document } from '@ephox/dom-globals';
 import { TinyApis, TinyLoader, TinyUi } from '@ephox/mcagar';
 import AnchorPlugin from 'tinymce/plugins/anchor/Plugin';
 import SilverTheme from 'tinymce/themes/silver/Theme';
-import { UnitTest } from '@ephox/bedrock-client';
-import { document } from '@ephox/dom-globals';
 
 UnitTest.asynctest('browser.tinymce.plugins.anchor.AnchorSanityTest', (success, failure) => {
   AnchorPlugin();
@@ -25,7 +25,7 @@ UnitTest.asynctest('browser.tinymce.plugins.anchor.AnchorSanityTest', (success, 
         tinyApis.sAssertContentPresence(
           { 'a.mce-item-anchor': numAnchors }
         )
-      ),
+      )
     ]);
 
   TinyLoader.setupLight((editor, onSuccess, onFailure) => {
@@ -48,7 +48,7 @@ UnitTest.asynctest('browser.tinymce.plugins.anchor.AnchorSanityTest', (success, 
       Log.stepsAsStep('TINY-2788', 'Anchor: Add anchor to empty line, then check if that anchor is present in the editor', [
         tinyApis.sSetContent('<p>abc</p><p></p><p>def</p>'),
         tinyApis.sFocus(),
-        tinyApis.sSetCursor([1], 0),
+        tinyApis.sSetCursor([ 1 ], 0),
         sAddAnchor(tinyApis, tinyUi, 'abc'),
         tinyApis.sAssertContent('<p>abc</p>\n<p><a id="abc"></a></p>\n<p>def</p>')
       ]),
@@ -58,13 +58,13 @@ UnitTest.asynctest('browser.tinymce.plugins.anchor.AnchorSanityTest', (success, 
         sAddAnchor(tinyApis, tinyUi, 'abc'),
         tinyApis.sAssertContent('<p><a id="abc"></a></p>'),
         sAddAnchor(tinyApis, tinyUi, 'def', 2),
-        tinyApis.sAssertContent('<p><a id="abc"></a><a id="def"></a></p>'),
+        tinyApis.sAssertContent('<p><a id="abc"></a><a id="def"></a></p>')
       ])
     ], onSuccess, onFailure);
   }, {
     theme: 'silver',
     plugins: 'anchor',
     toolbar: 'anchor',
-    base_url: '/project/tinymce/js/tinymce',
+    base_url: '/project/tinymce/js/tinymce'
   }, success, failure);
 });

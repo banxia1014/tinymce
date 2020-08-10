@@ -7,12 +7,12 @@
 
 import { AlloyComponent, Boxes, Channels, Docking, Focusing, Receiving } from '@ephox/alloy';
 import { HTMLElement } from '@ephox/dom-globals';
-import { Cell, Option, Result } from '@ephox/katamari';
+import { Arr, Cell, Option, Result } from '@ephox/katamari';
 import { Class, Classes, Compare, Css, Element, Focus, Height, Location, Scroll, Traverse, Visibility, Width } from '@ephox/sugar';
 
 import Editor from 'tinymce/core/api/Editor';
 import { ScrollIntoViewEvent } from 'tinymce/core/api/EventTypes';
-import { isToolbarLocationTop } from '../../api/Settings';
+import { UiFactoryBackstageShared } from '../../backstage/Backstage';
 import * as EditorChannels from '../../Channels';
 
 const visibility = {
@@ -32,7 +32,7 @@ const scrollFromBehindHeader = (e: ScrollIntoViewEvent, containerHeader: Element
   const markerElement = Element.fromDom(e.elm);
   const markerPos = Boxes.absolute(markerElement);
   const markerHeight = Height.get(markerElement);
-  const markerTop = markerPos.y();
+  const markerTop = markerPos.y;
   const markerBottom = markerTop + markerHeight;
 
   const editorHeaderPos = Location.absolute(containerHeader);
@@ -56,16 +56,16 @@ const scrollFromBehindHeader = (e: ScrollIntoViewEvent, containerHeader: Element
   }
 };
 
-const updateIframeContentFlow = (header: AlloyComponent, isToolbarTop: boolean): void => {
-  const getOccupiedHeight = (elm: Element<HTMLElement>) => {
-    return Height.getOuter(elm) +
+const isDockedMode = (header: AlloyComponent, mode: 'top' | 'bottom') => Arr.contains(Docking.getModes(header), mode);
+
+const updateIframeContentFlow = (header: AlloyComponent): void => {
+  const getOccupiedHeight = (elm: Element<HTMLElement>) => Height.getOuter(elm) +
       (parseInt(Css.get(elm, 'margin-top'), 10) || 0) +
       (parseInt(Css.get(elm, 'margin-bottom'), 10) || 0) ;
-  };
 
   const elm = header.element();
   Traverse.parent(elm).each((parentElem: Element<HTMLElement>) => {
-    const padding = 'padding-' + (isToolbarTop ? 'top' : 'bottom');
+    const padding = 'padding-' + Docking.getModes(header)[0];
 
     if (Docking.isDocked(header)) {
       const parentWidth = Width.get(parentElem);
@@ -103,28 +103,25 @@ const restoreFocus = (headerElem: Element, focusedElem: Element) => {
   // When the header is hidden, then the element that was focused will be lost
   // so we need to restore it if nothing else has already been focused (eg anything other than the body)
   const ownerDoc = Traverse.owner(focusedElem);
-  Focus.active(ownerDoc).filter((activeElm) => {
+  Focus.active(ownerDoc).filter((activeElm) =>
     // Don't try to refocus the same element
-    return !Compare.eq(focusedElem, activeElm);
-  }).filter((activeElm) => {
+    !Compare.eq(focusedElem, activeElm)
+  ).filter((activeElm) =>
     // Only attempt to refocus if the current focus is the body or is in the header element
-    return Compare.eq(activeElm, Element.fromDom(ownerDoc.dom().body)) || Compare.contains(headerElem, activeElm);
-  }).each(() => Focus.focus(focusedElem));
+    Compare.eq(activeElm, Element.fromDom(ownerDoc.dom().body)) || Compare.contains(headerElem, activeElm)
+  ).each(() => Focus.focus(focusedElem));
 };
 
-const findFocusedElem = (rootElm: Element, lazySink: () => Result<AlloyComponent, Error>): Option<Element> => {
+const findFocusedElem = (rootElm: Element, lazySink: () => Result<AlloyComponent, Error>): Option<Element> =>
   // Check to see if an element is focused inside the header or inside the sink
   // and if so store the element so we can restore it later
-  return Focus.search(rootElm).orThunk(() => {
-    return lazySink().toOption().bind((sink) => Focus.search(sink.element()));
-  });
-};
+  Focus.search(rootElm).orThunk(() => lazySink().toOption().bind((sink) => Focus.search(sink.element())));
 
-const setup = (editor: Editor, lazyHeader: () => Option<AlloyComponent>): void => {
+const setup = (editor: Editor, sharedBackstage: UiFactoryBackstageShared, lazyHeader: () => Option<AlloyComponent>): void => {
   if (!editor.inline) {
     // If using bottom toolbar then when the editor resizes we need to reset docking
     // otherwise it won't know the original toolbar position has moved
-    if (!isToolbarLocationTop(editor)) {
+    if (!sharedBackstage.header.isPositionedAtTop()) {
       editor.on('ResizeEditor', () => {
         lazyHeader().each(Docking.reset);
       });
@@ -132,7 +129,7 @@ const setup = (editor: Editor, lazyHeader: () => Option<AlloyComponent>): void =
 
     // No need to update the content flow in inline mode as the header always floats
     editor.on('ResizeWindow ResizeEditor', () => {
-      lazyHeader().each((header) => updateIframeContentFlow(header, isToolbarLocationTop(editor)));
+      lazyHeader().each(updateIframeContentFlow);
     });
 
     // Need to reset the docking position on skin loaded as the original position will have
@@ -173,27 +170,21 @@ const setup = (editor: Editor, lazyHeader: () => Option<AlloyComponent>): void =
   });
 };
 
-const isDocked = (lazyHeader: () => Option<AlloyComponent>): boolean => {
-  return lazyHeader().map(Docking.isDocked).getOr(false);
-};
+const isDocked = (lazyHeader: () => Option<AlloyComponent>): boolean => lazyHeader().map(Docking.isDocked).getOr(false);
 
-const getIframeBehaviours = (isToolbarTop: boolean) => {
-  return [
-    Receiving.config({
-      channels: {
-        [ EditorChannels.toolbarHeightChange() ]: {
-          onReceive: (comp) => {
-            updateIframeContentFlow(comp, isToolbarTop);
-          }
-        }
+const getIframeBehaviours = () => [
+  Receiving.config({
+    channels: {
+      [ EditorChannels.toolbarHeightChange() ]: {
+        onReceive: updateIframeContentFlow
       }
-    })
-  ];
-};
+    }
+  })
+];
 
-const getBehaviours = (editor: Editor, lazySink: () => Result<AlloyComponent, Error>) => {
+const getBehaviours = (editor: Editor, sharedBackstage: UiFactoryBackstageShared) => {
   const focusedElm = Cell<Option<Element>>(Option.none());
-  const isToolbarTop = isToolbarLocationTop(editor);
+  const lazySink = sharedBackstage.getSink;
 
   const runOnSinkElement = (f: (sink: Element) => void) => {
     lazySink().each((sink) => f(sink.element()));
@@ -201,27 +192,27 @@ const getBehaviours = (editor: Editor, lazySink: () => Result<AlloyComponent, Er
 
   const onDockingSwitch = (comp: AlloyComponent) => {
     if (!editor.inline) {
-      updateIframeContentFlow(comp, isToolbarTop);
+      updateIframeContentFlow(comp);
     }
     updateEditorClasses(editor, Docking.isDocked(comp));
     comp.getSystem().broadcastOn( [ Channels.repositionPopups() ], { });
     lazySink().each((sink) => sink.getSystem().broadcastOn( [ Channels.repositionPopups() ], { }));
   };
 
-  const additionalBehaviours = editor.inline ? [ ] : getIframeBehaviours(isToolbarTop);
+  const additionalBehaviours = editor.inline ? [ ] : getIframeBehaviours();
 
   return [
     Focusing.config({ }),
     Docking.config({
       contextual: {
-        lazyContext (comp) {
+        lazyContext(comp) {
           const headerHeight = Height.getOuter(comp.element());
           const container = editor.inline ? editor.getContentAreaContainer() : editor.getContainer();
           const box = Boxes.box(Element.fromDom(container));
           // Force the header to hide before it overflows outside the container
-          const boxHeight = box.height() - headerHeight;
-          const topBound = box.y() + (isToolbarTop ? 0 : headerHeight);
-          return Option.some(Boxes.bounds(box.x(), topBound, box.width(), boxHeight));
+          const boxHeight = box.height - headerHeight;
+          const topBound = box.y + (isDockedMode(comp, 'top') ? 0 : headerHeight);
+          return Option.some(Boxes.bounds(box.x, topBound, box.width, boxHeight));
         },
         onShow: () => {
           runOnSinkElement((elem) => updateSinkVisibility(elem, true));
@@ -243,7 +234,7 @@ const getBehaviours = (editor: Editor, lazySink: () => Result<AlloyComponent, Er
         },
         ...visibility
       },
-      modes: [ isToolbarTop ? 'top' : 'bottom' ],
+      modes: [ sharedBackstage.header.getDockingMode() ],
       onDocked: onDockingSwitch,
       onUndocked: onDockingSwitch
     }),

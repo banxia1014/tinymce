@@ -5,22 +5,23 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { Element as DomElement, DocumentFragment, KeyboardEvent } from '@ephox/dom-globals';
-import { Arr, Option, Obj, Options } from '@ephox/katamari';
-import { PredicateFilter, Element, Css, Node } from '@ephox/sugar';
-import Settings from '../api/Settings';
-import * as CaretContainer from '../caret/CaretContainer';
-import NodeType from '../dom/NodeType';
-import TreeWalker from '../api/dom/TreeWalker';
-import InsertLi from './InsertLi';
-import NewLineUtils from './NewLineUtils';
-import NormalizeRange from '../selection/NormalizeRange';
-import Zwsp from '../text/Zwsp';
-import { isCaretNode } from '../fmt/FormatContainer';
+import { DocumentFragment, Element as DomElement, KeyboardEvent } from '@ephox/dom-globals';
+import { Arr, Obj, Option, Options } from '@ephox/katamari';
+import { Css, Element, Node, PredicateFilter } from '@ephox/sugar';
 import DOMUtils from '../api/dom/DOMUtils';
+import TreeWalker from '../api/dom/TreeWalker';
 import Editor from '../api/Editor';
+import * as Settings from '../api/Settings';
 import { EditorEvent } from '../api/util/EventDispatcher';
-import Bookmarks from '../bookmark/Bookmarks';
+import * as Bookmarks from '../bookmark/Bookmarks';
+import * as CaretContainer from '../caret/CaretContainer';
+import * as NodeType from '../dom/NodeType';
+import { isCaretNode } from '../fmt/FormatContainer';
+import * as NormalizeRange from '../selection/NormalizeRange';
+import * as Zwsp from '../text/Zwsp';
+import * as InsertLi from './InsertLi';
+import * as NewLineUtils from './NewLineUtils';
+import { isWhitespaceText } from '../text/Whitespace';
 
 const trimZwsp = (fragment: DocumentFragment) => {
   Arr.each(PredicateFilter.descendants(Element.fromDom(fragment), Node.isText), (text) => {
@@ -148,12 +149,12 @@ const applyAttributes = (editor: Editor, node: DomElement, forcedRootBlockAttrs:
   const currentClassesOpt = Option.from(node.className).map((currentClasses) => Arr.filter(currentClasses.split(/\s+/), (clazz) => clazz !== ''));
   Options.lift2(attrClassesOpt, currentClassesOpt, (attrClasses, currentClasses) => {
     const filteredClasses = Arr.filter(currentClasses, (clazz) => !Arr.contains(attrClasses, clazz));
-    const newClasses = [...attrClasses, ...filteredClasses];
+    const newClasses = [ ...attrClasses, ...filteredClasses ];
     editor.dom.setAttrib(node, 'class', newClasses.join(' '));
   });
 
   // Apply any remaining forced root block attributes
-  const appliedAttrs = ['style', 'class'];
+  const appliedAttrs = [ 'style', 'class' ];
   const remainingAttrs = Obj.filter(forcedRootBlockAttrs, (_, attrs) => !Arr.contains(appliedAttrs, attrs));
   editor.dom.setAttribs(node, remainingAttrs);
 };
@@ -230,21 +231,19 @@ const wrapSelfAndSiblingsInDefaultBlock = function (editor: Editor, newBlockName
 // Adds a BR at the end of blocks that only contains an IMG or INPUT since
 // these might be floated and then they won't expand the block
 const addBrToBlockIfNeeded = function (dom, block) {
-  let lastChild;
-
   // IE will render the blocks correctly other browsers needs a BR
   block.normalize(); // Remove empty text nodes that got left behind by the extract
 
   // Check if the block is empty or contains a floated last child
-  lastChild = block.lastChild;
+  const lastChild = block.lastChild;
   if (!lastChild || (/^(left|right)$/gi.test(dom.getStyle(lastChild, 'float', true)))) {
     dom.add(block, 'br');
   }
 };
 
 const insert = function (editor: Editor, evt?: EditorEvent<KeyboardEvent>) {
-  let tmpRng, editableRoot, container, offset, parentBlock, shiftKey;
-  let newBlock, fragment, containerBlock, parentBlockName, containerBlockName, newBlockName, isAfterLastNodeInContainer;
+  let tmpRng, container, offset, parentBlock;
+  let newBlock, fragment, containerBlock, parentBlockName, newBlockName, isAfterLastNodeInContainer;
   const dom = editor.dom;
   const schema = editor.schema, nonEmptyElementsMap = schema.getNonEmptyElements();
   const rng = editor.selection.getRng();
@@ -344,7 +343,7 @@ const insert = function (editor: Editor, evt?: EditorEvent<KeyboardEvent>) {
             return false;
           }
         }
-      } else if (NodeType.isText(node) && !/^[ \t\r\n]*$/.test(node.nodeValue)) {
+      } else if (NodeType.isText(node) && !isWhitespaceText(node.nodeValue)) {
         return false;
       }
 
@@ -386,7 +385,7 @@ const insert = function (editor: Editor, evt?: EditorEvent<KeyboardEvent>) {
   container = rng.startContainer;
   offset = rng.startOffset;
   newBlockName = Settings.getForcedRootBlock(editor);
-  shiftKey = !!(evt && evt.shiftKey);
+  const shiftKey = !!(evt && evt.shiftKey);
   const ctrlKey = !!(evt && evt.ctrlKey);
 
   // Resolve node index
@@ -402,7 +401,7 @@ const insert = function (editor: Editor, evt?: EditorEvent<KeyboardEvent>) {
   }
 
   // Get editable root node, normally the body element but sometimes a div or span
-  editableRoot = getEditableRoot(dom, container);
+  const editableRoot = getEditableRoot(dom, container);
 
   // If there is no editable root then enter is done inside a contentEditable false element
   if (!editableRoot) {
@@ -422,7 +421,7 @@ const insert = function (editor: Editor, evt?: EditorEvent<KeyboardEvent>) {
 
   // Setup block names
   parentBlockName = parentBlock ? parentBlock.nodeName.toUpperCase() : ''; // IE < 9 & HTML5
-  containerBlockName = containerBlock ? containerBlock.nodeName.toUpperCase() : ''; // IE < 9 & HTML5
+  const containerBlockName = containerBlock ? containerBlock.nodeName.toUpperCase() : ''; // IE < 9 & HTML5
 
   // Enter inside block contained within a LI then split or insert before/after LI
   if (containerBlockName === 'LI' && !ctrlKey) {
@@ -496,6 +495,6 @@ const insert = function (editor: Editor, evt?: EditorEvent<KeyboardEvent>) {
   editor.fire('NewBlock', { newBlock });
 };
 
-export default {
+export {
   insert
 };

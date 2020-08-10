@@ -1,12 +1,12 @@
 import { Chain } from '@ephox/agar';
 import { setTimeout } from '@ephox/dom-globals';
 import { Global, Id, Strings, Type } from '@ephox/katamari';
-import { Attr, Body, Element, Insert, Remove, Selectors } from '@ephox/sugar';
+import { Attr, Body, Element, Insert, Remove, Selectors, ShadowDom } from '@ephox/sugar';
 import 'tinymce';
 import { Editor as EditorType } from '../alien/EditorTypes';
 import { setTinymceBaseUrl } from '../loader/Urls';
 
-const cFromElement = function <T extends EditorType = EditorType>(element: Element, settings: Record<string, any>): Chain<any, T> {
+const cFromElement = function <T extends EditorType = EditorType> (element: Element, settings: Record<string, any>): Chain<any, T> {
   return Chain.async<any, T>(function (_, next, die) {
     const nuSettings: Record<string, any> = {
       toolbar_mode: 'wrap',
@@ -25,13 +25,15 @@ const cFromElement = function <T extends EditorType = EditorType>(element: Eleme
     if (nuSettings.base_url) {
       setTinymceBaseUrl(tinymce, nuSettings.base_url);
     } else if (!Type.isString(tinymce.baseURL) || !Strings.contains(tinymce.baseURL, '/project/')) {
-      setTinymceBaseUrl(Global.tinymce, `/project/node_modules/tinymce`);
+      setTinymceBaseUrl(Global.tinymce, '/project/node_modules/tinymce');
     }
+
+    const targetSettings = ShadowDom.isInShadowRoot(element) ? ({ target: element.dom() }) : ({ selector: '#' + randomId });
 
     tinymce.init({
       ...nuSettings,
-      selector: '#' + randomId,
-      setup (editor: T) {
+      ...targetSettings,
+      setup(editor: T) {
         if (Type.isFunction(nuSettings.setup)) {
           nuSettings.setup(editor);
         }

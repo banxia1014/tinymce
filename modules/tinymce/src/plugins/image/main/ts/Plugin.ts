@@ -6,10 +6,10 @@
  */
 
 import PluginManager from 'tinymce/core/api/PluginManager';
-import Commands from './api/Commands';
-import FilterContent from './core/FilterContent';
-import Buttons from './ui/Buttons';
-import Selection from './core/Selection';
+import * as Commands from './api/Commands';
+import * as FilterContent from './core/FilterContent';
+import * as Buttons from './ui/Buttons';
+import * as Selection from './core/Selection';
 
 export default function () {
   PluginManager.add('image', (editor) => {

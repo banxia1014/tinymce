@@ -82,7 +82,7 @@ const factory: CompositeSketchFactory<TouchMenuDetail, TouchMenuSpec> = (detail,
         // Menu that shows up
         Coupling.config({
           others: {
-            sandbox (hotspot) {
+            sandbox(hotspot) {
               return InlineView.sketch({
                 ...externals.view(),
                 lazySink: DropdownUtils.getSink(hotspot, detail),
@@ -105,14 +105,12 @@ const factory: CompositeSketchFactory<TouchMenuDetail, TouchMenuSpec> = (detail,
                     routes: Transitioning.createBistate(
                       'open',
                       'closed',
-                      detail.menuTransition.map((t) => {
-                        return {
-                          transition: t
-                        } as TransitionPropertiesSpec;
-                      }).getOr({ })
+                      detail.menuTransition.map((t) => ({
+                        transition: t
+                      } as TransitionPropertiesSpec)).getOr({ })
                     ),
 
-                    onFinish (view, destination) {
+                    onFinish(view, destination) {
                       if (destination === 'closed') {
                         InlineView.hide(view);
                         detail.onClosed(hotspot, view);
@@ -122,7 +120,7 @@ const factory: CompositeSketchFactory<TouchMenuDetail, TouchMenuSpec> = (detail,
 
                 ]),
 
-                onShow (view: AlloyComponent) {
+                onShow(view: AlloyComponent) {
                   Transitioning.progressTo(view, 'open');
                 }
               });
@@ -136,16 +134,16 @@ const factory: CompositeSketchFactory<TouchMenuDetail, TouchMenuSpec> = (detail,
 
       AlloyEvents.abort(NativeEvents.contextmenu(), Fun.constant(true)),
 
-      AlloyEvents.run(NativeEvents.touchstart(), (comp, se) => {
+      AlloyEvents.run(NativeEvents.touchstart(), (comp, _se) => {
         Toggling.on(comp);
       }),
 
-      AlloyEvents.run(SystemEvents.tap(), (comp, se) => {
+      AlloyEvents.run(SystemEvents.tap(), (comp, _se) => {
         detail.onTap(comp);
       }),
 
       // On longpress, create the menu items to show, and put them in the sandbox.
-      AlloyEvents.run(SystemEvents.longpress(), (component, simulatedEvent) => {
+      AlloyEvents.run(SystemEvents.longpress(), (component, _simulatedEvent) => {
         detail.fetch(component).get((items) => {
           forceHoverOn(component);
           const iMenu = Menu.sketch({
@@ -194,7 +192,7 @@ const factory: CompositeSketchFactory<TouchMenuDetail, TouchMenuSpec> = (detail,
       // 1. Trigger execute on any selected item
       // 2. Close the menu
       // 3. Depress the button
-      AlloyEvents.run(NativeEvents.touchend(), (component, simulatedEvent) => {
+      AlloyEvents.run(NativeEvents.touchend(), (component, _simulatedEvent) => {
 
         getMenu(component).each((iMenu) => {
           Highlighting.getHighlighted(iMenu).each(AlloyTriggers.emitExecute);
@@ -205,7 +203,7 @@ const factory: CompositeSketchFactory<TouchMenuDetail, TouchMenuSpec> = (detail,
         Toggling.off(component);
       }),
 
-      AlloyEvents.runOnDetached((component, simulatedEvent) => {
+      AlloyEvents.runOnDetached((component, _simulatedEvent) => {
         const sandbox = Coupling.getCoupled(component, 'sandbox');
         InlineView.hide(sandbox);
       })

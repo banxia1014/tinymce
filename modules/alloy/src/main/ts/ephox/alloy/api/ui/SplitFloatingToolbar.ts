@@ -6,7 +6,9 @@ import { CompositeSketchFactory } from '../../api/ui/UiSketcher';
 import * as Layout from '../../positioning/layout/Layout';
 import * as SplitToolbarUtils from '../../toolbar/SplitToolbarUtils';
 import * as SplitFloatingToolbarSchema from '../../ui/schema/SplitFloatingToolbarSchema';
-import { SplitFloatingToolbarApis, SplitFloatingToolbarDetail, SplitFloatingToolbarSketcher, SplitFloatingToolbarSpec } from '../../ui/types/SplitFloatingToolbarTypes';
+import {
+  SplitFloatingToolbarApis, SplitFloatingToolbarDetail, SplitFloatingToolbarSketcher, SplitFloatingToolbarSpec
+} from '../../ui/types/SplitFloatingToolbarTypes';
 import { Coupling } from '../behaviour/Coupling';
 import { AlloyComponent } from '../component/ComponentApi';
 import * as GuiFactory from '../component/GuiFactory';
@@ -15,9 +17,7 @@ import { AlloySpec } from '../component/SpecTypes';
 import { FloatingToolbarButton } from './FloatingToolbarButton';
 import * as Sketcher from './Sketcher';
 
-const buildGroups = (comps: AlloyComponent[]): AlloySpec[] => {
-  return Arr.map(comps, (g) => GuiFactory.premade(g));
-};
+const buildGroups = (comps: AlloyComponent[]): AlloySpec[] => Arr.map(comps, (g) => GuiFactory.premade(g));
 
 const refresh = (toolbar: AlloyComponent, memFloatingToolbarButton: Memento.MementoRecord, detail: SplitFloatingToolbarDetail) => {
   SplitToolbarUtils.refresh(toolbar, detail, (overflowGroups) => {
@@ -32,11 +32,9 @@ const refresh = (toolbar: AlloyComponent, memFloatingToolbarButton: Memento.Meme
 const factory: CompositeSketchFactory<SplitFloatingToolbarDetail, SplitFloatingToolbarSpec> = (detail, components, spec, externals) => {
   const memFloatingToolbarButton = Memento.record(
     FloatingToolbarButton.sketch({
-      fetch: () => {
-        return Future.nu((resolve) => {
-          resolve(buildGroups(detail.overflowGroups.get()));
-        });
-      },
+      fetch: () => Future.nu((resolve) => {
+        resolve(buildGroups(detail.overflowGroups.get()));
+      }),
       layouts: {
         onLtr: () => [ Layout.southwest, Layout.southeast ],
         onRtl: () => [ Layout.southeast, Layout.southwest ],
@@ -51,7 +49,7 @@ const factory: CompositeSketchFactory<SplitFloatingToolbarDetail, SplitFloatingT
       },
       parts: {
         button: externals['overflow-button'](),
-        toolbar: externals.overflow(),
+        toolbar: externals.overflow()
       }
     })
   );
@@ -65,7 +63,7 @@ const factory: CompositeSketchFactory<SplitFloatingToolbarDetail, SplitFloatingT
       [
         Coupling.config({
           others: {
-            overflowGroup () {
+            overflowGroup() {
               return ToolbarGroup.sketch({
                 ...externals['overflow-group'](),
                 items: [
@@ -74,7 +72,7 @@ const factory: CompositeSketchFactory<SplitFloatingToolbarDetail, SplitFloatingT
               });
             }
           }
-        }),
+        })
       ]
     ),
     apis: {
@@ -93,11 +91,10 @@ const factory: CompositeSketchFactory<SplitFloatingToolbarDetail, SplitFloatingT
           FloatingToolbarButton.reposition(floatingToolbarButton);
         });
       },
-      getOverflow: (toolbar: AlloyComponent) => {
-        return memFloatingToolbarButton.getOpt(toolbar).bind((floatingToolbarButton) => {
-          return FloatingToolbarButton.getToolbar(floatingToolbarButton);
-        });
-      }
+      getOverflow: (toolbar: AlloyComponent) =>
+        memFloatingToolbarButton.getOpt(toolbar).bind(
+          (floatingToolbarButton) => FloatingToolbarButton.getToolbar(floatingToolbarButton)
+        )
     },
 
     domModification: {
@@ -124,9 +121,7 @@ const SplitFloatingToolbar: SplitFloatingToolbarSketcher = Sketcher.composite<Sp
     toggle: (apis, toolbar) => {
       apis.toggle(toolbar);
     },
-    getOverflow: (apis, toolbar) => {
-      return apis.getOverflow(toolbar);
-    }
+    getOverflow: (apis, toolbar) => apis.getOverflow(toolbar)
   }
 });
 

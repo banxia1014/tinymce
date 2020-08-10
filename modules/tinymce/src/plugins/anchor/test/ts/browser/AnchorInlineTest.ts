@@ -1,10 +1,10 @@
-import { Chain, Keys, Mouse, Pipeline, UiControls, UiFinder, Log } from '@ephox/agar';
+import { Chain, Keys, Log, Mouse, Pipeline, UiControls, UiFinder } from '@ephox/agar';
+import { UnitTest } from '@ephox/bedrock-client';
+import { document } from '@ephox/dom-globals';
 import { TinyActions, TinyApis, TinyLoader } from '@ephox/mcagar';
 import { Element } from '@ephox/sugar';
 import AnchorPlugin from 'tinymce/plugins/anchor/Plugin';
 import SilverTheme from 'tinymce/themes/silver/Theme';
-import { UnitTest } from '@ephox/bedrock-client';
-import { document } from '@ephox/dom-globals';
 
 UnitTest.asynctest('Browser Test: .AnchorInlineTest', (success, failure) => {
   AnchorPlugin();
@@ -18,7 +18,7 @@ UnitTest.asynctest('Browser Test: .AnchorInlineTest', (success, failure) => {
       Log.steps('TBA', 'Anchor: Add anchor by selecting text content, then check that anchor is inserted correctly', [
         tinyApis.sFocus(),
         tinyApis.sSetContent('<p>abc 123</p>'),
-        tinyApis.sSetSelection([0, 0], 4, [0, 0], 7),
+        tinyApis.sSetSelection([ 0, 0 ], 4, [ 0, 0 ], 7),
         tinyActions.sContentKeystroke(Keys.space(), {}),
         tinyApis.sExecCommand('mceanchor'),
         Chain.asStep(Element.fromDom(document.body), [
@@ -36,12 +36,12 @@ UnitTest.asynctest('Browser Test: .AnchorInlineTest', (success, failure) => {
           )
         ]),
         tinyApis.sAssertContent('<p>abc <a id="abc"></a>123</p>')
-    ])
-    , onSuccess, onFailure);
+      ])
+      , onSuccess, onFailure);
   }, {
     theme: 'silver',
     plugins: 'anchor',
     toolbar: 'anchor',
-    base_url: '/project/tinymce/js/tinymce',
+    base_url: '/project/tinymce/js/tinymce'
   }, success, failure);
 });

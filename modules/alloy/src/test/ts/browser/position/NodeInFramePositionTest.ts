@@ -18,7 +18,7 @@ UnitTest.asynctest('SelectionInFramePositionTest', (success, failure) => {
 
   const frame = Element.fromTag('iframe');
 
-  GuiSetup.setup((store, doc, body) => {
+  GuiSetup.setup((_store, _doc, _body) => {
     let content = '';
     for (let i = 0; i < 20; i++) {
       content += '<p id=p' + i + '>paragraph ' + i + '</p>';
@@ -49,7 +49,7 @@ UnitTest.asynctest('SelectionInFramePositionTest', (success, failure) => {
       })
     );
 
-  }, (doc, body, gui, component, store) => {
+  }, (_doc, _body, gui, _component, _store) => {
     const cSetupAnchor = Chain.mapper((data: any) => {
       const node = data.classic.element().dom().contentWindow.document.querySelector('#p3');
       return {
@@ -59,11 +59,9 @@ UnitTest.asynctest('SelectionInFramePositionTest', (success, failure) => {
       };
     });
 
-    const cGetWin = Chain.mapper((frame: AlloyComponent) => {
-      return frame.element().dom().contentWindow;
-    });
+    const cGetWin = Chain.mapper((frame: AlloyComponent) => frame.element().dom().contentWindow);
 
-    const cSetPath = (rawPath: { startPath: number[]; soffset: number; finishPath: number[]; foffset: number; }) => {
+    const cSetPath = (rawPath: { startPath: number[]; soffset: number; finishPath: number[]; foffset: number }) => {
       const path = Cursors.path(rawPath);
 
       return Chain.binder((win: Window) => {
@@ -76,9 +74,7 @@ UnitTest.asynctest('SelectionInFramePositionTest', (success, failure) => {
           range.finish(),
           range.foffset()
         );
-        return WindowSelection.getExact(win).fold(() => {
-          return Result.error('Could not retrieve the set selection');
-        }, Result.value);
+        return WindowSelection.getExact(win).fold(() => Result.error('Could not retrieve the set selection'), Result.value);
       });
     };
 
@@ -100,11 +96,7 @@ UnitTest.asynctest('SelectionInFramePositionTest', (success, failure) => {
               Chain.control(
                 Chain.binder((data: any) => {
                   const root = Element.fromDom(data.classic.element().dom().contentWindow.document.body);
-                  return SelectorFind.descendant(root, 'p').fold(() => {
-                    return Result.error('Could not find paragraph yet');
-                  }, (p) => {
-                    return Result.value(data);
-                  });
+                  return SelectorFind.descendant(root, 'p').fold(() => Result.error('Could not find paragraph yet'), (_p) => Result.value(data));
                 }),
                 Guard.tryUntil('Waiting for content to load in iframe', 10, 10000)
               )

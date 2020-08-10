@@ -6,10 +6,11 @@
  */
 
 import { SchemaMap } from './Schema';
+import { Obj } from '@ephox/katamari';
+import { isWhitespaceText } from '../../text/Whitespace';
 
-export type Attributes = Array<{ name: string; value: string; }> & { map: Record<string, string> };
+export type Attributes = Array<{ name: string; value: string }> & { map: Record<string, string> };
 
-const whiteSpaceRegExp = /^[ \t\r\n]*$/;
 const typeLookup = {
   '#text': 3,
   '#comment': 8,
@@ -50,7 +51,7 @@ const walk = function (node: Node, root: Node | null, prev?: boolean): Node {
 
 const isEmptyTextNode = (node: Node) => {
   // Non whitespace content
-  if (!whiteSpaceRegExp.test(node.value)) {
+  if (!isWhitespaceText(node.value)) {
     return false;
   }
 
@@ -95,9 +96,9 @@ class Node {
 
     // Add attributes if needed
     if (attrs) {
-      for (const attrName in attrs) {
-        node.attr(attrName, attrs[attrName]);
-      }
+      Obj.each(attrs, (value, attrName) => {
+        node.attr(attrName, value);
+      });
     }
 
     return node;
@@ -122,7 +123,7 @@ class Node {
    * @param {String} name Name of the node type.
    * @param {Number} type Numeric type representing the node.
    */
-  constructor(name: string, type: number) {
+  public constructor(name: string, type: number) {
     this.name = name;
     this.type = type;
 
@@ -176,8 +177,10 @@ class Node {
     let attrs: Attributes;
 
     if (typeof name !== 'string') {
-      for (const key in name) {
-        self.attr(key, name[key]);
+      if (name !== undefined && name !== null) {
+        Obj.each(name, (value, key) => {
+          self.attr(key, value);
+        });
       }
 
       return self;
@@ -517,7 +520,7 @@ class Node {
         }
 
         // Keep whitespace preserve elements
-        if (node.type === 3 && node.parent && whitespace[node.parent.name] && whiteSpaceRegExp.test(node.value)) {
+        if (node.type === 3 && node.parent && whitespace[node.parent.name] && isWhitespaceText(node.value)) {
           return false;
         }
 

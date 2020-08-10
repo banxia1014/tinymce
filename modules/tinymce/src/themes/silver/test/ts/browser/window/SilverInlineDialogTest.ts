@@ -26,7 +26,7 @@ UnitTest.asynctest('WindowManager:inline-dialog Test', (success, failure) => {
             type: 'input',
             name: 'fred',
             label: 'Freds Input'
-          },
+          }
         ]
       },
       buttons: [
@@ -84,7 +84,7 @@ UnitTest.asynctest('WindowManager:inline-dialog Test', (success, failure) => {
         DialogUtils.sWaitForOpen(dialogSelector),
         store.sAssertEq('Checking onAction called', [ 'onAction' ]),
         Mouse.sTrueClickOn(Body.body(), dialogSelector + ' .tox-dialog__footer button'),
-        Waiter.sTryUntil('Wait for dialog to close', UiFinder.sNotExists(Body.body(), dialogSelector)),
+        Waiter.sTryUntil('Wait for dialog to close', UiFinder.sNotExists(Body.body(), dialogSelector))
       ]);
     };
 
@@ -119,11 +119,9 @@ UnitTest.asynctest('WindowManager:inline-dialog Test', (success, failure) => {
         'input'
       ),
       Assertions.sAssertStructure('"tox-dialog__scroll-disable" should not have been added to the body',
-        ApproxStructure.build((s, str, arr) => {
-          return s.element('body', {
-            classes: [ arr.not('tox-dialog__disable-scroll') ]
-          });
-        }),
+        ApproxStructure.build((s, str, arr) => s.element('body', {
+          classes: [ arr.not('tox-dialog__disable-scroll') ]
+        })),
         Body.body()
       ),
 

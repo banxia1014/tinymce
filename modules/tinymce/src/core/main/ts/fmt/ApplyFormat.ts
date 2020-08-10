@@ -6,25 +6,26 @@
  */
 
 import { Node } from '@ephox/dom-globals';
-import Bookmarks from '../bookmark/Bookmarks';
+import DOMUtils from '../api/dom/DOMUtils';
+import Selection from '../api/dom/Selection';
+import Editor from '../api/Editor';
+import { FormatVars } from '../api/fmt/Format';
+import Tools from '../api/util/Tools';
+import * as Bookmarks from '../bookmark/Bookmarks';
 import { IdBookmark, IndexBookmark } from '../bookmark/BookmarkTypes';
-import NodeType from '../dom/NodeType';
+import * as NodeType from '../dom/NodeType';
+import * as RangeNormalizer from '../selection/RangeNormalizer';
+import { RangeLikeObject } from '../selection/RangeTypes';
+import * as RangeWalk from '../selection/RangeWalk';
+import * as SelectionUtils from '../selection/SelectionUtils';
+import * as TableCellSelection from '../selection/TableCellSelection';
 import * as CaretFormat from './CaretFormat';
 import * as ExpandRange from './ExpandRange';
+import { isCaretNode } from './FormatContainer';
 import * as FormatUtils from './FormatUtils';
 import * as Hooks from './Hooks';
 import * as MatchFormat from './MatchFormat';
 import * as MergeFormats from './MergeFormats';
-import RangeNormalizer from '../selection/RangeNormalizer';
-import { RangeLikeObject } from '../selection/RangeTypes';
-import RangeWalk from '../selection/RangeWalk';
-import Tools from '../api/util/Tools';
-import Selection from '../api/dom/Selection';
-import { isCaretNode } from './FormatContainer';
-import GetBookmark from '../bookmark/GetBookmark';
-import Editor from '../api/Editor';
-import { FormatVars } from '../api/fmt/Format';
-import DOMUtils from '../api/dom/DOMUtils';
 
 const each = Tools.each;
 
@@ -32,23 +33,10 @@ const isElementNode = function (node: Node) {
   return node && node.nodeType === 1 && !Bookmarks.isBookmarkNode(node) && !isCaretNode(node) && !NodeType.isBogus(node);
 };
 
-const processChildElements = function (node: Node, filter, process) {
-  each(node.childNodes, function (node) {
-    if (isElementNode(node)) {
-      if (filter(node)) {
-        process(node);
-      }
-      if (node.hasChildNodes()) {
-        processChildElements(node, filter, process);
-      }
-    }
-  });
-};
-
 const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?: Node | RangeLikeObject) {
   const formatList = ed.formatter.get(name);
   const format = formatList[0];
-  let bookmark, rng;
+  let rng;
   const isCollapsed = !node && ed.selection.isCollapsed();
   const dom = ed.dom, selection: Selection = ed.selection;
 
@@ -114,11 +102,11 @@ const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?
 
   const applyRngStyle = function (dom: DOMUtils, rng: RangeLikeObject, bookmark: IdBookmark | IndexBookmark, nodeSpecific?: boolean) {
     const newWrappers: Node[] = [];
-    let wrapName: string, wrapElm: Node, contentEditable = true;
+    let contentEditable = true;
 
     // Setup wrapper element
-    wrapName = format.inline || format.block;
-    wrapElm = dom.create(wrapName);
+    const wrapName = format.inline || format.block;
+    const wrapElm = dom.create(wrapName);
     setElementFormat(wrapElm);
 
     RangeWalk.walk(dom, rng, function (nodes) {
@@ -233,8 +221,6 @@ const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?
 
     // Cleanup
     each(newWrappers, function (node) {
-      let childCount;
-
       const getChildCount = function (node: Node) {
         let count = 0;
 
@@ -247,8 +233,8 @@ const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?
         return count;
       };
 
-      const getChildElementNode = function (root: Node) {
-        let child: Node | boolean = false;
+      const getChildElementNode = function (root: Node): Node | false {
+        let child: Node | false = false;
         each(root.childNodes, function (node) {
           if (isElementNode(node)) {
             child = node;
@@ -259,9 +245,9 @@ const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?
       };
 
       const mergeStyles = function (node: Node) {
-        let child, clone;
+        let clone;
 
-        child = getChildElementNode(node);
+        const child = getChildElementNode(node);
 
         // If child was found and of the same type as the current node
         if (child && !Bookmarks.isBookmarkNode(child) && MatchFormat.matchName(dom, child, format)) {
@@ -275,7 +261,7 @@ const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?
         return clone || node;
       };
 
-      childCount = getChildCount(node);
+      const childCount = getChildCount(node);
 
       // Remove empty nodes but only if there is multiple wrappers and they are not block
       // elements so never remove single <h1></h1> since that would remove the
@@ -326,9 +312,9 @@ const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?
         applyRngStyle(dom, node, null, true);
       }
     } else {
-      if (!isCollapsed || !format.inline || dom.select('td[data-mce-selected],th[data-mce-selected]').length) {
+      if (!isCollapsed || !format.inline || TableCellSelection.getCellsFromEditor(ed).length) {
         // Obtain selection node before selection is unselected by applyRngStyle
-        const curSelNode = ed.selection.getNode();
+        const curSelNode = selection.getNode();
 
         // If the formats have a default block and we can't find a parent block then
         // start wrapping it with a DIV this is for forced_root_blocks: false
@@ -338,11 +324,14 @@ const applyFormat = function (ed: Editor, name: string, vars?: FormatVars, node?
         }
 
         // Apply formatting to selection
-        ed.selection.setRng(RangeNormalizer.normalize(ed.selection.getRng()));
-        bookmark = GetBookmark.getPersistentBookmark(ed.selection, true);
-        applyRngStyle(dom, ExpandRange.expandRng(ed, selection.getRng(), formatList), bookmark);
+        selection.setRng(RangeNormalizer.normalize(selection.getRng()));
+        SelectionUtils.preserve(selection, true, (bookmark) => {
+          SelectionUtils.runOnRanges(ed, (selectionRng, fake) => {
+            const expandedRng = fake ? selectionRng : ExpandRange.expandRng(ed, selectionRng, formatList);
+            applyRngStyle(dom, expandedRng, bookmark);
+          });
+        });
 
-        selection.moveToBookmark(bookmark);
         FormatUtils.moveStart(dom, selection, selection.getRng());
         ed.nodeChanged();
       } else {

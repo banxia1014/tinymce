@@ -5,7 +5,10 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { AddEventsBehaviour, AlloyComponent, AlloyEvents, Behaviour, Dropdown, Focusing, Keying, NativeEvents, RawDomSchema, Replacing, Sketcher, SystemEvents, Tabstopping, UiSketcher, } from '@ephox/alloy';
+import {
+  AddEventsBehaviour, AlloyComponent, AlloyEvents, Behaviour, Dropdown, Focusing, Keying, NativeEvents, RawDomSchema, Replacing, Sketcher,
+  SystemEvents, Tabstopping, UiSketcher
+} from '@ephox/alloy';
 import { FieldSchema, ValueSchema } from '@ephox/boulder';
 import { Toolbar } from '@ephox/bridge';
 import { Arr, Fun, Option } from '@ephox/katamari';
@@ -61,7 +64,7 @@ const factory: UiSketcher.SingleSketchFactory<SilverMenubarDetail, SilverMenubar
       return renderMenuButton(internal,
         MenuButtonClasses.Button,
         spec.backstage,
-         // https://www.w3.org/TR/wai-aria-practices/examples/menubar/menubar-2/menubar-2.html
+        // https://www.w3.org/TR/wai-aria-practices/examples/menubar/menubar-2/menubar-2.html
         Option.some('menuitem')
       );
     });
@@ -145,10 +148,10 @@ export default Sketcher.single<SilverMenubarSpec, SilverMenubarDetail, SilverMen
     FieldSchema.defaulted('onSetup', Fun.noop)
   ],
   apis: {
-    focus (apis, comp) {
+    focus(apis, comp) {
       apis.focus(comp);
     },
-    setMenus (apis, comp, menus) {
+    setMenus(apis, comp, menus) {
       apis.setMenus(comp, menus);
     }
   }

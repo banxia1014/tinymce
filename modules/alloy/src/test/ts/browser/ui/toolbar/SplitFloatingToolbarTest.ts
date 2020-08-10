@@ -27,7 +27,7 @@ UnitTest.asynctest('SplitFloatingToolbarTest', (success, failure) => {
     }
   }));
 
-  GuiSetup.setup((store, doc, body) => {
+  GuiSetup.setup((_store, _doc, _body) => {
     const pPrimary = SplitFloatingToolbar.parts().primary({
       dom: {
         tag: 'div',
@@ -46,7 +46,7 @@ UnitTest.asynctest('SplitFloatingToolbarTest', (success, failure) => {
             outline: '2px solid blue'
           }
         },
-        lazySink (comp) {
+        lazySink(_comp) {
           return Result.value(sinkComp);
         },
         components: [
@@ -77,105 +77,87 @@ UnitTest.asynctest('SplitFloatingToolbarTest', (success, failure) => {
         }
       })
     );
-  }, (doc, body, gui, component, store) => {
+  }, (doc, _body, gui, component, _store) => {
     gui.add(sinkComp);
     gui.add(GuiFactory.build(anchorButtonMem.asSpec()));
 
-    const makeButton = (itemSpec: { text: string }) => {
-      return Button.sketch({
-        dom: {
-          tag: 'button',
-          innerHtml: itemSpec.text
-        }
-      });
-    };
-
-    const sResetWidth = (px: string) => {
-      return Step.sync(() => {
-        Css.set(component.element(), 'width', px);
-        SplitFloatingToolbar.refresh(component);
-      });
-    };
-
-    const group1 = ApproxStructure.build((s, str, arr) => {
-      return s.element('div', {
-        classes: [ arr.has('test-toolbar-group') ],
-        children: [
-          s.element('button', { html: str.is('A') }),
-          s.element('button', { html: str.is('B') })
-        ]
-      });
+    const makeButton = (itemSpec: { text: string }) => Button.sketch({
+      dom: {
+        tag: 'button',
+        innerHtml: itemSpec.text
+      }
     });
 
-    const group2 = ApproxStructure.build((s, str, arr) => {
-      return s.element('div', {
-        classes: [ arr.has('test-toolbar-group') ],
-        children: [
-          s.element('button', { html: str.is('C') }),
-          s.element('button', { html: str.is('D') })
-        ]
-      });
+    const sResetWidth = (px: string) => Step.sync(() => {
+      Css.set(component.element(), 'width', px);
+      SplitFloatingToolbar.refresh(component);
     });
 
-    const group3 = ApproxStructure.build((s, str, arr) => {
-      return s.element('div', {
-        classes: [ arr.has('test-toolbar-group') ],
-        children: [
-          s.element('button', { html: str.is('E') }),
-          s.element('button', { html: str.is('F') }),
-          s.element('button', { html: str.is('G') })
-        ]
-      });
-    });
+    const group1 = ApproxStructure.build((s, str, arr) => s.element('div', {
+      classes: [ arr.has('test-toolbar-group') ],
+      children: [
+        s.element('button', { html: str.is('A') }),
+        s.element('button', { html: str.is('B') })
+      ]
+    }));
 
-    const oGroup = ApproxStructure.build((s, str, arr) => {
-      return s.element('div', {
-        classes: [ arr.has('test-toolbar-group') ],
-        children: [
-          s.element('button', { html: str.is('+') })
-        ]
-      });
-    });
+    const group2 = ApproxStructure.build((s, str, arr) => s.element('div', {
+      classes: [ arr.has('test-toolbar-group') ],
+      children: [
+        s.element('button', { html: str.is('C') }),
+        s.element('button', { html: str.is('D') })
+      ]
+    }));
 
-    const sAssertGroups = (label: string, pGroups: StructAssert[], oGroups: StructAssert[]) => {
-      return GeneralSteps.sequence([
-        Assertions.sAssertStructure(
-          label,
-          ApproxStructure.build((s, str, arr) => {
-            return s.element('div', {
+    const group3 = ApproxStructure.build((s, str, arr) => s.element('div', {
+      classes: [ arr.has('test-toolbar-group') ],
+      children: [
+        s.element('button', { html: str.is('E') }),
+        s.element('button', { html: str.is('F') }),
+        s.element('button', { html: str.is('G') })
+      ]
+    }));
+
+    const oGroup = ApproxStructure.build((s, str, arr) => s.element('div', {
+      classes: [ arr.has('test-toolbar-group') ],
+      children: [
+        s.element('button', { html: str.is('+') })
+      ]
+    }));
+
+    const sAssertGroups = (label: string, pGroups: StructAssert[], oGroups: StructAssert[]) => GeneralSteps.sequence([
+      Assertions.sAssertStructure(
+        label,
+        ApproxStructure.build((s, _str, arr) => s.element('div', {
+          children: [
+            s.element('div', {
+              classes: [ arr.has('test-toolbar-primary') ],
+              children: pGroups
+            })
+          ]
+        })),
+        component.element()
+      ),
+      Assertions.sAssertStructure(
+        label,
+        ApproxStructure.build((s, str, arr) => s.element('div', {
+          children: [
+            s.element('div', {
+              attrs: {
+                id: str.contains('aria-owns')
+              },
               children: [
                 s.element('div', {
-                  classes: [ arr.has('test-toolbar-primary') ],
-                  children: pGroups
+                  classes: [ arr.has('test-toolbar-overflow') ],
+                  children: oGroups
                 })
               ]
-            });
-          }),
-          component.element()
-        ),
-        Assertions.sAssertStructure(
-          label,
-          ApproxStructure.build((s, str, arr) => {
-            return s.element('div', {
-              children: [
-                s.element('div', {
-                  attrs: {
-                    id: str.contains('aria-owns')
-                  },
-                  children: [
-                    s.element('div', {
-                      classes: [ arr.has('test-toolbar-overflow') ],
-                      children: oGroups
-                    })
-                  ]
-                })
-              ]
-            });
-          }),
-          sinkComp.element()
-        )
-      ]);
-    };
+            })
+          ]
+        })),
+        sinkComp.element()
+      )
+    ]);
 
     return [
       GuiSetup.mAddStyles(doc, [
@@ -189,9 +171,9 @@ UnitTest.asynctest('SplitFloatingToolbarTest', (success, failure) => {
 
       Step.sync(() => {
         const groups = TestPartialToolbarGroup.createGroups([
-          { items: Arr.map([ { text: 'A' }, { text: 'B' } ], makeButton) },
-          { items: Arr.map([ { text: 'C' }, { text: 'D' } ], makeButton) },
-          { items: Arr.map([ { text: 'E' }, { text: 'F' }, { text: 'G' } ], makeButton) }
+          { items: Arr.map([{ text: 'A' }, { text: 'B' }], makeButton) },
+          { items: Arr.map([{ text: 'C' }, { text: 'D' }], makeButton) },
+          { items: Arr.map([{ text: 'E' }, { text: 'F' }, { text: 'G' }], makeButton) }
         ]);
         SplitFloatingToolbar.setGroups(component, groups);
         SplitFloatingToolbar.toggle(component);

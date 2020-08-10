@@ -5,20 +5,19 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
+import Editor from 'tinymce/core/api/Editor';
 import Env from 'tinymce/core/api/Env';
 import Node from 'tinymce/core/api/html/Node';
-import Settings from '../api/Settings';
-import Sanitize from './Sanitize';
+import * as Settings from '../api/Settings';
+import * as Sanitize from './Sanitize';
 import * as VideoScript from './VideoScript';
-import Editor from 'tinymce/core/api/Editor';
 
 declare let escape: any;
 
 const createPlaceholderNode = function (editor: Editor, node: Node) {
-  let placeHolder;
   const name = node.name;
 
-  placeHolder = new Node('img', 1);
+  const placeHolder = new Node('img', 1);
   placeHolder.shortEnded = true;
 
   retainAttributesAndInnerHtml(editor, node, placeHolder);
@@ -105,7 +104,7 @@ const retainAttributesAndInnerHtml = function (editor: Editor, sourceNode: Node,
 
   // Prefix all attributes except width, height and style since we
   // will add these to the placeholder
-  attribs = sourceNode.attributes;
+  const attribs = sourceNode.attributes;
   ai = attribs.length;
   while (ai--) {
     attrName = attribs[ai].name;
@@ -122,7 +121,7 @@ const retainAttributesAndInnerHtml = function (editor: Editor, sourceNode: Node,
 
   // Place the inner HTML contents inside an escaped attribute
   // This enables us to copy/paste the fake object
-  innerHtml = sourceNode.firstChild && sourceNode.firstChild.value;
+  const innerHtml = sourceNode.firstChild && sourceNode.firstChild.value;
   if (innerHtml) {
     targetNode.attr('data-mce-html', escape(Sanitize.sanitize(editor, innerHtml)));
     targetNode.firstChild = null;
@@ -130,7 +129,7 @@ const retainAttributesAndInnerHtml = function (editor: Editor, sourceNode: Node,
 };
 
 const isPageEmbedWrapper = (node: Node) => {
-  const nodeClass = node.attr('class') as string;
+  const nodeClass = node.attr('class');
   return nodeClass && /\btiny-pageembed\b/.test(nodeClass);
 };
 
@@ -194,7 +193,7 @@ const placeHolderConverter = function (editor: Editor) {
   };
 };
 
-export default {
+export {
   createPreviewIframeNode,
   createPlaceholderNode,
   placeHolderConverter

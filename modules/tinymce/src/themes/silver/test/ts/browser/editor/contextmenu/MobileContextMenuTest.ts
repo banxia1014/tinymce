@@ -1,4 +1,6 @@
-import { ApproxStructure, Assertions, Chain, FocusTools, GeneralSteps, Keyboard, Keys, Log, Pipeline, Touch, UiFinder, Waiter } from '@ephox/agar';
+import {
+  ApproxStructure, Assertions, Chain, FocusTools, GeneralSteps, Keyboard, Keys, Log, Pipeline, Touch, UiFinder, Waiter
+} from '@ephox/agar';
 import { UnitTest } from '@ephox/bedrock-client';
 import { document } from '@ephox/dom-globals';
 import { Arr } from '@ephox/katamari';
@@ -69,9 +71,7 @@ UnitTest.asynctest('MobileContextMenuTest', (success, failure) => {
     const sPressEnterKey = Keyboard.sKeydown(doc, Keys.enter(), { });
     const sPressEscKey = Keyboard.sKeydown(doc, Keys.escape(), {});
 
-    const sRepeatDownArrowKey = (index) => {
-      return GeneralSteps.sequence(Arr.range(index, () => sPressDownArrowKey));
-    };
+    const sRepeatDownArrowKey = (index) => GeneralSteps.sequence(Arr.range(index, () => sPressDownArrowKey));
 
     const tableHtml = '<table style="width: 100%;">' +
     '<tbody>' +
@@ -88,15 +88,13 @@ UnitTest.asynctest('MobileContextMenuTest', (success, failure) => {
 
     const imgSrc = '../img/dogleft.jpg';
 
-    const contentInTableHtml = (content: string) => {
-      return '<table style="width: 100%;">' +
+    const contentInTableHtml = (content: string) => '<table style="width: 100%;">' +
        '<tbody>' +
           '<tr>' +
             `<td>${content}</td>` +
           '</tr>' +
         '</tbody>' +
       '</table>';
-    };
 
     const imageInTableHtml = contentInTableHtml('<img src="' + imgSrc + '" width="160" height="100"/>');
     const placeholderImageInTableHtml = contentInTableHtml('<img src="' + imgSrc + '" width="160" height="100" data-mce-placeholder="1"/>');
@@ -104,24 +102,20 @@ UnitTest.asynctest('MobileContextMenuTest', (success, failure) => {
 
     // In Firefox we add a a bogus br element after the link that fixes a gecko link bug when,
     // a link is placed at the end of block elements there is no way to move the caret behind the link.
-    const sAssertRemoveLinkHtmlStructure = Assertions.sAssertStructure('Assert remove link', ApproxStructure.build((s, str) => {
-      return s.element('body', {
-        children: [
-          s.element('p', {
-            children: [
-              s.text(str.is('Tiny')),
-              s.zeroOrOne(s.element('br', {}))
-            ]
-          })
-        ]
-      });
-    }), editorBody);
+    const sAssertRemoveLinkHtmlStructure = Assertions.sAssertStructure('Assert remove link', ApproxStructure.build((s, str) => s.element('body', {
+      children: [
+        s.element('p', {
+          children: [
+            s.text(str.is('Tiny')),
+            s.zeroOrOne(s.element('br', {}))
+          ]
+        })
+      ]
+    })), editorBody);
 
-    const sAssertMenuItems = (items: string[]) => {
-      return Chain.asStep(Body.body(), [
-        Chain.fromParent(UiFinder.cFindIn(mobileContextMenuSelector), Arr.map(items, UiFinder.cExists))
-      ]);
-    };
+    const sAssertMenuItems = (items: string[]) => Chain.asStep(Body.body(), [
+      Chain.fromParent(UiFinder.cFindIn(mobileContextMenuSelector), Arr.map(items, UiFinder.cExists))
+    ]);
 
     const mobileContextMenuSelector = 'div.tox-collection--horizontal';
     const selectors = {
@@ -141,7 +135,7 @@ UnitTest.asynctest('MobileContextMenuTest', (success, failure) => {
       tinyApis.sFocus(),
       Log.stepsAsStep('TBA', 'Test context menus on empty editor', [
         sOpenContextMenu('p'),
-        sAssertMenuItems([selectors.link]),
+        sAssertMenuItems([ selectors.link ]),
         sPressEscKey
       ]),
       Log.stepsAsStep('TBA', 'Test context menus on a link', [
@@ -210,7 +204,7 @@ UnitTest.asynctest('MobileContextMenuTest', (success, failure) => {
           selectors.column,
           selectors.tableprops,
           selectors.deletetable
-        ]),
+        ])
       ]),
       Log.stepsAsStep('TBA', 'Test context menus on placeholder image inside a table', [
         // Placeholder images shouldn't show the image/image tools options
@@ -224,7 +218,7 @@ UnitTest.asynctest('MobileContextMenuTest', (success, failure) => {
           selectors.column,
           selectors.tableprops,
           selectors.deletetable
-        ]),
+        ])
       ])
     ];
 
@@ -235,7 +229,7 @@ UnitTest.asynctest('MobileContextMenuTest', (success, failure) => {
     toolbar: 'image editimage link table',
     indent: false,
     base_url: '/project/tinymce/js/tinymce',
-    image_caption: true,
+    image_caption: true
   }, () => {
     PlatformDetection.override(detection);
     success();

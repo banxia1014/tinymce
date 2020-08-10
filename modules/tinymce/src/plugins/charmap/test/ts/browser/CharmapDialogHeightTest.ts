@@ -23,9 +23,7 @@ UnitTest.asynctest('browser.tinymce.plugins.charmap.DialogHeightTest', (success,
     );
   };
 
-  const cTabPanelHeight = Chain.binder<Element, string, string>((tabpanel) => {
-    return Css.getRaw(tabpanel, 'height').fold(() => Result.error('tabpanel has no height'), Result.value);
-  });
+  const cTabPanelHeight = Chain.binder<Element, string, string>((tabpanel) => Css.getRaw(tabpanel, 'height').fold(() => Result.error('tabpanel has no height'), Result.value));
 
   TinyLoader.setupLight(function (editor, onSuccess, onFailure) {
     const tinyApis = TinyApis(editor);
@@ -37,10 +35,10 @@ UnitTest.asynctest('browser.tinymce.plugins.charmap.DialogHeightTest', (success,
         tinyApis.sFocus(),
         tinyUi.sClickOnToolbar('click charmap', 'button[aria-label="Special character"]'),
         Chain.asStep({}, [
-          tinyUi.cWaitForPopup('wait for popup', 'div[role="dialog"]'),
+          tinyUi.cWaitForPopup('wait for popup', 'div[role="dialog"]')
         ]),
         FocusTools.sTryOnSelector('Focus should start on', doc, 'input'),
-        Chain.asStep(Body.body() , [
+        Chain.asStep(Body.body(), [
           NamedChain.asChain([
             NamedChain.direct(NamedChain.inputName(), Chain.identity, 'body'),
             NamedChain.writeValue('doc', doc),
@@ -52,20 +50,20 @@ UnitTest.asynctest('browser.tinymce.plugins.charmap.DialogHeightTest', (success,
             // need to wait until '.tox-collection__group' has no children
             NamedChain.direct('body', UiFinder.cWaitForState('wait until ', '[role="dialog"] .tox-collection__group', (e) => Traverse.childNodesCount(e) === 0), '_'),
             NamedChain.direct('tabpanel', cTabPanelHeight, 'newheight'),
-            NamedChain.bundle((bindings) => {
+            NamedChain.bundle((bindings) =>
               // TODO: Use round pixel numbers in DialogTabHeight.ts
-              return parseInt(bindings.oldheight, 10) !== parseInt(bindings.newheight, 10) ?
+              parseInt(bindings.oldheight, 10) !== parseInt(bindings.newheight, 10) ?
                 Result.error(`Old height and new height differ. Old height: '${bindings.oldheight}' new height '${bindings.newheight}'`) :
-                Result.value({});
-            })
+                Result.value({})
+            )
           ])
         ])
       ])
-    , onSuccess, onFailure);
+      , onSuccess, onFailure);
   }, {
     plugins: 'charmap',
     toolbar: 'charmap',
     theme: 'silver',
-    base_url: '/project/tinymce/js/tinymce',
+    base_url: '/project/tinymce/js/tinymce'
   }, success, failure);
 });

@@ -6,25 +6,19 @@
  */
 
 import {
-  AlloySpec,
-  Behaviour,
-  Dropdown as AlloyDropdown,
-  RawDomSchema,
-  SketchSpec,
-  Unselecting,
-  Tabstopping,
-  AlloyComponent,
-  Layouts
+  AlloyComponent, AlloySpec, Behaviour, Dropdown as AlloyDropdown, Layouts, RawDomSchema, SketchSpec, Tabstopping, Unselecting
 } from '@ephox/alloy';
 import { Types } from '@ephox/bridge';
-import { Future, Id, Option, Merger } from '@ephox/katamari';
+import { Future, Id, Merger, Option } from '@ephox/katamari';
 import { UiFactoryBackstageShared } from '../../backstage/Backstage';
+import * as ReadOnly from '../../ReadOnly';
+import { DisablingConfigs } from '../alien/DisablingConfigs';
+import ItemResponse from '../menus/item/ItemResponse';
+import { createPartialChoiceMenu } from '../menus/menu/MenuChoice';
+import { deriveMenuMovement } from '../menus/menu/MenuMovement';
 
 import * as MenuParts from '../menus/menu/MenuParts';
 import { createTieredDataFrom } from '../menus/menu/SingleMenu';
-import { createPartialChoiceMenu } from '../menus/menu/MenuChoice';
-import { deriveMenuMovement } from '../menus/menu/MenuMovement';
-import ItemResponse from '../menus/item/ItemResponse';
 
 export interface SwatchPanelButtonSpec {
   dom: RawDomSchema;
@@ -37,50 +31,44 @@ export interface SwatchPanelButtonSpec {
   layouts?: Layouts;
 }
 
-export const renderPanelButton = (spec: SwatchPanelButtonSpec, sharedBackstage: UiFactoryBackstageShared): SketchSpec => {
-  return AlloyDropdown.sketch({
-    dom: spec.dom,
-    components: spec.components,
+export const renderPanelButton = (spec: SwatchPanelButtonSpec, sharedBackstage: UiFactoryBackstageShared): SketchSpec => AlloyDropdown.sketch({
+  dom: spec.dom,
+  components: spec.components,
 
-    toggleClass: 'mce-active',
+  toggleClass: 'mce-active',
 
-    dropdownBehaviours: Behaviour.derive([
-      Unselecting.config({}),
-      Tabstopping.config({})
-    ]),
-    layouts: spec.layouts,
-    sandboxClasses: ['tox-dialog__popups'],
+  dropdownBehaviours: Behaviour.derive([
+    DisablingConfigs.button(sharedBackstage.providers.isReadOnly),
+    ReadOnly.receivingConfig(),
+    Unselecting.config({}),
+    Tabstopping.config({})
+  ]),
+  layouts: spec.layouts,
+  sandboxClasses: [ 'tox-dialog__popups' ],
 
-    lazySink: sharedBackstage.getSink,
-    fetch: (comp) => {
-      return Future.nu((callback) => {
-        return spec.fetch(callback);
-      }).map((items) => {
-        return Option.from(createTieredDataFrom(
-          Merger.deepMerge(
-            createPartialChoiceMenu(
-              Id.generate('menu-value'),
-              items,
-              (value) => {
-                spec.onItemAction(comp, value);
-              },
-              spec.columns,
-              spec.presets,
-              ItemResponse.CLOSE_ON_EXECUTE,
-              // No colour is ever selected on opening
-              () => false,
-              sharedBackstage.providers
-            ),
-            {
-              movement: deriveMenuMovement(spec.columns, spec.presets)
-            }
-          )
-        ));
-      });
-    },
+  lazySink: sharedBackstage.getSink,
+  fetch: (comp) => Future.nu((callback) => spec.fetch(callback)).map((items) => Option.from(createTieredDataFrom(
+    Merger.deepMerge(
+      createPartialChoiceMenu(
+        Id.generate('menu-value'),
+        items,
+        (value) => {
+          spec.onItemAction(comp, value);
+        },
+        spec.columns,
+        spec.presets,
+        ItemResponse.CLOSE_ON_EXECUTE,
+        // No colour is ever selected on opening
+        () => false,
+        sharedBackstage.providers
+      ),
+      {
+        movement: deriveMenuMovement(spec.columns, spec.presets)
+      }
+    )
+  ))),
 
-    parts: {
-      menu: MenuParts.part(false, 1, spec.presets)
-    }
-  });
-};
+  parts: {
+    menu: MenuParts.part(false, 1, spec.presets)
+  }
+});

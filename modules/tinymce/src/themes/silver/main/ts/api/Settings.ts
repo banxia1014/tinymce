@@ -12,10 +12,14 @@ import Editor from 'tinymce/core/api/Editor';
 import EditorManager from 'tinymce/core/api/EditorManager';
 import { AllowedFormat } from 'tinymce/core/api/fmt/StyleFormat';
 
+export interface ToolbarGroupSetting {
+  name?: string;
+  items: string[];
+}
+
 const getSkinUrl = function (editor: Editor): string {
-  const settings = editor.settings;
-  const skin = settings.skin;
-  let skinUrl = settings.skin_url;
+  const skin = editor.getParam('skin');
+  let skinUrl = editor.getParam('skin_url');
 
   if (skin !== false) {
     const skinName = skin ? skin : 'oxide';
@@ -35,8 +39,8 @@ const isSkinDisabled = (editor: Editor) => editor.getParam('skin') === false;
 
 const getHeightSetting = (editor: Editor): string | number => editor.getParam('height', Math.max(editor.getElement().offsetHeight, 200));
 const getWidthSetting = (editor: Editor): string | number => editor.getParam('width', DOMUtils.DOM.getStyle(editor.getElement(), 'width'));
-const getMinWidthSetting = (editor: Editor): Option<number> => Option.from(editor.settings.min_width).filter(Type.isNumber);
-const getMinHeightSetting = (editor: Editor): Option<number> => Option.from(editor.settings.min_height).filter(Type.isNumber);
+const getMinWidthSetting = (editor: Editor): Option<number> => Option.from(editor.getParam('min_width')).filter(Type.isNumber);
+const getMinHeightSetting = (editor: Editor): Option<number> => Option.from(editor.getParam('min_height')).filter(Type.isNumber);
 const getMaxWidthSetting = (editor: Editor): Option<number> => Option.from(editor.getParam('max_width')).filter(Type.isNumber);
 const getMaxHeightSetting = (editor: Editor): Option<number> => Option.from(editor.getParam('max_height')).filter(Type.isNumber);
 
@@ -57,24 +61,20 @@ const isToolbarEnabled = (editor: Editor): boolean => {
 
 // Convert toolbar<n> into toolbars array
 const getMultipleToolbarsSetting = (editor: Editor): Option<string[]> => {
-  const keys = Obj.keys(editor.settings);
-  const toolbarKeys = Arr.filter(keys, (key) => /^toolbar([1-9])$/.test(key));
-  const toolbars = Arr.map(toolbarKeys, (key) => editor.getParam(key, false, 'string'));
+  const toolbars = Arr.range(9, (num) => editor.getParam('toolbar' + (num + 1), false, 'string'));
   const toolbarArray = Arr.filter(toolbars, (toolbar) => typeof toolbar === 'string');
   return toolbarArray.length > 0 ? Option.some(toolbarArray) : Option.none();
 };
 
 // Check if multiple toolbars is enabled
 // Mulitple toolbars is enabled if toolbar value is a string array or if toolbar<n> is present
-const isMultipleToolbars = (editor: Editor): boolean => {
-  return getMultipleToolbarsSetting(editor).fold(
-    () => {
-      const toolbar = editor.getParam('toolbar', [], 'string[]');
-      return toolbar.length > 0;
-    },
-    () => true
-  );
-};
+const isMultipleToolbars = (editor: Editor): boolean => getMultipleToolbarsSetting(editor).fold(
+  () => {
+    const toolbar = editor.getParam('toolbar', [], 'string[]');
+    return toolbar.length > 0;
+  },
+  () => true
+);
 
 export enum ToolbarMode {
   default = 'wrap',
@@ -83,21 +83,18 @@ export enum ToolbarMode {
   scrolling = 'scrolling'
 }
 
-const getToolbarMode = (editor: Editor): ToolbarMode => {
-  return editor.getParam('toolbar_mode', '', 'string') as ToolbarMode;
-};
+const getToolbarMode = (editor: Editor): ToolbarMode => editor.getParam('toolbar_mode', '', 'string') as ToolbarMode;
 
 export enum ToolbarLocation {
+  auto = 'auto',
   top = 'top',
   bottom = 'bottom'
 }
 
-const getToolbarGroups = (editor: Editor) => {
-  return editor.getParam('toolbar_groups', {}, 'object');
-};
+const getToolbarGroups = (editor: Editor) => editor.getParam('toolbar_groups', {}, 'object');
 
-// In case of a string not equal to 'top' nor 'bottom', default to position top
-const isToolbarLocationTop = (editor) => editor.getParam('toolbar_location', ToolbarLocation.top, 'string') !== ToolbarLocation.bottom;
+const getToolbarLocation = (editor: Editor) => editor.getParam('toolbar_location', ToolbarLocation.auto, 'string') as ToolbarLocation;
+const isToolbarLocationBottom = (editor: Editor) => getToolbarLocation(editor) === ToolbarLocation.bottom;
 
 const fixedContainerSelector = (editor): string => editor.getParam('fixed_toolbar_container', '', 'string');
 
@@ -114,9 +111,7 @@ const getUiContainer = (editor): Element => {
   return fixedContainer.getOr(Body.body());
 };
 
-const isDistractionFree = (editor: Editor) => {
-  return editor.inline && !isMenubarEnabled(editor) && !isToolbarEnabled(editor) && !isMultipleToolbars(editor);
-};
+const isDistractionFree = (editor: Editor) => editor.inline && !isMenubarEnabled(editor) && !isToolbarEnabled(editor) && !isMultipleToolbars(editor);
 
 const isStickyToolbar = (editor: Editor) => {
   const isStickyToolbar = editor.getParam('toolbar_sticky', false, 'boolean');
@@ -124,6 +119,42 @@ const isStickyToolbar = (editor: Editor) => {
 };
 
 const isDraggableModal = (editor: Editor): boolean => editor.getParam('draggable_modal', false, 'boolean');
+
+const getMenus = (editor: Editor) => {
+  const menu = editor.getParam('menu');
+
+  if (menu) {
+    return Obj.map(menu, (menu) => ({ ...menu, items: menu.items }));
+  } else {
+    return {};
+  }
+};
+
+const getMenubar = (editor: Editor) => editor.getParam('menubar');
+
+const getToolbar = (editor: Editor): Array<string | ToolbarGroupSetting> | string | boolean => editor.getParam('toolbar', true);
+
+const getFilePickerCallback = (editor: Editor) => editor.getParam('file_picker_callback');
+
+const getFilePickerTypes = (editor: Editor) => editor.getParam('file_picker_types');
+
+const getFileBrowserCallbackTypes = (editor: Editor) => editor.getParam('file_browser_callback_types');
+
+const noTypeaheadUrls = (editor: Editor) => editor.getParam('typeahead_urls') === false;
+
+const getAnchorTop = (editor: Editor): string | false => editor.getParam('anchor_top', '#top');
+
+const getAnchorBottom = (editor: Editor): string | false => editor.getParam('anchor_bottom', '#bottom');
+
+const getFilePickerValidatorHandler = (editor: Editor) => {
+  const handler = editor.getParam('file_picker_validator_handler', undefined, 'function');
+  if (handler === undefined) {
+    // Fallback to legacy/deprecated setting
+    return editor.getParam('filepicker_validator_handler', undefined, 'function');
+  } else {
+    return handler;
+  }
+};
 
 export {
   getSkinUrl,
@@ -148,6 +179,17 @@ export {
   isDraggableModal,
   isDistractionFree,
   isStickyToolbar,
-  isToolbarLocationTop,
-  getToolbarGroups
+  getToolbarLocation,
+  isToolbarLocationBottom,
+  getToolbarGroups,
+  getMenus,
+  getMenubar,
+  getToolbar,
+  getFilePickerCallback,
+  getFilePickerTypes,
+  getFileBrowserCallbackTypes,
+  noTypeaheadUrls,
+  getAnchorTop,
+  getAnchorBottom,
+  getFilePickerValidatorHandler
 };

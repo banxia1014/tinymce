@@ -26,7 +26,7 @@ const schema: FieldProcessorAdt[] = [
   FieldSchema.defaulted('execute', KeyingTypes.defaultExecute)
 ];
 
-const focusIn = (component: AlloyComponent, matrixConfig: MatrixConfig, state: Stateless): void => {
+const focusIn = (component: AlloyComponent, matrixConfig: MatrixConfig, _state: Stateless): void => {
   const focused = matrixConfig.previousSelector(component).orThunk(() => {
     const selectors = matrixConfig.selectors;
     return SelectorFind.descendant(component.element(), selectors.cell);
@@ -37,36 +37,24 @@ const focusIn = (component: AlloyComponent, matrixConfig: MatrixConfig, state: S
   });
 };
 
-const execute: KeyRuleHandler<MatrixConfig, Stateless> = (component, simulatedEvent, matrixConfig) => {
-  return Focus.search(component.element()).bind((focused) => {
-    return matrixConfig.execute(component, simulatedEvent, focused);
-  });
-};
+const execute: KeyRuleHandler<MatrixConfig, Stateless> = (component, simulatedEvent, matrixConfig) => Focus.search(component.element()).bind((focused) => matrixConfig.execute(component, simulatedEvent, focused));
 
-const toMatrix = (rows: Element[], matrixConfig: MatrixConfig): Element[][] => {
-  return Arr.map(rows, (row) => {
-    return SelectorFilter.descendants(row, matrixConfig.selectors.cell);
-  });
-};
+const toMatrix = (rows: Element[], matrixConfig: MatrixConfig): Element[][] => Arr.map(rows, (row) => SelectorFilter.descendants(row, matrixConfig.selectors.cell));
 
-const doMove = (ifCycle: MatrixNavigation.MatrixNavigationFunc<Element>, ifMove: MatrixNavigation.MatrixNavigationFunc<Element>): DomMovement.ElementMover<MatrixConfig, Stateless> => {
-  return (element, focused, matrixConfig) => {
-    const move = matrixConfig.cycles ? ifCycle : ifMove;
-    return SelectorFind.closest(focused, matrixConfig.selectors.row).bind((inRow) => {
-      const cellsInRow = SelectorFilter.descendants(inRow, matrixConfig.selectors.cell);
+const doMove = (ifCycle: MatrixNavigation.MatrixNavigationFunc<Element>, ifMove: MatrixNavigation.MatrixNavigationFunc<Element>): DomMovement.ElementMover<MatrixConfig, Stateless> => (element, focused, matrixConfig) => {
+  const move = matrixConfig.cycles ? ifCycle : ifMove;
+  return SelectorFind.closest(focused, matrixConfig.selectors.row).bind((inRow) => {
+    const cellsInRow = SelectorFilter.descendants(inRow, matrixConfig.selectors.cell);
 
-      return DomPinpoint.findIndex(cellsInRow, focused).bind((colIndex) => {
-        const allRows = SelectorFilter.descendants(element, matrixConfig.selectors.row);
-        return DomPinpoint.findIndex(allRows, inRow).bind((rowIndex) => {
-          // Now, make the matrix.
-          const matrix = toMatrix(allRows, matrixConfig);
-          return move(matrix, rowIndex, colIndex).map((next) => {
-            return next.cell();
-          });
-        });
+    return DomPinpoint.findIndex(cellsInRow, focused).bind((colIndex) => {
+      const allRows = SelectorFilter.descendants(element, matrixConfig.selectors.row);
+      return DomPinpoint.findIndex(allRows, inRow).bind((rowIndex) => {
+        // Now, make the matrix.
+        const matrix = toMatrix(allRows, matrixConfig);
+        return move(matrix, rowIndex, colIndex).map((next) => next.cell);
       });
     });
-  };
+  });
 };
 
 const moveLeft = doMove(MatrixNavigation.cycleLeft, MatrixNavigation.moveLeft);

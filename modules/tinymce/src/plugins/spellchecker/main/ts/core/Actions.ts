@@ -5,15 +5,15 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
+import { Element, HTMLElement } from '@ephox/dom-globals';
+import { Cell, Obj } from '@ephox/katamari';
+import Editor from 'tinymce/core/api/Editor';
 import Tools from 'tinymce/core/api/util/Tools';
 import URI from 'tinymce/core/api/util/URI';
 import XHR from 'tinymce/core/api/util/XHR';
-import Events from '../api/Events';
-import Settings from '../api/Settings';
+import * as Events from '../api/Events';
+import * as Settings from '../api/Settings';
 import { DomTextMatcher } from './DomTextMatcher';
-import Editor from 'tinymce/core/api/Editor';
-import { Cell, Obj } from '@ephox/katamari';
-import { Element, HTMLElement } from '@ephox/dom-globals';
 
 export interface Data {
   words: Record<string, string[]>;
@@ -48,11 +48,11 @@ const defaultSpellcheckCallback = function (editor: Editor, pluginUrl: string, c
       type: 'post',
       content_type: 'application/x-www-form-urlencoded',
       data: postData,
-      success (result) {
+      success(result) {
         const parseResult = JSON.parse(result);
 
         if (!parseResult) {
-          const message = editor.translate('Server response wasn\'t proper JSON.');
+          const message = editor.translate(`Server response wasn't proper JSON.`);
           errorCallback(message);
         } else if (parseResult.error) {
           errorCallback(parseResult.error);
@@ -60,7 +60,7 @@ const defaultSpellcheckCallback = function (editor: Editor, pluginUrl: string, c
           doneCallback(parseResult);
         }
       },
-      error () {
+      error() {
         const message = editor.translate('The spelling service was not found: (') +
           Settings.getRpcUrl(editor) +
           editor.translate(')');
@@ -156,10 +156,9 @@ const getElmIndex = function (elm: HTMLElement) {
 };
 
 const findSpansByIndex = function (editor: Editor, index: string) {
-  let nodes;
   const spans = [];
 
-  nodes = Tools.toArray(editor.getBody().getElementsByTagName('span'));
+  const nodes = Tools.toArray(editor.getBody().getElementsByTagName('span'));
   if (nodes.length) {
     for (let i = 0; i < nodes.length; i++) {
       const nodeIndex = getElmIndex(nodes[i]);
@@ -219,7 +218,7 @@ const markErrors = function (editor: Editor, startedState: Cell<boolean>, textMa
   Events.fireSpellcheckStart(editor);
 };
 
-export default {
+export {
   spellcheck,
   checkIfFinished,
   addToDictionary,

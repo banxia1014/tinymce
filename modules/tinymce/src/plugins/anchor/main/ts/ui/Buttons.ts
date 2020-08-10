@@ -22,6 +22,6 @@ const register = (editor: Editor) => {
   });
 };
 
-export default {
+export {
   register
 };

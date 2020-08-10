@@ -1,8 +1,8 @@
+import { Assert, UnitTest } from '@ephox/bedrock-client';
 import * as Arr from 'ephox/katamari/api/Arr';
 import * as Fun from 'ephox/katamari/api/Fun';
 import * as Obj from 'ephox/katamari/api/Obj';
 import fc from 'fast-check';
-import { UnitTest, Assert } from '@ephox/bedrock-client';
 
 UnitTest.test('BiFilterTest', () => {
   const even = (x) => x % 2 === 0;
@@ -13,10 +13,10 @@ UnitTest.test('BiFilterTest', () => {
     Assert.eq('eq', falseObj, filtered.f);
   };
 
-  check({}, {a: '1'}, {a: '1'}, even);
-  check({b: '2'}, {}, {b: '2'}, even);
-  check({b: '2'}, {a: '1'}, {a: '1', b: '2'}, even);
-  check({b: '2', d: '4'}, {a: '1', c: '3'}, {a: '1', b: '2', c: '3', d: '4'}, even);
+  check({}, { a: '1' }, { a: '1' }, even);
+  check({ b: '2' }, {}, { b: '2' }, even);
+  check({ b: '2' }, { a: '1' }, { a: '1', b: '2' }, even);
+  check({ b: '2', d: '4' }, { a: '1', c: '3' }, { a: '1', b: '2', c: '3', d: '4' }, even);
 });
 
 UnitTest.test('Check that if the filter always returns false, then everything is in "f"', () => {
@@ -25,7 +25,7 @@ UnitTest.test('Check that if the filter always returns false, then everything is
     (obj) => {
       const output = Obj.bifilter(obj, Fun.constant(false));
       Assert.eq('eq', Obj.keys(obj).length, Obj.keys(output.f).length);
-      Assert.eq('eq', 0,  Obj.keys(output.t).length);
+      Assert.eq('eq', 0, Obj.keys(output.t).length);
       return true;
     }
   ));
@@ -37,7 +37,7 @@ UnitTest.test('Check that if the filter always returns true, then everything is 
     (obj) => {
       const output = Obj.bifilter(obj, Fun.constant(true));
       Assert.eq('eq', 0, Obj.keys(output.f).length);
-      Assert.eq('eq', Obj.keys(obj).length,  Obj.keys(output.t).length);
+      Assert.eq('eq', Obj.keys(obj).length, Obj.keys(output.t).length);
       return true;
     }
   ));

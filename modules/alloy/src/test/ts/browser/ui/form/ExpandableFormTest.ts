@@ -23,70 +23,66 @@ UnitTest.asynctest('ExpandableFormTest', (success, failure) => {
   // Seems to have stopped working on phantomjs
   if (PhantomSkipper.skip()) { return success(); }
 
-  GuiSetup.setup((store, doc, body) => {
+  GuiSetup.setup((_store, _doc, _body) => {
 
     const pMinimal = ExpandableForm.parts().minimal(
-      Form.sketch((parts: FormParts) => {
-        return {
-          dom: {
-            tag: 'div',
-            classes: [ 'minimal-form', 'form-section' ]
-          },
-          components: [
-            parts.field('form.ant', FormField.sketch({
-              uid: 'input-ant',
-              dom: {
-                tag: 'div'
-              },
-              components: [
-                FormField.parts().field({
-                  factory: Input,
-                  data: 'init',
-                  inputBehaviours: Behaviour.derive([
-                    Tabstopping.config({ })
-                  ])
-                }),
-                FormField.parts().label({ dom: { tag: 'label', innerHtml: 'a' }, components: [ ] })
-              ]
-            }))
-          ]
-        };
-      })
+      Form.sketch((parts: FormParts) => ({
+        dom: {
+          tag: 'div',
+          classes: [ 'minimal-form', 'form-section' ]
+        },
+        components: [
+          parts.field('form.ant', FormField.sketch({
+            uid: 'input-ant',
+            dom: {
+              tag: 'div'
+            },
+            components: [
+              FormField.parts().field({
+                factory: Input,
+                data: 'init',
+                inputBehaviours: Behaviour.derive([
+                  Tabstopping.config({ })
+                ])
+              }),
+              FormField.parts().label({ dom: { tag: 'label', innerHtml: 'a' }, components: [ ] })
+            ]
+          }))
+        ]
+      }))
     );
 
     const pExtra = ExpandableForm.parts().extra(
-      Form.sketch((parts: FormParts) => {
-        return {
-          dom: {
-            tag: 'div',
-            classes: [ 'extra-form', 'form-section' ]
-          },
-          components: [
-            Container.sketch({ dom: { styles: { height: '100px', width: '100px', background: 'green' } } }),
-            parts.field('form.bull', FormField.sketch({
-              uid: 'select-bull',
-              dom: {
-                tag: 'div'
-              },
-              components: [
-                FormField.parts().field({
-                  factory: HtmlSelect,
-                  selectBehaviours: Behaviour.derive([
-                    Tabstopping.config({ })
-                  ]),
-                  options: [
-                    { value: 'select-b-init', text: 'Select-b-init' },
-                    { value: 'select-b-set', text: 'Select-b-set' },
-                    { value: 'select-b-other', text: 'Select-b-other' }
-                  ]
-                }),
+      Form.sketch((parts: FormParts) => ({
+        dom: {
+          tag: 'div',
+          classes: [ 'extra-form', 'form-section' ]
+        },
+        components: [
+          Container.sketch({ dom: { styles: { height: '100px', width: '100px', background: 'green' }}}),
+          parts.field('form.bull', FormField.sketch({
+            uid: 'select-bull',
+            dom: {
+              tag: 'div'
+            },
+            components: [
+              FormField.parts().field({
+                factory: HtmlSelect,
+                selectBehaviours: Behaviour.derive([
+                  Tabstopping.config({ })
+                ]),
+                options: [
+                  { value: 'select-b-init', text: 'Select-b-init' },
+                  { value: 'select-b-set', text: 'Select-b-set' },
+                  { value: 'select-b-other', text: 'Select-b-other' }
+                ]
+              }),
 
-                FormField.parts().label({ dom: { tag: 'label', innerHtml: 'a' }, components: [ ] })
-              ]
-            }))
-          ]
-        };
-      })
+              FormField.parts().label({ dom: { tag: 'label', innerHtml: 'a' }, components: [ ] })
+            ]
+          }))
+        ]
+      }))
     );
 
     const me = GuiFactory.build(
@@ -115,7 +111,7 @@ UnitTest.asynctest('ExpandableFormTest', (success, failure) => {
               tag: 'button',
               innerHtml: 'Shrink!'
             },
-            action (button) {
+            action(_button) {
               ExpandableForm.collapseFormImmediately(me);
             },
             buttonBehaviours: Behaviour.derive([
@@ -153,7 +149,7 @@ UnitTest.asynctest('ExpandableFormTest', (success, failure) => {
 
     return me;
 
-  }, (doc, body, gui, component, store) => {
+  }, (doc, _body, gui, component, _store) => {
     const helper = TestForm.helper(component);
 
     return [
@@ -287,7 +283,7 @@ UnitTest.asynctest('ExpandableFormTest', (success, failure) => {
             Focus.search(component.element()).fold(() => {
               die('The focus has not stayed in the form');
             }, next);
-          }),
+          })
         ])
       ),
 

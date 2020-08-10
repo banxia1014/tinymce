@@ -5,15 +5,19 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { AddEventsBehaviour, AlloyComponent, AlloyEvents, AlloyTriggers, Behaviour, EventFormat, FormField as AlloyFormField, Keying, NativeEvents, Replacing, Representing, SimulatedEvent, SketchSpec, SystemEvents, Tabstopping } from '@ephox/alloy';
+import {
+  AddEventsBehaviour, AlloyComponent, AlloyEvents, AlloyTriggers, Behaviour, Disabling, EventFormat, FormField as AlloyFormField, Keying,
+  NativeEvents, Replacing, Representing, SimulatedEvent, SketchSpec, SystemEvents, Tabstopping
+} from '@ephox/alloy';
 import { Types } from '@ephox/bridge';
 import { HTMLElement } from '@ephox/dom-globals';
 import { Arr, Fun } from '@ephox/katamari';
 
-import { Attr, Class, Element, EventArgs, Focus, Html, SelectorFind } from '@ephox/sugar';
+import { Attr, Class, Element, EventArgs, Focus, Html, SelectorFilter, SelectorFind } from '@ephox/sugar';
 import I18n from 'tinymce/core/api/util/I18n';
 import { renderFormFieldWith, renderLabel } from 'tinymce/themes/silver/ui/alien/FieldLabeller';
 import { UiFactoryBackstageProviders } from '../../backstage/Backstage';
+import * as ReadOnly from '../../ReadOnly';
 
 import { detectSize } from '../alien/FlatgridAutodetect';
 import { formActionEvent, formResizeEvent } from '../general/FormEvents';
@@ -57,26 +61,26 @@ export const renderCollection = (spec: CollectionSpec, providersBackstage: UiFac
       // Title attribute is added here to provide tooltips which might be helpful to sighted users.
       // Using aria-label here overrides the Apple description of emojis and special characters in Mac/ MS description in Windows.
       // But if only the title attribute is used instead, the names are read out twice. i.e., the description followed by the item.text.
-      const ariaLabel = itemText.replace(/\_| \- |\-/g, (match) => {
-        return mapItemName[match];
-      });
-      return `<div class="tox-collection__item" tabindex="-1" data-collection-item-value="${escapeAttribute(item.value)}" title="${ariaLabel}" aria-label="${ariaLabel}">${iconContent}${textContent}</div>`;
+      const ariaLabel = itemText.replace(/\_| \- |\-/g, (match) => mapItemName[match]);
+
+      const readonlyClass = providersBackstage.isReadOnly() ? ' tox-collection__item--state-disabled' : '';
+      return `<div class="tox-collection__item${readonlyClass}" tabindex="-1" data-collection-item-value="${escapeAttribute(item.value)}" title="${ariaLabel}" aria-label="${ariaLabel}">${iconContent}${textContent}</div>`;
     });
 
     const chunks = spec.columns > 1 && spec.columns !== 'auto' ? Arr.chunk(htmlLines, spec.columns) : [ htmlLines ];
-    const html = Arr.map(chunks, (ch) => {
-      return `<div class="tox-collection__group">${ch.join('')}</div>`;
-    });
+    const html = Arr.map(chunks, (ch) => `<div class="tox-collection__group">${ch.join('')}</div>`);
 
     Html.set(comp.element(), html.join(''));
   };
 
   const onClick = runOnItem((comp, se, tgt, itemValue) => {
     se.stop();
-    AlloyTriggers.emitWith(comp, formActionEvent, {
-      name: spec.name,
-      value: itemValue
-    });
+    if (!providersBackstage.isReadOnly()) {
+      AlloyTriggers.emitWith(comp, formActionEvent, {
+        name: spec.name,
+        value: itemValue
+      });
+    }
   });
 
   const collectionEvents = [
@@ -104,6 +108,8 @@ export const renderCollection = (spec: CollectionSpec, providersBackstage: UiFac
     }))
   ];
 
+  const iterCollectionItems = (comp, applyAttributes) => Arr.map(SelectorFilter.descendants(comp.element(), '.tox-collection__item'), applyAttributes);
+
   const pField = AlloyFormField.parts().field({
     dom: {
       tag: 'div',
@@ -113,6 +119,22 @@ export const renderCollection = (spec: CollectionSpec, providersBackstage: UiFac
     components: [ ],
     factory: { sketch: Fun.identity },
     behaviours: Behaviour.derive([
+      Disabling.config({
+        disabled: providersBackstage.isReadOnly,
+        onDisabled: (comp) => {
+          iterCollectionItems(comp, (childElm) => {
+            Class.add(childElm, 'tox-collection__item--state-disabled');
+            Attr.set(childElm, 'aria-disabled', true);
+          });
+        },
+        onEnabled: (comp) => {
+          iterCollectionItems(comp, (childElm) => {
+            Class.remove(childElm, 'tox-collection__item--state-disabled');
+            Attr.remove(childElm, 'aria-disabled');
+          });
+        }
+      }),
+      ReadOnly.receivingConfig(),
       Replacing.config({ }),
       Representing.config({
         store: {
@@ -135,10 +157,13 @@ export const renderCollection = (spec: CollectionSpec, providersBackstage: UiFac
         deriveCollectionMovement(spec.columns, 'normal')
       ),
       AddEventsBehaviour.config('collection-events', collectionEvents)
-    ])
+    ]),
+    eventOrder: {
+      'alloy.execute': [ 'disabling', 'alloy.base.behaviour', 'collection-events' ]
+    }
   });
 
-  const extraClasses = ['tox-form__group--collection'];
+  const extraClasses = [ 'tox-form__group--collection' ];
 
   return renderFormFieldWith(pLabel, pField, extraClasses, [ ]);
 };

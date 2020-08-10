@@ -7,9 +7,9 @@ import Editor from 'tinymce/core/api/Editor';
 import Env from 'tinymce/core/api/Env';
 import VK from 'tinymce/core/api/util/VK';
 import * as CaretContainer from 'tinymce/core/caret/CaretContainer';
-import Zwsp from 'tinymce/core/text/Zwsp';
+import * as Zwsp from 'tinymce/core/text/Zwsp';
 import Theme from 'tinymce/themes/silver/Theme';
-import KeyUtils from '../module/test/KeyUtils';
+import * as KeyUtils from '../module/test/KeyUtils';
 
 UnitTest.asynctest('browser.tinymce.core.SelectionOverridesTest', function (success, failure) {
   const suite = LegacyUnit.createSuite<Editor>();
@@ -166,8 +166,8 @@ UnitTest.asynctest('browser.tinymce.core.SelectionOverridesTest', function (succ
       editor.selection.select(editor.dom.select('table')[0]);
       const offscreenSelection = editor.dom.select('.mce-offscreen-selection')[0];
 
-      ok(offscreenSelection.offsetLeft !== undefined, 'The offscreen selection\'s left border is undefined');
-      ok(offscreenSelection.offsetLeft < 0, 'The offscreen selection\'s left border is onscreen');
+      ok(offscreenSelection.offsetLeft !== undefined, `The offscreen selection's left border is undefined`);
+      ok(offscreenSelection.offsetLeft < 0, `The offscreen selection's left border is onscreen`);
       ok(offscreenSelection.offsetWidth + offscreenSelection.offsetLeft < 0,
         'The cE=false offscreen selection is visible on-screen. Right edge: ' +
         offscreenSelection.offsetLeft + '+' + offscreenSelection.offsetWidth + '=' +
@@ -193,7 +193,7 @@ UnitTest.asynctest('browser.tinymce.core.SelectionOverridesTest', function (succ
   });
 
   suite.test('set range after ce=false element but lean backwards', function (editor) {
-    editor.setContent('<p><span contenteditable="false">Noneditable1</span><span contenteditable="false">Noneditable2</span></p>', {format: 'raw'});
+    editor.setContent('<p><span contenteditable="false">Noneditable1</span><span contenteditable="false">Noneditable2</span></p>', { format: 'raw' });
 
     const rng = document.createRange();
     const firstSpan = editor.dom.select('span[contenteditable=false]')[0];
@@ -227,18 +227,14 @@ UnitTest.asynctest('browser.tinymce.core.SelectionOverridesTest', function (succ
   });
 
   suite.test('showCaret at TD', function (editor) {
-    let rng;
-
     editor.setContent('<table><tr><td contenteditable="false">x</td></tr></table>');
-    rng = editor._selectionOverrides.showCaret(1, editor.dom.select('td')[0], true);
+    const rng = editor._selectionOverrides.showCaret(1, editor.dom.select('td')[0], true);
     LegacyUnit.equal(true, rng === null, 'Should be null since TD is not a valid caret target');
   });
 
   suite.test('showCaret at TH', function (editor) {
-    let rng;
-
     editor.setContent('<table><tr><th contenteditable="false">x</th></tr></table>');
-    rng = editor._selectionOverrides.showCaret(1, editor.dom.select('th')[0], true);
+    const rng = editor._selectionOverrides.showCaret(1, editor.dom.select('th')[0], true);
     LegacyUnit.equal(true, rng === null, 'Should be null since TH is not a valid caret target');
   });
 
@@ -299,7 +295,7 @@ UnitTest.asynctest('browser.tinymce.core.SelectionOverridesTest', function (succ
   });
 
   suite.test('set range in short ended element', function (editor) {
-    Arr.each(['br', 'img', 'input'], (elmName) => {
+    Arr.each([ 'br', 'img', 'input' ], (elmName) => {
       editor.setContent('<p><' + elmName + '/></p>');
       const paraElem = editor.dom.select('p')[0];
       const elem = editor.dom.select(elmName)[0];

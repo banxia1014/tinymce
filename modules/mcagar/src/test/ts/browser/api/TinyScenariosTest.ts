@@ -56,15 +56,13 @@ UnitTest.asynctest('TinyScenariosTest', (success, failure) => {
         },
         scenario: {
           exclusions: {
-            containers: (elem) => {
-              return !Node.isText(elem);
-            }
+            containers: (elem) => !Node.isText(elem)
           }
         }
-      }),
+      })
     ], loadSuccess, loadFailure);
 
   }, {
-    base_url: '/project/tinymce/js/tinymce',
+    base_url: '/project/tinymce/js/tinymce'
   }, success, failure);
 });

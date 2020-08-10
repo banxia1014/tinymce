@@ -11,14 +11,14 @@ import { Css, Element as SugarElement, Height, Insert, Location, Node, Position,
 import Editor from '../api/Editor';
 import { ScrollIntoViewEvent } from '../api/EventTypes';
 import * as OuterPosition from '../frames/OuterPosition';
-import Zwsp from '../text/Zwsp';
+import * as Zwsp from '../text/Zwsp';
 
 interface MarkerInfo {
-  element: SugarElement;
-  bottom: number;
-  height: number;
-  pos: Position;
-  cleanup: () => void;
+  readonly element: SugarElement;
+  readonly bottom: number;
+  readonly height: number;
+  readonly pos: Position;
+  readonly cleanup: () => void;
 }
 
 type ScrollFunc = (doc: SugarElement, scrollTop: number, marker: MarkerInfo, alignToTop?: boolean) => void;
@@ -34,7 +34,7 @@ const fireAfterScrollIntoViewEvent = (editor: Editor, data: ScrollIntoViewEvent)
   editor.fire('AfterScrollIntoView', data);
 };
 
-const descend = (element: SugarElement, offset: number): { element: SugarElement, offset: number } => {
+const descend = (element: SugarElement, offset: number): { element: SugarElement; offset: number } => {
   const children = Traverse.children(element);
   if (children.length === 0 || excludeFromDescend(element)) {
     return { element, offset };
@@ -76,9 +76,7 @@ const createMarker = (element: SugarElement, offset: number): MarkerInfo => {
   return markerInfo(span, () => Remove.remove(span));
 };
 
-const elementMarker = (element: HTMLElement): MarkerInfo => {
-  return markerInfo(SugarElement.fromDom(element), Fun.noop);
-};
+const elementMarker = (element: HTMLElement): MarkerInfo => markerInfo(SugarElement.fromDom(element), Fun.noop);
 
 const withMarker = (editor: Editor, f: ScrollFunc, rng: Range, alignToTop?: boolean) => {
   preserveWith(editor, (_s, _e) => applyWithMarker(editor, f, rng, alignToTop), rng);
@@ -169,9 +167,9 @@ const intoFrame = (doc: SugarElement, scrollTop: number, marker: MarkerInfo, ali
   // If the new position is outside the window viewport, scroll to it
   const op = OuterPosition.find(marker.element);
   const viewportBounds = VisualViewport.getBounds(window);
-  if (op.top() < viewportBounds.y()) {
+  if (op.top() < viewportBounds.y) {
     Scroll.intoView(marker.element, alignToTop !== false);
-  } else if (op.top() > viewportBounds.bottom()) {
+  } else if (op.top() > viewportBounds.bottom) {
     Scroll.intoView(marker.element, alignToTop === true);
   }
 };
@@ -182,19 +180,19 @@ const elementIntoWindow = (editor: Editor, element: HTMLElement, alignToTop?: bo
 const rangeIntoFrame = (editor: Editor, rng: Range, alignToTop?: boolean) => withMarker(editor, intoFrame, rng, alignToTop);
 const elementIntoFrame = (editor: Editor, element: HTMLElement, alignToTop?: boolean) => withElement(editor, element, intoFrame, alignToTop);
 
-const elementIntoView = (editor: Editor, element: HTMLElement, alignToTop?: boolean) => {
+const scrollElementIntoView = (editor: Editor, element: HTMLElement, alignToTop?: boolean) => {
   const scroller = editor.inline ? elementIntoWindow : elementIntoFrame;
   scroller(editor, element, alignToTop);
 };
 
 // This method is made to deal with the user pressing enter, it is not useful
 // if we want for example scroll in content after a paste event.
-const rangeIntoView = (editor: Editor, rng: Range, alignToTop?: boolean) => {
+const scrollRangeIntoView = (editor: Editor, rng: Range, alignToTop?: boolean) => {
   const scroller = editor.inline ? rangeIntoWindow : rangeIntoFrame;
   scroller(editor, rng, alignToTop);
 };
 
-export default {
-  scrollElementIntoView: elementIntoView,
-  scrollRangeIntoView: rangeIntoView
+export {
+  scrollElementIntoView,
+  scrollRangeIntoView
 };

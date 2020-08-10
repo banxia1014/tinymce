@@ -1,9 +1,9 @@
 import { Assert, UnitTest } from '@ephox/bedrock-client';
 import { Gene, TestUniverse, TextGene, Universe } from '@ephox/boss';
 import { Arr, Option } from '@ephox/katamari';
-import Look from 'ephox/robin/api/general/Look';
-import Parent from 'ephox/robin/api/general/Parent';
-import Structure from 'ephox/robin/api/general/Structure';
+import * as Look from 'ephox/robin/api/general/Look';
+import * as Parent from 'ephox/robin/api/general/Parent';
+import * as Structure from 'ephox/robin/api/general/Structure';
 
 UnitTest.test('BlockTest', function () {
   const doc = TestUniverse(Gene('root', 'root', [
@@ -39,10 +39,10 @@ UnitTest.test('BlockTest', function () {
     Assert.eq('Checking parent :: Option', expected.getOr('none'), actual.getOr(Gene('none', 'none')).id);
   };
 
-  check(Option.some('ol1'), ['li2'], Look.selector(doc, 'ol'));
-  check(Option.some('ol1'), ['li2', 'li3', 'li4_text'], Look.selector(doc, 'ol'));
-  check(Option.none(), ['li2', 'li5'], Look.selector(doc, 'ol'));
+  check(Option.some('ol1'), [ 'li2' ], Look.selector(doc, 'ol'));
+  check(Option.some('ol1'), [ 'li2', 'li3', 'li4_text' ], Look.selector(doc, 'ol'));
+  check(Option.none(), [ 'li2', 'li5' ], Look.selector(doc, 'ol'));
 
-  check(Option.some('ol1'), ['li2', 'li4'], Look.predicate(doc, (item: Gene) => Structure.isBlock(doc, item)));
-  check(Option.some('d1'), ['li1_text', 'li5_text'], Look.exact(doc, Gene('d1', 'div')));
+  check(Option.some('ol1'), [ 'li2', 'li4' ], Look.predicate(doc, (item: Gene) => Structure.isBlock(doc, item)));
+  check(Option.some('d1'), [ 'li1_text', 'li5_text' ], Look.exact(doc, Gene('d1', 'div')));
 });

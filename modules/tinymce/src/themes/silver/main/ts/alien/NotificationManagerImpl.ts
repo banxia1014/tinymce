@@ -12,13 +12,11 @@ import { Body, Element } from '@ephox/sugar';
 import Editor from 'tinymce/core/api/Editor';
 import { NotificationApi, NotificationManagerImpl, NotificationSpec } from 'tinymce/core/api/NotificationManager';
 import Delay from 'tinymce/core/api/util/Delay';
-import * as Settings from '../api/Settings';
 import { UiFactoryBackstage } from '../backstage/Backstage';
 import { Notification } from '../ui/general/Notification';
 
 export default function (editor: Editor, extras, uiMothership: Gui.GuiSystem): NotificationManagerImpl {
   const backstage: UiFactoryBackstage = extras.backstage;
-  const isToolbarLocationTop = Settings.isToolbarLocationTop(editor);
 
   const getLayoutDirection = (rel: 'tc-tc' | 'bc-bc' | 'bc-tc' | 'tc-bc') => {
     switch (rel) {
@@ -67,7 +65,7 @@ export default function (editor: Editor, extras, uiMothership: Gui.GuiSystem): N
     const notification = GuiFactory.build(
       Notification.sketch({
         text: settings.text,
-        level: Arr.contains(['success', 'error', 'warning', 'warn', 'info'], settings.type) ? settings.type : undefined,
+        level: Arr.contains([ 'success', 'error', 'warning', 'warn', 'info' ], settings.type) ? settings.type : undefined,
         progress: settings.progressBar === true,
         icon: Option.from(settings.icon),
         closeButton: !hideCloseButton,
@@ -85,7 +83,7 @@ export default function (editor: Editor, extras, uiMothership: Gui.GuiSystem): N
         },
         lazySink: extras.backstage.shared.getSink,
         fireDismissalEventInstead: { },
-        ...isToolbarLocationTop ? { } : { fireRepositionEventInstead: { } },
+        ...backstage.shared.header.isPositionedAtTop() ? { } : { fireRepositionEventInstead: { }}
       })
     );
 

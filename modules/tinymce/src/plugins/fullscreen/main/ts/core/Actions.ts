@@ -5,26 +5,27 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 import { document, window } from '@ephox/dom-globals';
-import { Fun, Singleton } from '@ephox/katamari';
+import { Fun, Singleton, Cell } from '@ephox/katamari';
 import { Css, Element, VisualViewport } from '@ephox/sugar';
 import DOMUtils from 'tinymce/core/api/dom/DOMUtils';
 import Env from 'tinymce/core/api/Env';
 import Delay from 'tinymce/core/api/util/Delay';
-import Events from '../api/Events';
-import Thor from './Thor';
+import * as Events from '../api/Events';
+import * as Thor from './Thor';
+import Editor from 'tinymce/core/api/Editor';
 
 const DOM = DOMUtils.DOM;
 
-const getScrollPos = function () {
+const getScrollPos = () => {
   const vp = VisualViewport.getBounds(window);
 
   return {
-    x: vp.x(),
-    y: vp.y()
+    x: vp.x,
+    y: vp.y
   };
 };
 
-const setScrollPos = function (pos) {
+const setScrollPos = (pos) => {
   window.scrollTo(pos.x, pos.y);
 };
 
@@ -78,12 +79,10 @@ const viewportUpdate = VisualViewport.get().fold(
   }
 );
 
-const toggleFullscreen = function (editor, fullscreenState) {
+const toggleFullscreen = (editor: Editor, fullscreenState: Cell<any>) => {
   const body = document.body;
   const documentElement = document.documentElement;
-  let editorContainerStyle;
-  let editorContainer, iframe, iframeStyle;
-  editorContainer = editor.getContainer();
+  const editorContainer = editor.getContainer();
   const editorContainerS = Element.fromDom(editorContainer);
 
   const fullscreenInfo = fullscreenState.get();
@@ -91,9 +90,22 @@ const toggleFullscreen = function (editor, fullscreenState) {
 
   const isTouch = Env.deviceType.isTouch();
 
-  editorContainerStyle = editorContainer.style;
-  iframe = editor.getContentAreaContainer().firstChild;
-  iframeStyle = iframe.style;
+  const editorContainerStyle = editorContainer.style;
+
+  const iframe = editor.iframeElement;
+  const iframeStyle = iframe.style;
+
+  const cleanup = () => {
+    if (isTouch) {
+      Thor.restoreStyles(editor.dom);
+    }
+
+    DOM.removeClass(body, 'tox-fullscreen');
+    DOM.removeClass(documentElement, 'tox-fullscreen');
+    DOM.removeClass(editorContainer, 'tox-fullscreen');
+
+    viewportUpdate.unbind();
+  };
 
   if (!fullscreenInfo) {
     const newFullScreenInfo = {
@@ -119,7 +131,7 @@ const toggleFullscreen = function (editor, fullscreenState) {
 
     viewportUpdate.bind(editorContainerS);
 
-    editor.on('remove', viewportUpdate.unbind);
+    editor.on('remove', cleanup);
 
     fullscreenState.set(newFullScreenInfo);
     Events.fireFullscreenStateChanged(editor, true);
@@ -132,21 +144,15 @@ const toggleFullscreen = function (editor, fullscreenState) {
     editorContainerStyle.top = fullscreenInfo.containerTop;
     editorContainerStyle.left = fullscreenInfo.containerLeft;
 
-    if (isTouch) {
-      Thor.restoreStyles(editor.dom);
-    }
-    DOM.removeClass(body, 'tox-fullscreen');
-    DOM.removeClass(documentElement, 'tox-fullscreen');
-    DOM.removeClass(editorContainer, 'tox-fullscreen');
     setScrollPos(fullscreenInfo.scrollPos);
 
     fullscreenState.set(null);
     Events.fireFullscreenStateChanged(editor, false);
-    viewportUpdate.unbind();
-    editor.off('remove', viewportUpdate.unbind);
+    cleanup();
+    editor.off('remove', cleanup);
   }
 };
 
-export default {
+export {
   toggleFullscreen
 };
