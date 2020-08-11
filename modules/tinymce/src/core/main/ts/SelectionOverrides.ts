@@ -70,7 +70,6 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
   };
 
   const setRange = function (range: Range) {
-    // console.log('setRange', range);
     if (range) {
       editor.selection.setRng(range);
     }
@@ -143,10 +142,14 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
 
     const handleTouchSelect = function (editor: Editor) {
       editor.on('tap', (e) => {
+        RE.imageHandleClick(e.target);
+        RE.videoHandleClick(e.target);
+        RE.jumpEditLink(e.target);
+
         const contentEditableRoot = getContentEditableRoot(editor, e.target);
         if (isContentEditableFalse(contentEditableRoot)) {
           e.preventDefault();
-          setContentEditableSelection(CefUtils.selectNode(editor, contentEditableRoot));
+          // setContentEditableSelection(CefUtils.selectNode(editor, contentEditableRoot));
         }
       }, true);
     };
@@ -361,6 +364,18 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
       if (!isRangeInCaretContainer(range)) {
         if (forward === false) {
           caretPosition = CaretUtils.getNormalizedRangeEndPoint(-1, rootNode, range);
+
+          if (caretPosition.getNode(true) && caretPosition.getNode(true).nodeType === 1 && caretPosition.getNode(true).classList.contains('qf_image')) {
+            const element = caretPosition.getNode(true);
+            const rng = element.ownerDocument.createRange();
+            rng.setStart(element, 0);
+            rng.setEnd(element, 0);
+            editor.selection.setRng(rng);
+            editor.selection.select(element);
+            // editor.selection.setContent(editor, element);
+            // CefUtils.selectNode(editor, caretPosition.getNode(true));
+            return rng;
+          }
 
           if (isFakeCaretTarget(caretPosition.getNode(true))) {
             return showCaret(-1, caretPosition.getNode(true), false, false);

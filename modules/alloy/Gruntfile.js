@@ -82,7 +82,7 @@ module.exports = function (grunt) {
         ],
         inline: false,
         port: 3003,
-        host: '0.0.0.0',
+        host: '192.168.25.237',
         disableHostCheck: true
       },
       start: { }

@@ -48,15 +48,40 @@ const createPreviewIframeNode = function (editor: Editor, node: Node) {
   retainAttributesAndInnerHtml(editor, node, previewWrapper);
 
   const previewNode = new Node(name, 1);
-  previewNode.attr({
-    src: node.attr('src'),
-    allowfullscreen: node.attr('allowfullscreen'),
-    style: node.attr('style'),
-    class: node.attr('class'),
-    width: node.attr('width'),
-    height: node.attr('height'),
-    frameborder: '0'
-  });
+  if (name === 'video') {
+
+    previewWrapper.attr({
+      class: 'qf_insert_video mce-preview-object mce-object-' + name
+    });
+    // 给插入的video标签指定格式
+    previewNode.attr({
+      src: node.attr('src'),
+      poster: node.attr('poster'),
+      allowfullscreen: node.attr('allowfullscreen'),
+      style: node.attr('style'),
+      class: node.attr('class'),
+      width: node.attr('width'),
+      height: node.attr('height'),
+      frameborder: '0'
+    });
+
+    if (node.attr('data-qf-origin') && node.attr('data-qf-poster-origin')) {
+      previewNode.attr({
+        'data-qf-origin': node.attr('data-qf-origin'),
+        'data-qf-poster-origin': node.attr('data-qf-poster-origin')
+      });
+    }
+  } else {
+    previewNode.attr({
+      src: node.attr('src'),
+      allowfullscreen: node.attr('allowfullscreen'),
+      style: node.attr('style'),
+      class: node.attr('class'),
+      width: node.attr('width'),
+      height: node.attr('height'),
+      frameborder: '0'
+    });
+  }
 
   const shimNode = new Node('span', 1);
   shimNode.attr('class', 'mce-shim');
@@ -147,6 +172,10 @@ const placeHolderConverter = function (editor: Editor) {
       }
 
       if (node.name === 'iframe' && Settings.hasLiveEmbeds(editor) && Env.ceFalse) {
+        if (!isWithinEmbedWrapper(node)) {
+          node.replace(createPreviewIframeNode(editor, node));
+        }
+      } else if (node.name === 'video') {
         if (!isWithinEmbedWrapper(node)) {
           node.replace(createPreviewIframeNode(editor, node));
         }

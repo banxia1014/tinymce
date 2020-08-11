@@ -38,6 +38,7 @@ const setup = function (editor: Editor) {
 
     // Replaces placeholder images with real elements for video, object, iframe etc
     editor.serializer.addAttributeFilter('data-mce-object', function (nodes, name) {
+      // 提交视频的时候
       let i = nodes.length;
       let node;
       let realElm;
@@ -61,10 +62,27 @@ const setup = function (editor: Editor) {
         if (realElmName !== 'audio' && realElmName !== 'script') {
           className = node.attr('class');
           if (className && className.indexOf('mce-preview-object') !== -1) {
+            let selected = node.firstChild;
+            if (node.firstChild.next) {
+              selected = node.firstChild.next;
+            }
             realElm.attr({
-              width: node.firstChild.attr('width'),
-              height: node.firstChild.attr('height')
+              src: selected.attr('src'),
+              poster: selected.attr('poster'),
+              allowfullscreen: selected.attr('allowfullscreen'),
+              style: selected.attr('style'),
+              class: selected.attr('class'),
+              width: selected.attr('width'),
+              height: selected.attr('height'),
+              frameborder: '0'
             });
+            // 提交的时候加上自定义属性
+            if (selected.attr('data-qf-origin') && selected.attr('data-qf-poster-origin')) {
+              realElm.attr({
+                'data-qf-origin': selected.attr('data-qf-origin'),
+                'data-qf-poster-origin': selected.attr('data-qf-poster-origin')
+              });
+            }
           } else {
             realElm.attr({
               width: node.attr('width'),
