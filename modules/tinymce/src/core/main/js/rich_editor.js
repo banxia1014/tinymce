@@ -1,5 +1,5 @@
 "use strict";
-var RE = {}
+window.RE = {}
 RE.editor = document.getElementById('mytextarea');
 
 RE.currentSelection = {
@@ -299,11 +299,12 @@ RE.getInsertNode = function () {
 }
 
 // 视频选中事件
-RE.videoSelected = function (currentNode) {
+RE.videoSelected = function (currentNode, img_width = 0) {
 	// 加关闭按钮
 	if ($('.closeImg').length > 0) {
 		return false
 	}
+
 
 	let delHtml = document.createElement("span");
 	delHtml.classList.add("closeImg")
@@ -311,6 +312,10 @@ RE.videoSelected = function (currentNode) {
 	delHtml.setAttribute('contenteditable', false)
 	currentNode.appendChild(delHtml);
 	currentNode.style.position = 'relative'
+	if(img_width > 0 && img_width < document.body.clientWidth){
+		let right_width = (document.body.offsetWidth - img_width) / 2 + 10
+		delHtml.style.right = right_width + 'px'
+	}
 
 
 	// // 关闭按钮加点击事件,删除视频
@@ -338,6 +343,7 @@ RE.videoSelected = function (currentNode) {
 RE.imageHandleClick = function (selectedNode) {
 	console.log('图片点击')
 	let parentNode = selectedNode.parentNode
+	let img_width = !!selectedNode.getAttribute('width') ? selectedNode.getAttribute('width') : 0
 	// 图片点击事件
 	if (selectedNode.parentNode && selectedNode.parentNode.classList.contains('qf_image')) {
 		RE.blur();
@@ -348,7 +354,7 @@ RE.imageHandleClick = function (selectedNode) {
 		if (!parentNode.classList.contains('borderline')) {
 			parentNode.classList.add('borderline');
 			/// <reference path="./re.ts">
-			RE.showOperate(parentNode);
+			RE.showOperate(parentNode,img_width);
 		}
 	}
 
@@ -399,7 +405,7 @@ RE.videoHandleClick = function (selectedNode) {
 }
 
 // 图片操作弹窗
-RE.showOperate = function (currentNode) {
+RE.showOperate = function (currentNode, img_width = 0) {
 	if ($('.qf_img_operate').length > 0) {
 		return false
 	}
@@ -418,7 +424,7 @@ RE.showOperate = function (currentNode) {
 
 	// 加关闭按钮
 	setTimeout(function(){
-		RE.videoSelected(currentNode)
+		RE.videoSelected(currentNode, img_width)
 	}, 100)
 }
 
@@ -427,24 +433,28 @@ RE.tabSize = function (selectedNode) {
 	RE.blur();
 	const img = selectedNode.parentNode.parentNode.children[0];
 	const width = img.getAttribute('width');
+	let type = selectedNode.getAttribute('data-action') === 'small' ? 1 : 2;
+	if(type === 1){
+		selectedNode.classList.remove('con');
+		selectedNode.nextElementSibling.classList.add('con');
+	}else{
+		selectedNode.classList.remove('con');
+		selectedNode.previousElementSibling.classList.add('con');
+	}
 	if (width < document.body.clientWidth) {
 		return false;
 	}
-	let type = selectedNode.getAttribute('data-action') === 'small' ? 1 : 2;
 	img.parentNode.classList.remove('small', 'big');
 	img.parentNode.classList.add(type === 1 ? 'small' : 'big');
 	if (type === 1) {
 		selectedNode.parentNode.parentNode.classList.remove('qf_w100');
 		selectedNode.parentNode.parentNode.classList.add('qf_w50')
 		img.parentNode.style.margin = '0 auto';
-		selectedNode.classList.remove('con');
-		selectedNode.nextElementSibling.classList.add('con');
 	} else {
 		selectedNode.parentNode.parentNode.classList.remove('qf_w50');
 		selectedNode.parentNode.parentNode.classList.add('qf_w100')
-		selectedNode.classList.remove('con');
-		selectedNode.previousElementSibling.classList.add('con');
 	}
+	RE.callback()
 }
 
 
@@ -876,4 +886,10 @@ RE.whiteBlockHandle = function (currentNode) {
 	}
 
 	RE.callback()
+}
+
+if(!Array.prototype.find){
+	Array.prototype.find = function(callback) {
+		return callback && (this.filter(callback) || [])[0];
+	};
 }
