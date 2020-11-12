@@ -58,7 +58,6 @@ RE.getEditHtml = function () {
 	str = str.replace(/<span class="closeImg" contenteditable="false">(.*?)<\/span>/g, '') // 把图片删除按钮不计入草稿箱内容
 	str = str.replace(/<div class="qf_img_operate" contenteditable="false">(.*?)<\/div>/g, '') // 把图片操作不计入草稿箱内容
 	str = str.replace(/<p class="qf_image(.*)borderline(.*)"/g, '<p class="qf_image$1$2"') // 把图片操作不计入草稿箱内容
-	console.log(str)
 	return str;
 }
 
@@ -200,7 +199,7 @@ RE.insertImage = function (attach) {
 		tinymce.activeEditor.execCommand('mceInsertContent', false, '<li><br data-mce-bogus="1"></li>')
 		RE.setNumbers()
 	} else if (innerText === '') {
-		html += '<p><br data-mce-bogus="1"></p>'
+		html += '<p class="empty_paragraph"><br data-mce-bogus="1"></p>'
 	}
 
 	var url = attach.host + attach.name
@@ -828,6 +827,7 @@ RE.whiteBlockHandle = function (currentNode) {
 		if (currentNode.nextElementSibling === null) {
 			var pEle = document.createElement('p')
 			pEle.style.height = '25px'
+            pEle.className = 'empty_paragraph'
 			currentNode.parentNode.appendChild(pEle)
 		}
 
@@ -835,6 +835,7 @@ RE.whiteBlockHandle = function (currentNode) {
 		if (currentNode.nextElementSibling && currentNode.nextElementSibling.children[0] && currentNode.nextElementSibling.children[0].classList.contains('qf_insert_video')) {
 			let pEle = document.createElement('p')
 			pEle.innerHTML = '&nbsp'
+            pEle.className = 'empty_paragraph'
 			currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
 		}
 
@@ -842,6 +843,7 @@ RE.whiteBlockHandle = function (currentNode) {
 		if (currentNode.nextElementSibling && currentNode.nextElementSibling.classList.contains('qf_image')) {
 			let pEle = document.createElement('p')
 			pEle.innerHTML = '&nbsp'
+            pEle.className = 'empty_paragraph'
 			currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
 		}
 	}
@@ -864,6 +866,7 @@ RE.whiteBlockHandle = function (currentNode) {
 			let pEle = document.createElement('p')
 			pEle.innerHTML = '&nbsp'
 			pEle.style.height = '25px'
+            pEle.className = 'empty_paragraph'
 			// pEle.style.backgroundColor = 'red'
 			currentNode.parentNode.appendChild(pEle)
 		}
@@ -873,6 +876,7 @@ RE.whiteBlockHandle = function (currentNode) {
 		if (currentNode.nextElementSibling && currentNode.nextElementSibling.classList.contains('qf_image')) {
 			let pEle = document.createElement('p')
 			pEle.innerHTML = '&nbsp'
+            pEle.className = 'empty_paragraph'
 			currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
 		}
 
@@ -881,6 +885,7 @@ RE.whiteBlockHandle = function (currentNode) {
 		if (currentNode.nextElementSibling && currentNode.nextElementSibling.children[0] && currentNode.nextElementSibling.children[0].classList.contains('qf_insert_video')) {
 			let pEle = document.createElement('p')
 			pEle.innerHTML = '&nbsp'
+			pEle.className = '&empty_paragraph'
 			currentNode.parentNode.insertBefore(pEle, currentNode.nextElementSibling)
 		}
 	}

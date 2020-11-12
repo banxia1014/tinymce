@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-  <meta name=save content=history>
-  <meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name=format-detection content="telephone=no">
-  <meta name=apple-mobile-web-app-capable content=yes>
-  <meta name=apple-mobile-web-app-status-bar-style content=blank>
-  <meta http-equiv=Content-Type content="text/html; charset=utf-8">
-  <meta charset=utf-8>
-  <link rel="stylesheet" href="../../demo/css/style.css">
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name=save content=history>
+    <meta name=viewport content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name=format-detection content="telephone=no">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=blank>
+    <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+    <meta charset=utf-8>
+    <link rel="stylesheet" href="../../demo/css/style.css">
 </head>
 <body>
 <!--<button onclick="RE.setBold()">点我加粗</button>-->
@@ -35,146 +35,167 @@
 <script type="text/javascript" src="../../main/js/rich_editor.js"></script>
 <script src="../../../../../../js/tinymce/tinymce.js"></script>
 <script type="text/javascript">
-  window.is_in_quote = 0
-  tinymce.init({
-    selector: '#mytextarea',
-    mobile: {
-      inline: true,
-      menubar: false,
-      plugins: ['lists', 'autolink', 'image', 'code', 'preview', 'link', 'noneditable', 'hr', 'media', 'advlist', 'wordcount'],
-      statusbar: false,
-      toolbar: [],
-      contextmenu: '',
-      placeholder: '请输入内容...',
-      content_css: '../../demo/css/style.css',
-      content_css_cors: true,
-      fullscreen: false,
-      height: window.screen.height,
-      editor_css: "../../demo/css/style.css",
-      remove_trailing_brs: true,
-      auto_focus: true,
-      branding: false,
-    },
-    setup: function (editor) {
-      editor.on('click', function (e) {
+    window.is_in_quote = 0
+    tinymce.init({
+        selector: '#mytextarea',
+        mobile: {
+            inline: true,
+            menubar: false,
+            plugins: ['lists', 'autolink', 'image', 'code', 'preview', 'link', 'noneditable', 'hr', 'media', 'advlist', 'wordcount'],
+            statusbar: false,
+            toolbar: [],
+            contextmenu: '',
+            placeholder: '请输入内容...',
+            content_css: '../../demo/css/style.css',
+            content_css_cors: true,
+            fullscreen: false,
+            height: window.screen.height,
+            editor_css: "../../demo/css/style.css",
+            remove_trailing_brs: true,
+            auto_focus: true,
+            branding: false,
+        },
+        setup: function (editor) {
+            editor.on('click', function (e) {
 
-        // 查找鼠标当前选中的段落的所有样式
-        RE.enabledEditingItems()
+                // 查找鼠标当前选中的段落的所有样式
+                RE.enabledEditingItems()
 
-        // 视频点击样式
-        var currentNode = tinymce.activeEditor.selection.getNode();
+                // 视频点击样式
+                var currentNode = tinymce.activeEditor.selection.getNode();
 
-        // 点击非视频区域，视频选中样式取消
-        if ((currentNode && !currentNode.classList.contains('qf_insert_video')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video'))) {
-          $('#mytextarea').find('.qf_insert_video').removeClass('borderline')
-          $('#mytextarea').find('.closeImg').remove()
+                // 点击非视频区域，视频选中样式取消
+                if ((currentNode && !currentNode.classList.contains('qf_insert_video')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video'))) {
+                    $('#mytextarea').find('.qf_insert_video').removeClass('borderline')
+                    $('#mytextarea').find('.closeImg').remove()
+                }
+
+                // 点击非图片区域，图片选中样式取消
+                if ((currentNode && !currentNode.classList.contains('qf_image')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_image'))) {
+                    $('#mytextarea').find('.qf_image').removeClass('borderline')
+                    $('#mytextarea').find('.closeImg').remove()
+                    $('#mytextarea').find('.qf_img_operate').remove()
+                }
+
+            })
+            editor.on('mousedown', function (e) {
+            })
+            editor.on('input', function (e) {
+                // if(window.is_in_quote > 0){window.is_in_quote -= 1}
+                RE.callback()
+            })
+            editor.on('keyup', function (e) {
+                var currentNode = tinymce.activeEditor.selection.getNode();
+                var currentNodeHtml = currentNode.innerHTML
+                // 去掉空格换行，去掉nbsp，去掉br,去掉html
+                var currentNodeText = currentNodeHtml.replace(/\ +/g, "").replace(/[\r\n]/g, "").replace(/<[^>]+>/g, "").replace(/&nbsp;/ig, "");
+                // 没有内容，加上empty_paragraph
+                if (currentNodeText.length === 0 && currentNode.className.indexOf('empty_paragraph') < 0) {
+                    var className = currentNode.className
+                    var newClass;
+                    if (className !== '') {
+                        newClass = className + ' empty_paragraph'
+                    } else {
+                        newClass = 'empty_paragraph'
+                    }
+                    currentNode.className = newClass
+                }
+
+                // 有内容的时候去掉empty_paragraph
+                if (currentNodeText.length > 0 && currentNode.className.indexOf('empty_paragraph') > -1) {
+                    var className = currentNode.className
+                    className = className.replace(/empty_paragraph/, '')
+                    currentNode.className = className
+                }
+
+                var KEY_DELETE = 8; // 删除键
+                var KEY_BACK = 13; // 换行
+                if (e.which === KEY_BACK) {
+                    RE.callback()
+                }
+
+                // 删除键逻辑
+                if (e.which === KEY_DELETE) {
+
+                    RE.whiteBlockHandle(currentNode)
+
+                }
+
+                // 光标不在视频上，就取消选中的状态
+                if (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video')) {
+                    let $ = tinymce.dom.DomQuery;
+                    $('.qf_insert_video').removeClass('borderline')
+                    $('.closeImg').remove()
+                }
+            })
+            editor.on('change', function (e) {
+            })
+        }
+    });
+
+    function insertImage() {
+        let obj = {
+            'name': '20200428_1354_1588064712337.jpg',
+            'poster': '20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747',
+            'w': 420,
+            'h': 747,
+            'host': 'https://qiance.qianfanyun.com/',
         }
 
-        // 点击非图片区域，图片选中样式取消
-        if ((currentNode && !currentNode.classList.contains('qf_image')) || (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_image'))) {
-          $('#mytextarea').find('.qf_image').removeClass('borderline')
-          $('#mytextarea').find('.closeImg').remove()
-          $('#mytextarea').find('.qf_img_operate').remove()
-        }
-
-      })
-      editor.on('mousedown', function (e) {
-      })
-      editor.on('input', function (e) {
-        // if(window.is_in_quote > 0){window.is_in_quote -= 1}
-        RE.callback()
-      })
-      editor.on('keyup', function (e) {
-        var currentNode = tinymce.activeEditor.selection.getNode();
-        var KEY_DELETE = 8; // 删除键
-        var KEY_BACK = 13; // 换行
-        if (e.which === KEY_BACK) {
-          RE.callback()
-        }
-
-        // 删除键逻辑
-        if (e.which === KEY_DELETE) {
-
-          RE.whiteBlockHandle(currentNode)
-
-        }
-
-
-        // 光标不在视频上，就取消选中的状态
-        if (currentNode.children[0] && !currentNode.children[0].classList.contains('qf_insert_video')) {
-          let $ = tinymce.dom.DomQuery;
-          $('.qf_insert_video').removeClass('borderline')
-          $('.closeImg').remove()
-        }
-      })
-      editor.on('change', function (e) {
-      })
-    }
-  });
-
-  function insertImage() {
-    let obj = {
-      'name': '20200428_1354_1588064712337.jpg',
-      'poster': '20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747',
-      'w': 420,
-      'h': 747,
-      'host': 'https://qiance.qianfanyun.com/',
-    }
-
-    let re = []
-    re.push(obj)
-    // RE.insertVideo(JSON.stringify(obj))
-    RE.insertAllImages(JSON.stringify(re))
-  }
-
-  function insertVideo() {
-    let obj = {
-      'name': '20200428_1354_1588064712337.jpg',
-      'poster': '20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747',
-      'w': 420,
-      'h': 747,
-      'host': 'https://qiance.qianfanyun.com/',
-    }
-
-    RE.insertVideo(JSON.stringify(obj))
-  }
-
-  $('.qf-video-test,.qf-video').each(function () {
-    var $this = $(this);
-    var w = $('body').width();
-    var h = w / 1.33;//设置宽高比例为1.33
-    $this.css({'width': w, 'height': h});
-  });
-
-
-  window.onload = function () {
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyload/1.9.1/jquery.lazyload.min.js'
-    script.onload = script.onreadystatechange = function () {
-      /*懒加载*/
-      $('.lazy').lazyload({
-        "effect": "fadeIn",
-        "placeholder_real_img": "",
-        "placeholder_data_img": "",
-        "load": function (e) {
-          $(e).css({
-            "background-color": "#FFFFFF",
-            "background-image": "none"
-          });
-        }
-      });
+        let re = []
+        re.push(obj)
+        // RE.insertVideo(JSON.stringify(obj))
+        RE.insertAllImages(JSON.stringify(re))
     }
 
-    document.body.appendChild(script);
-  };
+    function insertVideo() {
+        let obj = {
+            'name': '20200428_1354_1588064712337.jpg',
+            'poster': '20200428_1354_1588064712337.jpg?imageslim|imageView2/1/w/420/h/747',
+            'w': 420,
+            'h': 747,
+            'host': 'https://qiance.qianfanyun.com/',
+        }
+
+        RE.insertVideo(JSON.stringify(obj))
+    }
+
+    $('.qf-video-test,.qf-video').each(function () {
+        var $this = $(this);
+        var w = $('body').width();
+        var h = w / 1.33;//设置宽高比例为1.33
+        $this.css({'width': w, 'height': h});
+    });
 
 
-  function setContent() {
-    var html = '<img src="https://qiance.qianfanyun.com/front2_Flf73wUjPgA3vORHna-Cf1AuEvQs.jpg?watermark/3/text/QOWNiuWkjzIyIElEOjE1MzQ=/fontsize/400/dissolve/1/gravity/South/fill/I2M5ZjJiMA==/font/5b6u6L2v6ZuF6buR/dx/101/dy/38/image/aHR0cHM6Ly9xaWFuY2UucWlhbmZhbnl1bi5jb20vd2F0ZXJfaW1nXzIwMTkxMjE5XzI5MS5qcGc=/dissolve/1/gravity/South/dx/-34/dy/10"\n' +
-      '     alt="" width="591" height="1280"\n' +
-      '     data-qf-origin="front2_Flf73wUjPgA3vORHna-Cf1AuEvQs.jpg?watermark/3/text/QOWNiuWkjzIyIElEOjE1MzQ=/fontsize/400/dissolve/1/gravity/South/fill/I2M5ZjJiMA==/font/5b6u6L2v6ZuF6buR/dx/101/dy/38/image/aHR0cHM6Ly9xaWFuY2UucWlhbmZhbnl1bi5jb20vd2F0ZXJfaW1nXzIwMTkxMjE5XzI5MS5qcGc=/dissolve/1/gravity/South/dx/-34/dy/10">'
-    RE.setContent(html)
-  }
+    window.onload = function () {
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyload/1.9.1/jquery.lazyload.min.js'
+        script.onload = script.onreadystatechange = function () {
+            /*懒加载*/
+            $('.lazy').lazyload({
+                "effect": "fadeIn",
+                "placeholder_real_img": "",
+                "placeholder_data_img": "",
+                "load": function (e) {
+                    $(e).css({
+                        "background-color": "#FFFFFF",
+                        "background-image": "none"
+                    });
+                }
+            });
+        }
+
+        document.body.appendChild(script);
+    };
+
+
+    function setContent() {
+        var html = '<img src="https://qiance.qianfanyun.com/front2_Flf73wUjPgA3vORHna-Cf1AuEvQs.jpg?watermark/3/text/QOWNiuWkjzIyIElEOjE1MzQ=/fontsize/400/dissolve/1/gravity/South/fill/I2M5ZjJiMA==/font/5b6u6L2v6ZuF6buR/dx/101/dy/38/image/aHR0cHM6Ly9xaWFuY2UucWlhbmZhbnl1bi5jb20vd2F0ZXJfaW1nXzIwMTkxMjE5XzI5MS5qcGc=/dissolve/1/gravity/South/dx/-34/dy/10"\n' +
+            '     alt="" width="591" height="1280"\n' +
+            '     data-qf-origin="front2_Flf73wUjPgA3vORHna-Cf1AuEvQs.jpg?watermark/3/text/QOWNiuWkjzIyIElEOjE1MzQ=/fontsize/400/dissolve/1/gravity/South/fill/I2M5ZjJiMA==/font/5b6u6L2v6ZuF6buR/dx/101/dy/38/image/aHR0cHM6Ly9xaWFuY2UucWlhbmZhbnl1bi5jb20vd2F0ZXJfaW1nXzIwMTkxMjE5XzI5MS5qcGc=/dissolve/1/gravity/South/dx/-34/dy/10">'
+        RE.setContent(html)
+    }
 
 </script>
 </body>
