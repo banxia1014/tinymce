@@ -160,9 +160,9 @@ img {
   background-color: rgba(7, 2, 3, 0.5);
   border-radius: 50%;
   text-align: center;
-  height: 18px;
-  line-height: 18px;
-  width: 18px;
+  height: 21px;
+  line-height: 21px;
+  width: 21px;
   font-size: 12px;
   top: 15px;
   right: 10px;
@@ -174,7 +174,8 @@ img {
 .closeImg::before {
   content: "\00D7";
   color: #fff;
-  font-size: 12px;
+  font-size: 20px;
+  opacity: 0.8;
 }
 
 .qf_image_container {
@@ -602,7 +603,7 @@ table td, table th {
 
 
 hr {
-  border-color: #ccc;
+  border-color: #E5E5E5;
   border-style: solid;
   border-width: 1px 0 0 0
 }
