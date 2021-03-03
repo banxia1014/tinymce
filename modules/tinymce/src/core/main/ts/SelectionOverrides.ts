@@ -120,7 +120,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
       const contentEditableRoot = getContentEditableRoot(editor, e.target);
       if (contentEditableRoot) {
         // Prevent clicks on links in a cE=false element
-        if (isContentEditableFalse(contentEditableRoot)) {
+        if (isContentEditableFalse(contentEditableRoot) && e.cancelable) {
           e.preventDefault();
           editor.focus();
         }
@@ -147,7 +147,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
         RE.jumpEditLink(e.target);
 
         const contentEditableRoot = getContentEditableRoot(editor, e.target);
-        if (isContentEditableFalse(contentEditableRoot)) {
+        if (isContentEditableFalse(contentEditableRoot) && e.cancelable) {
           e.preventDefault();
           // setContentEditableSelection(CefUtils.selectNode(editor, contentEditableRoot));
         }
@@ -240,7 +240,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
 
       switch (e.keyCode) {
         default:
-          if (isContentEditableFalse(editor.selection.getNode())) {
+          if (isContentEditableFalse(editor.selection.getNode()) && e.cancelable) {
             e.preventDefault();
           }
           break;
@@ -294,7 +294,7 @@ const SelectionOverrides = function (editor: Editor): SelectionOverrides {
       // Doesn't work at all on Edge since it doesn't have proper clipboardData support
       if (!e.isDefaultPrevented() && e.clipboardData && !Env.ie) {
         const realSelectionElement = getRealSelectionElement();
-        if (realSelectionElement) {
+        if (realSelectionElement && e.cancelable) {
           e.preventDefault();
           clipboardData.clearData();
           clipboardData.setData('text/html', realSelectionElement.outerHTML);

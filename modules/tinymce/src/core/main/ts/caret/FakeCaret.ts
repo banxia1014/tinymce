@@ -132,7 +132,7 @@ export const FakeCaret = (editor: Editor, root: HTMLElement, isBlock: (node: Nod
       });
 
       startBlink();
-
+      console.log('开始闪烁');
       rng = element.ownerDocument.createRange();
       rng.setStart(caretContainerNode, 0);
       rng.setEnd(caretContainerNode, 0);

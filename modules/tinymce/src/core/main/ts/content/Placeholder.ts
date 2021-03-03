@@ -92,7 +92,7 @@ const setup = (editor: Editor) => {
     // Check to see if we should show the placeholder
     const body = editor.getBody();
     const showPlaceholder = isTypingKeyboardEvent(e) ? false : isVisuallyEmpty(dom, body, rootBlock);
-    console.log('showPlaceholder:'+showPlaceholder);
+    // console.log('showPlaceholder:'+showPlaceholder);
     // Update the attribute as required
     const isPlaceholderShown = dom.getAttrib(body, placeholderAttr) !== '';
     if (isPlaceholderShown !== showPlaceholder || initial) {
