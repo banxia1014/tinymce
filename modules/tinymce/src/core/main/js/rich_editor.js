@@ -258,7 +258,7 @@ RE.insertVideo = function (video) {
 
 
   html += `<p><span data-mce-object="video" class="mceNonEditable qf_insert_video mce-preview-object mce-object-video" data-mce-p-data-mce-fragment="1" data-mce-p-controls="controls" data-mce-p-poster="${poster}" data-mce-html="${source}">
-	<video class="qf_video" style="background-color: black;height:${h}px;width:${w}px;" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${video.w}" height="${video.h}" frameborder="0"></video><span class="mce-shim"></span>
+	<video class="qf_video" data-controlslist="nodownload" style="background-color: black;height:${h}px;width:${w}px;" data-qf-origin="${origin_url}" data-qf-poster-origin="${origin_poster}" src="${url}" poster="${poster}" width="${video.w}" height="${video.h}" frameborder="0" controlslist="nodownload" ></video><span class="mce-shim"></span>
 	</span></p><p><br data-mce-bogus="1"></p>`
 
   tinymce.activeEditor.execCommand('mceInsertContent', false, html)
